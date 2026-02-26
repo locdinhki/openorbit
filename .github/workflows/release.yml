@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
 
       - run: ${{ matrix.build_cmd }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
@@ -35,10 +37,11 @@ jobs:
           name: release-${{ matrix.os }}
           path: |
             dist/*.dmg
+            dist/*.zip
             dist/*.AppImage
             dist/*.deb
             dist/*.snap
-            dist/*.exe
+            dist/*-setup.exe
           retention-days: 30
 
   release:
@@ -58,4 +61,4 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          files: artifacts/*
+          files: artifacts/**/*
