@@ -41,7 +41,11 @@ export default function ShellLayout(): React.JSX.Element {
   const extensionSidebarItems = getAllSidebarContributions(extensions)
   const statusBarItems = extensions.flatMap((ext) => ext.contributes.statusBar ?? [])
   const toolbarItems = extensions.flatMap((ext) => ext.contributes.toolbar ?? [])
-  const panelItems = extensions.flatMap((ext) => ext.contributes.panel ?? [])
+  // Scope panels to the extension that owns the active sidebar
+  const activeExt = extensions.find((ext) =>
+    ext.contributes.sidebar?.some((s) => s.id === activeSidebarId)
+  )
+  const panelItems = activeExt?.contributes.panel ?? []
 
   const handleSidebarResize = useCallback((delta: number) => {
     const el = sidebarRef.current
@@ -99,20 +103,23 @@ export default function ShellLayout(): React.JSX.Element {
               </div>
             </div>
 
-            <ResizeHandle onResize={handlePanelResize} />
-
-            {/* Right Panel */}
-            <div
-              ref={panelRef}
-              className="flex-shrink-0 border-l border-[var(--cos-border)] bg-[var(--cos-bg-secondary)]"
-              style={{ width: PANEL_DEFAULT }}
-            >
-              <PanelContainer
-                activeId={activePanelId}
-                panels={panelItems}
-                onSelectPanel={setActivePanel}
-              />
-            </div>
+            {/* Right Panel — only shown when extension has panels */}
+            {panelItems.length > 0 && (
+              <>
+                <ResizeHandle onResize={handlePanelResize} />
+                <div
+                  ref={panelRef}
+                  className="flex-shrink-0 border-l border-[var(--cos-border)] bg-[var(--cos-bg-secondary)]"
+                  style={{ width: PANEL_DEFAULT }}
+                >
+                  <PanelContainer
+                    activeId={activePanelId}
+                    panels={panelItems}
+                    onSelectPanel={setActivePanel}
+                  />
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

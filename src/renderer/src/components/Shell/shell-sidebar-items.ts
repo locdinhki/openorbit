@@ -10,5 +10,6 @@ import type { SidebarContribution } from '@openorbit/core/extensions/types'
  */
 export const SHELL_SIDEBAR_ITEMS: SidebarContribution[] = [
   { id: 'shell-extensions', label: 'Extensions', icon: 'blocks', priority: 1000 },
-  { id: 'shell-automations', label: 'Automations', icon: 'zap', priority: 900 }
+  { id: 'shell-automations', label: 'Automations', icon: 'zap', priority: 900 },
+  { id: 'db-viewer-sidebar', label: 'Database', icon: 'database', priority: 800 }
 ]

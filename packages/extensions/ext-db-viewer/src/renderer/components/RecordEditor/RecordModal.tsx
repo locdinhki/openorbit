@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { ColumnInfo } from '../../../main/db/schema-introspector'
 
 interface Props {
@@ -9,7 +10,13 @@ interface Props {
   onClose: () => void
 }
 
-export default function RecordModal({ table, columns, record, onSave, onClose }: Props): React.JSX.Element {
+export default function RecordModal({
+  table,
+  columns,
+  record,
+  onSave,
+  onClose
+}: Props): React.JSX.Element {
   const isEditing = record !== null
   const [values, setValues] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
@@ -38,8 +45,11 @@ export default function RecordModal({ table, columns, record, onSave, onClose }:
     onSave(result)
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
       <div
         className="bg-[var(--cos-bg-primary)] border border-[var(--cos-border)] rounded-lg shadow-xl w-[480px] max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -106,6 +116,7 @@ export default function RecordModal({ table, columns, record, onSave, onClose }:
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

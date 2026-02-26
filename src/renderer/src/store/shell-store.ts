@@ -6,6 +6,7 @@ import { create } from 'zustand'
 import type { ExtensionManifest, SidebarContribution } from '@openorbit/core/extensions/types'
 import type { Schedule } from '@openorbit/core/db/schedules-repo'
 import type { ToolMeta } from '@openorbit/core/automation/scheduler-types'
+import { SHELL_SIDEBAR_ITEMS } from '../components/Shell/shell-sidebar-items'
 
 export interface ShellState {
   /** All discovered extension manifests */
@@ -76,23 +77,36 @@ export const useShellStore = create<ShellState>()((set) => ({
         activeSidebarId = sidebars[0]?.id ?? null
       }
 
+      // Bind workspace + panel to the extension that owns the active sidebar
+      const ownerExt = extensions.find((ext) =>
+        ext.contributes.sidebar?.some((s) => s.id === activeSidebarId)
+      )
+
       if (!activeWorkspaceId) {
-        // Pick the default workspace, or first available
-        const workspaces = extensions.flatMap((ext) => ext.contributes.workspace ?? [])
-        activeWorkspaceId =
-          workspaces.find((w) => w.default)?.id ?? workspaces[0]?.id ?? null
+        activeWorkspaceId = ownerExt?.contributes.workspace?.[0]?.id ?? null
       }
 
       if (!activePanelId) {
-        const panels = extensions.flatMap((ext) => ext.contributes.panel ?? [])
-        activePanelId = panels[0]?.id ?? null
+        activePanelId = ownerExt?.contributes.panel?.[0]?.id ?? null
       }
 
       return { extensions, activeSidebarId, activeWorkspaceId, activePanelId }
     })
   },
 
-  setActiveSidebar: (id) => set({ activeSidebarId: id }),
+  setActiveSidebar: (id) =>
+    set((state) => {
+      // Find the extension that owns this sidebar and switch workspace + panel to match
+      const ownerExt = state.extensions.find((ext) =>
+        ext.contributes.sidebar?.some((s) => s.id === id)
+      )
+      if (ownerExt) {
+        const workspace = ownerExt.contributes.workspace?.[0]?.id ?? null
+        const panel = ownerExt.contributes.panel?.[0]?.id ?? null
+        return { activeSidebarId: id, activeWorkspaceId: workspace, activePanelId: panel }
+      }
+      return { activeSidebarId: id }
+    }),
   setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
   setActivePanel: (id) => set({ activePanelId: id }),
   setSessionInitialized: (initialized) => set({ sessionInitialized: initialized }),
@@ -101,11 +115,9 @@ export const useShellStore = create<ShellState>()((set) => ({
   setSchedules: (schedules) => set({ schedules }),
   setTools: (tools) => set({ tools }),
   setSchedulesLoading: (loading) => set({ schedulesLoading: loading }),
-  openWizard: (scheduleId) =>
-    set({ wizardOpen: true, editingScheduleId: scheduleId ?? null }),
+  openWizard: (scheduleId) => set({ wizardOpen: true, editingScheduleId: scheduleId ?? null }),
   closeWizard: () => set({ wizardOpen: false, editingScheduleId: null }),
-  addScheduleToList: (schedule) =>
-    set((state) => ({ schedules: [schedule, ...state.schedules] })),
+  addScheduleToList: (schedule) => set((state) => ({ schedules: [schedule, ...state.schedules] })),
   updateScheduleInList: (schedule) =>
     set((state) => ({
       schedules: state.schedules.map((s) => (s.id === schedule.id ? schedule : s))
@@ -131,12 +143,13 @@ export const useShellStore = create<ShellState>()((set) => ({
 // ---------------------------------------------------------------------------
 
 /**
- * Get all sidebar contributions from all extensions, sorted by priority.
+ * Get all sidebar contributions from extensions, excluding items promoted to shell group.
  */
-export function getAllSidebarContributions(
-  extensions: ExtensionManifest[]
-): SidebarContribution[] {
+const shellSidebarIds = new Set(SHELL_SIDEBAR_ITEMS.map((s) => s.id))
+
+export function getAllSidebarContributions(extensions: ExtensionManifest[]): SidebarContribution[] {
   return extensions
     .flatMap((ext) => ext.contributes.sidebar ?? [])
+    .filter((s) => !shellSidebarIds.has(s.id))
     .sort((a, b) => b.priority - a.priority)
 }

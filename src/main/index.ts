@@ -28,6 +28,7 @@ import { RPCServer } from './rpc-server'
 import { registerRPCHandlers } from './rpc-handlers'
 import { setRelaySender } from '@openorbit/core/automation/relay-session'
 import { IPC } from '@openorbit/core/ipc-channels'
+import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import { initExtensionHost } from '@openorbit/core/extensions/extension-host'
 import { getDatabase } from '@openorbit/core/db/database'
 import { AIProviderRegistry } from '@openorbit/core/ai/provider-registry'
@@ -254,8 +255,6 @@ app.whenReady().then(() => {
   const rpcToken = loadOrCreateToken(tokenPath)
 
   // Read bind host from settings (default: localhost only)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- must import after initCore initializes DB
-  const { SettingsRepo } = require('@openorbit/core/db/settings-repo')
   const settingsRepo = new SettingsRepo()
   const rpcBindHost = (settingsRepo.get('rpc.bind-host') as string) ?? '127.0.0.1'
 
