@@ -129,11 +129,7 @@ export default function PairingQR(): React.JSX.Element {
           <code className="flex-1 text-xs font-mono px-2 py-1.5 bg-[var(--cos-bg-tertiary)] border border-[var(--cos-border)] rounded truncate text-[var(--cos-text-primary)]">
             {info.wsUrl}
           </code>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => copy(info.wsUrl, 'url')}
-          >
+          <Button variant="secondary" size="sm" onClick={() => copy(info.wsUrl, 'url')}>
             {copied === 'url' ? 'Copied!' : 'Copy'}
           </Button>
         </div>
@@ -146,11 +142,7 @@ export default function PairingQR(): React.JSX.Element {
           <code className="flex-1 text-xs font-mono px-2 py-1.5 bg-[var(--cos-bg-tertiary)] border border-[var(--cos-border)] rounded truncate text-[var(--cos-text-primary)]">
             {info.token.substring(0, 8)}…
           </code>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => copy(info.token, 'token')}
-          >
+          <Button variant="secondary" size="sm" onClick={() => copy(info.token, 'token')}>
             {copied === 'token' ? 'Copied!' : 'Copy'}
           </Button>
         </div>

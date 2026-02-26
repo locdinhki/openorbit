@@ -62,6 +62,7 @@ export default function ScheduleWizard({
     if (!open) return
 
     if (editingSchedule) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setTaskType(editingSchedule.taskType)
       setConfig(editingSchedule.config ?? {})
       setName(editingSchedule.name)
@@ -80,6 +81,7 @@ export default function ScheduleWizard({
       setEnabled(true)
       setCronPreset('custom')
       setStep('action')
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [open, editingSchedule, tools])
 
@@ -181,9 +183,7 @@ export default function ScheduleWizard({
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[var(--cos-border)]">
         {activeSteps.map((s, i) => (
           <div key={s} className="flex items-center gap-2">
-            {i > 0 && (
-              <div className="w-6 h-px bg-[var(--cos-border)]" />
-            )}
+            {i > 0 && <div className="w-6 h-px bg-[var(--cos-border)]" />}
             <span
               className={`text-xs px-2 py-0.5 rounded-full ${
                 s === step
@@ -226,16 +226,15 @@ export default function ScheduleWizard({
                   <span className="text-sm font-medium text-[var(--cos-text-primary)]">
                     {tool.label}
                   </span>
-                  <span className="text-xs text-[var(--cos-text-muted)]">
-                    {tool.extensionId}
-                  </span>
+                  <span className="text-xs text-[var(--cos-text-muted)]">{tool.extensionId}</span>
                 </div>
                 <p className="text-xs text-[var(--cos-text-muted)] mt-1">{tool.description}</p>
               </button>
             ))}
             {tools.length === 0 && (
               <p className="text-sm text-[var(--cos-text-muted)] text-center py-8">
-                No automation tools registered. Install an extension that provides scheduled actions.
+                No automation tools registered. Install an extension that provides scheduled
+                actions.
               </p>
             )}
           </div>
@@ -243,9 +242,7 @@ export default function ScheduleWizard({
 
         {step === 'config' && selectedTool && (
           <div className="space-y-4">
-            <p className="text-xs text-[var(--cos-text-muted)]">
-              Configure {selectedTool.label}:
-            </p>
+            <p className="text-xs text-[var(--cos-text-muted)]">Configure {selectedTool.label}:</p>
             <DynamicConfigForm
               schema={selectedTool.configSchema}
               values={config}
@@ -272,9 +269,7 @@ export default function ScheduleWizard({
               <label className={labelClass}>Frequency</label>
               <select
                 className={inputClass}
-                value={
-                  CRON_PRESETS.some((p) => p.value === cronPreset) ? cronPreset : 'custom'
-                }
+                value={CRON_PRESETS.some((p) => p.value === cronPreset) ? cronPreset : 'custom'}
                 onChange={(e) => handleCronPresetChange(e.target.value)}
               >
                 {CRON_PRESETS.map((p) => (
@@ -286,8 +281,7 @@ export default function ScheduleWizard({
               </select>
             </div>
 
-            {(cronPreset === 'custom' ||
-              !CRON_PRESETS.some((p) => p.value === cronPreset)) && (
+            {(cronPreset === 'custom' || !CRON_PRESETS.some((p) => p.value === cronPreset)) && (
               <div>
                 <label className={labelClass}>Cron Expression</label>
                 <input
@@ -308,9 +302,7 @@ export default function ScheduleWizard({
                 <span className="text-xs text-[var(--cos-text-muted)]">Preview: </span>
                 <span
                   className={`text-xs ${
-                    isValidCron(cronExpression)
-                      ? 'text-[var(--cos-text-primary)]'
-                      : 'text-red-400'
+                    isValidCron(cronExpression) ? 'text-[var(--cos-text-primary)]' : 'text-red-400'
                   }`}
                 >
                   {isValidCron(cronExpression)
@@ -331,9 +323,7 @@ export default function ScheduleWizard({
                   />
                   <div className="w-8 h-4 bg-[var(--cos-border-light)] peer-checked:bg-indigo-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-transform peer-checked:after:translate-x-4" />
                 </div>
-                <span className="text-xs text-[var(--cos-text-secondary)]">
-                  Enable immediately
-                </span>
+                <span className="text-xs text-[var(--cos-text-secondary)]">Enable immediately</span>
               </label>
             </div>
           </div>
@@ -350,13 +340,15 @@ export default function ScheduleWizard({
               {Object.keys(config).length > 0 && (
                 <ReviewRow
                   label="Configuration"
-                  value={Object.entries(config)
-                    .filter(([, v]) => {
-                      if (Array.isArray(v)) return v.length > 0
-                      return v !== '' && v !== undefined
-                    })
-                    .map(([k, v]) => `${k}: ${Array.isArray(v) ? `${v.length} selected` : v}`)
-                    .join(', ') || 'Default'}
+                  value={
+                    Object.entries(config)
+                      .filter(([, v]) => {
+                        if (Array.isArray(v)) return v.length > 0
+                        return v !== '' && v !== undefined
+                      })
+                      .map(([k, v]) => `${k}: ${Array.isArray(v) ? `${v.length} selected` : v}`)
+                      .join(', ') || 'Default'
+                  }
                 />
               )}
               <ReviewRow label="Name" value={name} />

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AIService, AICompletionResponse } from '../provider-types'
+import type { MemoryRepo } from '../../db/memory-repo'
 
 const mockChat = vi.fn()
 
@@ -43,22 +44,21 @@ function createMockAI(): AIService {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createMockMemoryRepo() {
   return {
-    addFact: vi.fn(
-      (category: string, content: string, source: string, confidence: number) => ({
-        id: `fact-${Date.now()}`,
-        category,
-        content,
-        source,
-        confidence,
-        metadata: {},
-        createdAt: '2025-01-01',
-        updatedAt: '2025-01-01',
-        accessedAt: '2025-01-01',
-        accessCount: 0
-      })
-    ),
+    addFact: vi.fn((category: string, content: string, source: string, confidence: number) => ({
+      id: `fact-${Date.now()}`,
+      category,
+      content,
+      source,
+      confidence,
+      metadata: {},
+      createdAt: '2025-01-01',
+      updatedAt: '2025-01-01',
+      accessedAt: '2025-01-01',
+      accessCount: 0
+    })),
     getByCategory: vi.fn().mockReturnValue([]),
     search: vi.fn().mockReturnValue([]),
     listAll: vi.fn().mockReturnValue([]),
@@ -116,9 +116,7 @@ describe('ChatHandler', () => {
       }
 
       await handler.sendMessage('Analyze this', job)
-      expect(mockChat).toHaveBeenCalledWith(
-        expect.objectContaining({ task: 'chat' })
-      )
+      expect(mockChat).toHaveBeenCalledWith(expect.objectContaining({ task: 'chat' }))
     })
   })
 
@@ -204,7 +202,7 @@ describe('ChatHandler', () => {
       ])
       mockChat.mockResolvedValue(mockResponse('Noted'))
 
-      const h = new ChatHandler(createMockAI(), repo as any)
+      const h = new ChatHandler(createMockAI(), repo as unknown as MemoryRepo)
       await h.sendMessage('any jobs?')
 
       const chatCall = mockChat.mock.calls[0][0]
@@ -221,7 +219,7 @@ describe('ChatHandler', () => {
         )
       )
 
-      const h = new ChatHandler(createMockAI(), repo as any)
+      const h = new ChatHandler(createMockAI(), repo as unknown as MemoryRepo)
       const response = await h.sendMessage('I only want remote roles')
 
       expect(response).not.toContain('<memory')
@@ -231,12 +229,10 @@ describe('ChatHandler', () => {
     it('saves extracted facts via memoryRepo', async () => {
       const repo = createMockMemoryRepo()
       mockChat.mockResolvedValue(
-        mockResponse(
-          'Noted. <memory category="preference">Minimum salary $150k</memory>'
-        )
+        mockResponse('Noted. <memory category="preference">Minimum salary $150k</memory>')
       )
 
-      const h = new ChatHandler(createMockAI(), repo as any)
+      const h = new ChatHandler(createMockAI(), repo as unknown as MemoryRepo)
       await h.sendMessage('I need at least $150k')
 
       expect(repo.addFact).toHaveBeenCalledWith('preference', 'Minimum salary $150k', 'chat', 0.8)
@@ -245,12 +241,10 @@ describe('ChatHandler', () => {
     it('stores cleaned response in history (no tags)', async () => {
       const repo = createMockMemoryRepo()
       mockChat.mockResolvedValue(
-        mockResponse(
-          'Sure! <memory category="company">Stripe uses React</memory>'
-        )
+        mockResponse('Sure! <memory category="company">Stripe uses React</memory>')
       )
 
-      const h = new ChatHandler(createMockAI(), repo as any)
+      const h = new ChatHandler(createMockAI(), repo as unknown as MemoryRepo)
       await h.sendMessage('Tell me about Stripe')
 
       const history = h.getHistory()
@@ -262,7 +256,7 @@ describe('ChatHandler', () => {
       const repo = createMockMemoryRepo()
       mockChat.mockResolvedValue(mockResponse('Hi'))
 
-      const h = new ChatHandler(createMockAI(), repo as any)
+      const h = new ChatHandler(createMockAI(), repo as unknown as MemoryRepo)
       await h.sendMessage('Hi')
 
       const chatCall = mockChat.mock.calls[0][0]

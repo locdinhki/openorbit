@@ -94,9 +94,7 @@ export function registerSkillsCommand(program: Command): void {
     .action(() => {
       console.log('To publish a skill to the OpenOrbit community registry:')
       console.log('')
-      console.log(
-        '1. Fork https://github.com/openorbit/skills-registry'
-      )
+      console.log('1. Fork https://github.com/openorbit/skills-registry')
       console.log('2. Add your skill YAML file to the skills/ directory')
       console.log('3. Add an entry to index.json with your skill metadata')
       console.log('4. Open a Pull Request — automated checks will validate your skill')

@@ -7,7 +7,12 @@ interface Props {
   indexes: IndexInfo[]
 }
 
-export default function TableDetail({ table, columns, primaryKey, indexes }: Props): React.JSX.Element {
+export default function TableDetail({
+  table: _table,
+  columns,
+  primaryKey,
+  indexes
+}: Props): React.JSX.Element {
   return (
     <div className="p-3 space-y-4">
       {/* Columns */}

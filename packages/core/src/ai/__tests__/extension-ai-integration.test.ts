@@ -194,10 +194,7 @@ describe('Cross-extension AI integration', () => {
       service.registerProvider(claude)
       service.registerProvider(openai)
 
-      const result = await service.complete(
-        { systemPrompt: 'sys', userMessage: 'test' },
-        'openai'
-      )
+      const result = await service.complete({ systemPrompt: 'sys', userMessage: 'test' }, 'openai')
       expect(result.content).toBe('from openai')
       expect(claude.complete).not.toHaveBeenCalled()
     })
@@ -248,9 +245,8 @@ describe('Cross-extension AI integration', () => {
       service.registerProvider(provider)
 
       const chunks: AIStreamChunk[] = []
-      const result = await service.stream!(
-        { systemPrompt: 'sys', userMessage: 'hi' },
-        (chunk) => chunks.push(chunk)
+      const result = await service.stream!({ systemPrompt: 'sys', userMessage: 'hi' }, (chunk) =>
+        chunks.push(chunk)
       )
 
       // 3 content chunks + 1 final done chunk
@@ -278,9 +274,9 @@ describe('Cross-extension AI integration', () => {
     })
 
     it('calling service.complete() before any provider registers throws clear error', async () => {
-      await expect(
-        service.complete({ systemPrompt: 'sys', userMessage: 'hello' })
-      ).rejects.toThrow('No AI provider registered')
+      await expect(service.complete({ systemPrompt: 'sys', userMessage: 'hello' })).rejects.toThrow(
+        'No AI provider registered'
+      )
     })
   })
 })

@@ -32,10 +32,12 @@ function useDynamicOptions(field: ToolConfigField): {
 
   useEffect(() => {
     if (!field.source) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     window.api
       .invoke(field.source)
-      .then((result: { success?: boolean; data?: Record<string, unknown>[] }) => {
+      .then((raw: unknown) => {
+        const result = raw as { success?: boolean; data?: Record<string, unknown>[] }
         if (result.success && Array.isArray(result.data)) {
           setOptions(
             result.data.map((item) => ({

@@ -55,7 +55,10 @@ export const ipc = {
         changes
       }) as Promise<IPCResult<{ affected: number }>>,
 
-    insert: (table: string, values: Record<string, unknown>): Promise<IPCResult<{ lastId: unknown }>> =>
+    insert: (
+      table: string,
+      values: Record<string, unknown>
+    ): Promise<IPCResult<{ lastId: unknown }>> =>
       api.invoke(EXT_DB_VIEWER_IPC.RECORD_INSERT, { table, values }) as Promise<
         IPCResult<{ lastId: unknown }>
       >,
@@ -75,10 +78,7 @@ export const ipc = {
         IPCResult<SqlExecuteResult>
       >,
 
-    devMode: (
-      action: 'get' | 'set',
-      enabled?: boolean
-    ): Promise<IPCResult<{ enabled: boolean }>> =>
+    devMode: (action: 'get' | 'set', enabled?: boolean): Promise<IPCResult<{ enabled: boolean }>> =>
       api.invoke(EXT_DB_VIEWER_IPC.DEV_MODE, { action, enabled }) as Promise<
         IPCResult<{ enabled: boolean }>
       >

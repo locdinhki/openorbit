@@ -123,10 +123,7 @@ export class AIProviderRegistry {
     return this.resolveProvider(providerId).complete(request)
   }
 
-  private async chat(
-    request: AIChatRequest,
-    providerId?: string
-  ): Promise<AICompletionResponse> {
+  private async chat(request: AIChatRequest, providerId?: string): Promise<AICompletionResponse> {
     return this.resolveProvider(providerId).chat(request)
   }
 

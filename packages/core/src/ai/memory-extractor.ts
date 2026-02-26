@@ -18,10 +18,7 @@ const VALID_CATEGORIES = new Set<string>(['preference', 'company', 'pattern', 'a
  * Tags with empty content are stripped but not saved.
  * Returns the cleaned response and any saved facts.
  */
-export function extractAndSaveMemories(
-  response: string,
-  memoryRepo: MemoryRepo
-): ExtractionResult {
+export function extractAndSaveMemories(response: string, memoryRepo: MemoryRepo): ExtractionResult {
   const savedFacts: MemoryFact[] = []
 
   for (const match of response.matchAll(MEMORY_TAG_REGEX)) {
@@ -43,7 +40,10 @@ export function extractAndSaveMemories(
     }
   }
 
-  const cleanedResponse = response.replace(MEMORY_TAG_REGEX, '').replace(/\s{2,}/g, ' ').trim()
+  const cleanedResponse = response
+    .replace(MEMORY_TAG_REGEX, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 
   if (savedFacts.length > 0) {
     log.info(`Extracted ${savedFacts.length} memory fact(s) from chat response`)

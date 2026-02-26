@@ -9,7 +9,10 @@
 // which will be migrated to useExtJobsStore incrementally.
 // ============================================================================
 
-import type { ExtensionRendererAPI, ExtensionRendererContext } from '@openorbit/core/extensions/types'
+import type {
+  ExtensionRendererAPI,
+  ExtensionRendererContext
+} from '@openorbit/core/extensions/types'
 
 // Import the existing components that were moved to this extension.
 // These are the same components, just living in the extension now.

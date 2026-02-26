@@ -5,7 +5,7 @@
 // Telegram has a 4096-character message limit, so all formatters truncate.
 // ============================================================================
 
-import type { JobListing, SearchProfile, ActionLog } from '@openorbit/core/types'
+import type { JobListing, SearchProfile, ActionLog, JobStatus } from '@openorbit/core/types'
 import type { InlineKeyboardButton } from './telegram-bot'
 import type { JobsRepo } from '@openorbit/ext-jobs/main/db/jobs-repo'
 import type { ActionLogRepo } from '@openorbit/ext-jobs/main/db/action-log-repo'
@@ -52,12 +52,12 @@ export function formatJobDetail(job: JobListing): string {
   }
 
   if (job.highlights) {
-    lines.push(`*Highlights:* ${escapeMarkdown(job.highlights)}`)
+    lines.push(`*Highlights:* ${escapeMarkdown(job.highlights.join(', '))}`)
     lines.push('')
   }
 
   if (job.redFlags) {
-    lines.push(`*Red Flags:* ${escapeMarkdown(job.redFlags)}`)
+    lines.push(`*Red Flags:* ${escapeMarkdown(job.redFlags.join(', '))}`)
     lines.push('')
   }
 
@@ -118,9 +118,9 @@ export function formatActionLog(entries: ActionLog[]): string {
 
 export function formatStatusSummary(jobsRepo: JobsRepo, actionLogRepo: ActionLogRepo): string {
   try {
-    const newJobs = jobsRepo.list({ status: 'new' as any })
-    const approvedJobs = jobsRepo.list({ status: 'approved' as any })
-    const appliedJobs = jobsRepo.list({ status: 'applied' as any })
+    const newJobs = jobsRepo.list({ status: 'new' as JobStatus })
+    const approvedJobs = jobsRepo.list({ status: 'approved' as JobStatus })
+    const appliedJobs = jobsRepo.list({ status: 'applied' as JobStatus })
     const recentActions = actionLogRepo.getRecent(1)
 
     const lines = [
@@ -128,7 +128,7 @@ export function formatStatusSummary(jobsRepo: JobsRepo, actionLogRepo: ActionLog
       '',
       `New jobs: ${newJobs.length}`,
       `Approved: ${approvedJobs.length}`,
-      `Applied: ${appliedJobs.length}`,
+      `Applied: ${appliedJobs.length}`
     ]
 
     if (recentActions.length > 0) {

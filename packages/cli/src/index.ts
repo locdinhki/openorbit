@@ -127,9 +127,7 @@ registerTemplatesCommand(program, withClient)
 
 // --- relay ---
 
-const relayCmd = program
-  .command('relay')
-  .description('Manage the Chrome extension relay')
+const relayCmd = program.command('relay').description('Manage the Chrome extension relay')
 
 relayCmd
   .command('status')

@@ -99,9 +99,13 @@ export function formatJobDetail(job: JobListing): EmbedBuilder {
 
   const extra: { name: string; value: string; inline: boolean }[] = []
   if (job.highlights)
-    extra.push({ name: 'Highlights', value: truncateField(job.highlights), inline: false })
+    extra.push({
+      name: 'Highlights',
+      value: truncateField(job.highlights.join(', ')),
+      inline: false
+    })
   if (job.redFlags)
-    extra.push({ name: 'Red Flags', value: truncateField(job.redFlags), inline: false })
+    extra.push({ name: 'Red Flags', value: truncateField(job.redFlags.join(', ')), inline: false })
   if (extra.length > 0) embed.addFields(extra)
 
   return embed

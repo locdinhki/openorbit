@@ -5,7 +5,6 @@
 import { vi } from 'vitest'
 import type {
   AIProvider,
-  AIProviderCapabilities,
   AICompletionResponse,
   AIToolCall,
   AIToolResponse,
@@ -52,8 +51,17 @@ export function createStreamingProvider(
         onChunk({ delta: text, done: false })
       }
       const fullContent = chunks.join('')
-      onChunk({ delta: '', done: true, model: 'stream-model', usage: { inputTokens: 5, outputTokens: chunks.length } })
-      return { content: fullContent, model: 'stream-model', usage: { inputTokens: 5, outputTokens: chunks.length } }
+      onChunk({
+        delta: '',
+        done: true,
+        model: 'stream-model',
+        usage: { inputTokens: 5, outputTokens: chunks.length }
+      })
+      return {
+        content: fullContent,
+        model: 'stream-model',
+        usage: { inputTokens: 5, outputTokens: chunks.length }
+      }
     })
   })
 }

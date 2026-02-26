@@ -15,7 +15,15 @@ import type {
 // useAIProviders — list & manage providers
 // ---------------------------------------------------------------------------
 
-export function useAIProviders() {
+interface AIProvidersHook {
+  providers: AIProviderInfo[]
+  loading: boolean
+  error: string | null
+  refresh: () => Promise<void>
+  setDefault: (providerId: string) => Promise<{ success: boolean; data?: unknown; error?: string }>
+}
+
+export function useAIProviders(): AIProvidersHook {
   const [providers, setProviders] = useState<AIProviderInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +41,7 @@ export function useAIProviders() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh()
   }, [refresh])
 
@@ -52,7 +61,21 @@ export function useAIProviders() {
 // useAIComplete — single-turn completion
 // ---------------------------------------------------------------------------
 
-export function useAIComplete() {
+interface AICompleteHook {
+  complete: (request: {
+    systemPrompt: string
+    userMessage: string
+    tier?: ModelTier
+    maxTokens?: number
+    task?: string
+    providerId?: string
+  }) => Promise<{ success: boolean; data?: AICompletionResponse; error?: string }>
+  result: AICompletionResponse | null
+  loading: boolean
+  error: string | null
+}
+
+export function useAIComplete(): AICompleteHook {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<AICompletionResponse | null>(null)
@@ -93,7 +116,17 @@ interface ChatMessage {
   content: string
 }
 
-export function useAIChat(systemPrompt: string, tier: ModelTier = 'standard') {
+interface AIChatHook {
+  messages: ChatMessage[]
+  sendMessage: (
+    content: string
+  ) => Promise<{ success: boolean; data?: AICompletionResponse; error?: string }>
+  clearHistory: () => void
+  loading: boolean
+  error: string | null
+}
+
+export function useAIChat(systemPrompt: string, tier: ModelTier = 'standard'): AIChatHook {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -138,7 +171,22 @@ export function useAIChat(systemPrompt: string, tier: ModelTier = 'standard') {
 // useAIStream — streaming completion
 // ---------------------------------------------------------------------------
 
-export function useAIStream() {
+interface AIStreamHook {
+  stream: (request: {
+    systemPrompt: string
+    userMessage: string
+    tier?: ModelTier
+    maxTokens?: number
+    task?: string
+    providerId?: string
+  }) => Promise<{ success: boolean; data?: AICompletionResponse; error?: string }>
+  content: string
+  result: AICompletionResponse | null
+  loading: boolean
+  error: string | null
+}
+
+export function useAIStream(): AIStreamHook {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState('')

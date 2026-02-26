@@ -284,9 +284,8 @@ describe('ClaudeSdkProvider', () => {
       ])
 
       const chunks: AIStreamChunk[] = []
-      const result = await provider.stream(
-        { systemPrompt: 'test', userMessage: 'test' },
-        (chunk) => chunks.push(chunk)
+      const result = await provider.stream({ systemPrompt: 'test', userMessage: 'test' }, (chunk) =>
+        chunks.push(chunk)
       )
 
       // Intermediate chunks

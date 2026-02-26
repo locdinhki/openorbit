@@ -42,12 +42,12 @@ const extension: ExtensionMainAPI = {
     try {
       client = new WhatsAppClient({ authorizedNumbers, dataDir }, ctx.log)
 
-      client.setMessageHandler(async (from, text) => {
+      client.setMessageHandler(async (_from, text) => {
         return gateway!.handleMessage(text)
       })
 
       client.setQRHandler((qr) => {
-        ctx.ipc.send('ext-whatsapp:qr-code', { qr })
+        ctx.ipc.push('ext-whatsapp:qr-code', { qr })
       })
 
       // Wire voice transcriber
@@ -123,12 +123,12 @@ function registerIPCHandlers(ctx: ExtensionContext): void {
       try {
         client = new WhatsAppClient({ authorizedNumbers, dataDir }, ctx.log)
 
-        client.setMessageHandler(async (from, text) => {
+        client.setMessageHandler(async (_from, text) => {
           return gateway!.handleMessage(text)
         })
 
         client.setQRHandler((qr) => {
-          ctx.ipc.send('ext-whatsapp:qr-code', { qr })
+          ctx.ipc.push('ext-whatsapp:qr-code', { qr })
         })
 
         const settings2 = new SettingsRepo()

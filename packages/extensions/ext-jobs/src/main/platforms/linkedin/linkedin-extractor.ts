@@ -178,7 +178,9 @@ export class LinkedInExtractor {
       }
     }
 
-    log.info(`Extracted ${cards.length} cards (${allJobIds.length || cardElements.length} total items)`)
+    log.info(
+      `Extracted ${cards.length} cards (${allJobIds.length || cardElements.length} total items)`
+    )
     return cards
   }
 

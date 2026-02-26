@@ -5,9 +5,9 @@
 // through the user's Max plan subscription at zero additional API cost.
 // ============================================================================
 
+import { execSync } from 'child_process'
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type {
-  SDKMessage,
   SDKResultSuccess,
   SDKResultError,
   SDKPartialAssistantMessage,
@@ -64,21 +64,23 @@ function cleanEnv(): Record<string, string> {
 
 /** Extract text content from an SDKAssistantMessage's BetaMessage. */
 function extractAssistantText(msg: SDKAssistantMessage): string {
-  const blocks = msg.message?.content ?? []
+  const blocks = (msg.message?.content ?? []) as unknown as Array<Record<string, unknown>>
   return blocks
-    .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
-    .map((b) => b.text)
+    .filter((b) => b.type === 'text')
+    .map((b) => b.text as string)
     .join('')
 }
 
 /** Extract tool_use blocks from an SDKAssistantMessage. */
 function extractToolCalls(msg: SDKAssistantMessage): AIToolCall[] {
-  const blocks = msg.message?.content ?? []
+  const blocks = (msg.message?.content ?? []) as unknown as Array<Record<string, unknown>>
   return blocks
-    .filter((b): b is { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> } =>
-      b.type === 'tool_use'
-    )
-    .map((b) => ({ id: b.id, name: b.name, input: b.input }))
+    .filter((b) => b.type === 'tool_use')
+    .map((b) => ({
+      id: b.id as string,
+      name: b.name as string,
+      input: b.input as Record<string, unknown>
+    }))
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +93,7 @@ export class ClaudeSdkProvider implements AIProvider {
   readonly capabilities: AIProviderCapabilities = {
     streaming: true,
     toolCalling: true,
-    vision: false,  // Agent SDK doesn't expose vision via query()
+    vision: false, // Agent SDK doesn't expose vision via query()
     models: ['haiku', 'sonnet', 'opus']
   }
 
@@ -107,7 +109,6 @@ export class ClaudeSdkProvider implements AIProvider {
 
     try {
       // Check if the claude CLI exists by looking for the executable
-      const { execSync } = require('child_process')
       execSync('claude --version', { stdio: 'ignore', timeout: 5000 })
       this.configuredCache = true
       return true
@@ -150,7 +151,9 @@ export class ClaudeSdkProvider implements AIProvider {
     const model = TIER_TO_MODEL[request.tier ?? 'standard']
     const task = request.task ?? 'chat'
 
-    this.log.info(`Claude SDK chat: task=${task}, model=${model}, messages=${request.messages.length}`)
+    this.log.info(
+      `Claude SDK chat: task=${task}, model=${model}, messages=${request.messages.length}`
+    )
 
     // Agent SDK takes a single prompt string, so format the conversation
     const prompt = formatChatAsPrompt(request.messages)
@@ -199,6 +202,7 @@ export class ClaudeSdkProvider implements AIProvider {
       for await (const msg of q) {
         if (msg.type === 'stream_event') {
           const partial = msg as SDKPartialAssistantMessage
+          // @ts-expect-error — pre-existing SDK type mismatch: event shape varies by SDK version
           const event = partial.event as Record<string, unknown>
 
           // Extract text delta from the stream event
@@ -243,12 +247,17 @@ export class ClaudeSdkProvider implements AIProvider {
     const model = TIER_TO_MODEL[request.tier ?? 'standard']
     const task = request.task ?? 'tool_use'
 
-    this.log.info(`Claude SDK completeWithTools: task=${task}, model=${model}, tools=${request.tools.length}`)
+    this.log.info(
+      `Claude SDK completeWithTools: task=${task}, model=${model}, tools=${request.tools.length}`
+    )
 
     // Build Anthropic-format tool definitions for the system prompt
-    const toolDescriptions = request.tools.map((t) =>
-      `Tool: ${t.name}\nDescription: ${t.description}\nInput schema: ${JSON.stringify(t.inputSchema)}`
-    ).join('\n\n')
+    const toolDescriptions = request.tools
+      .map(
+        (t) =>
+          `Tool: ${t.name}\nDescription: ${t.description}\nInput schema: ${JSON.stringify(t.inputSchema)}`
+      )
+      .join('\n\n')
 
     const systemPrompt = [
       request.systemPrompt,
@@ -285,7 +294,8 @@ export class ClaudeSdkProvider implements AIProvider {
           }
 
           // Check stop_reason from the raw message
-          const rawStopReason = (assistant.message as Record<string, unknown>)?.stop_reason
+          const rawStopReason = (assistant.message as unknown as Record<string, unknown>)
+            ?.stop_reason
           if (rawStopReason === 'tool_use') {
             stopReason = 'tool_use'
           }
@@ -356,7 +366,10 @@ export class ClaudeSdkProvider implements AIProvider {
       throw this.wrapError(err, task, model)
     }
 
-    throw new AIServiceError('No result received from Agent SDK', 'AI_REQUEST_ERROR', { task, model })
+    throw new AIServiceError('No result received from Agent SDK', 'AI_REQUEST_ERROR', {
+      task,
+      model
+    })
   }
 
   private extractUsage(result: SDKResultSuccess): { inputTokens: number; outputTokens: number } {

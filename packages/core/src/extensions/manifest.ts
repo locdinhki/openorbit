@@ -76,6 +76,8 @@ export function parseManifest(raw: unknown): ExtensionManifest {
 /**
  * Safely parse without throwing. Returns { success, data, error }.
  */
-export function safeParseManifest(raw: unknown) {
+export function safeParseManifest(
+  raw: unknown
+): ReturnType<typeof extensionManifestSchema.safeParse> {
   return extensionManifestSchema.safeParse(raw)
 }

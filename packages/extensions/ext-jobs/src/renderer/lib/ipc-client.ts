@@ -74,8 +74,7 @@ export const ipc = {
     start: (profileId?: string): Promise<IPCResult> =>
       api.invoke(EXT_JOBS_IPC.AUTOMATION_START, { profileId }) as Promise<IPCResult>,
 
-    stop: (): Promise<IPCResult> =>
-      api.invoke(EXT_JOBS_IPC.AUTOMATION_STOP) as Promise<IPCResult>,
+    stop: (): Promise<IPCResult> => api.invoke(EXT_JOBS_IPC.AUTOMATION_STOP) as Promise<IPCResult>,
 
     pause: (): Promise<IPCResult> =>
       api.invoke(EXT_JOBS_IPC.AUTOMATION_PAUSE) as Promise<IPCResult>,
@@ -86,9 +85,7 @@ export const ipc = {
 
   chat: {
     send: (message: string, selectedJobId?: string): Promise<IPCResult<string>> =>
-      api.invoke(EXT_JOBS_IPC.CHAT_SEND, { message, selectedJobId }) as Promise<
-        IPCResult<string>
-      >,
+      api.invoke(EXT_JOBS_IPC.CHAT_SEND, { message, selectedJobId }) as Promise<IPCResult<string>>,
 
     analyzeJob: (jobId: string): Promise<IPCResult<JobListing>> =>
       api.invoke(EXT_JOBS_IPC.CHAT_ANALYZE_JOB, { jobId }) as Promise<IPCResult<JobListing>>

@@ -1,10 +1,5 @@
 import type { Page } from 'patchright'
-import type {
-  SearchProfile,
-  JobListing,
-  SiteHintFile,
-  ApplicationResult
-} from '../../types'
+import type { SearchProfile, JobListing, SiteHintFile, ApplicationResult } from '../../types'
 import type { PlatformAdapter } from '../platform-adapter'
 import type { ProgressCallback, QuestionCallback } from '../linkedin/linkedin-applicator'
 import { UpworkExtractor } from './upwork-extractor'

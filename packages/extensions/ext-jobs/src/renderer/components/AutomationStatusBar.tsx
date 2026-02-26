@@ -4,7 +4,14 @@ import { useAutomation } from '../hooks/useAutomation'
 import StatusIndicator from '@renderer/components/shared/StatusIndicator'
 
 export default function StatusBar(): React.JSX.Element {
-  const { automationState, currentAction, jobsExtracted, applicationsSubmitted, actionsPerMinute, jobs } = useStore()
+  const {
+    automationState,
+    currentAction,
+    jobsExtracted,
+    applicationsSubmitted,
+    actionsPerMinute,
+    jobs
+  } = useStore()
   const { startExtraction, stopExtraction, sessionInitialized, platforms } = useAutomation()
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +38,9 @@ export default function StatusBar(): React.JSX.Element {
     activePlatforms.length > 1
       ? activePlatforms
           .filter((p) => p.currentAction)
-          .map((p) => `${p.platform.charAt(0).toUpperCase() + p.platform.slice(1)}: ${p.currentAction}`)
+          .map(
+            (p) => `${p.platform.charAt(0).toUpperCase() + p.platform.slice(1)}: ${p.currentAction}`
+          )
           .join('  |  ')
       : null
 

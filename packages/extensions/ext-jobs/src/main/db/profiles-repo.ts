@@ -110,10 +110,8 @@ export class ProfilesRepo {
   }
 
   toggleEnabled(id: string, enabled: boolean): void {
-    this.db.prepare('UPDATE search_profiles SET enabled = ?, updated_at = ? WHERE id = ?').run(
-      enabled ? 1 : 0,
-      new Date().toISOString(),
-      id
-    )
+    this.db
+      .prepare('UPDATE search_profiles SET enabled = ?, updated_at = ? WHERE id = ?')
+      .run(enabled ? 1 : 0, new Date().toISOString(), id)
   }
 }

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { MemoryRepo } from '../../db/memory-repo'
 
 vi.mock('../../utils/logger', () => ({
   createLogger: () => ({
@@ -15,6 +16,7 @@ vi.mock('../../db/memory-repo', () => ({
 
 const { extractAndSaveMemories } = await import('../memory-extractor')
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createMockRepo() {
   let factId = 0
   return {
@@ -49,7 +51,7 @@ describe('extractAndSaveMemories', () => {
 
   it('extracts a single memory tag', () => {
     const response = 'Got it. <memory category="preference">Only wants remote roles</memory>'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.cleanedResponse).toBe('Got it.')
     expect(result.savedFacts).toHaveLength(1)
@@ -62,7 +64,7 @@ describe('extractAndSaveMemories', () => {
     const response =
       'Noted! <memory category="preference">Minimum salary $150k</memory> ' +
       'I\'ll keep that in mind. <memory category="company">Stripe uses Ruby on Rails</memory>'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.savedFacts).toHaveLength(2)
     expect(result.savedFacts[0].content).toBe('Minimum salary $150k')
@@ -72,7 +74,7 @@ describe('extractAndSaveMemories', () => {
 
   it('strips tags with invalid category but does not save', () => {
     const response = 'OK. <memory category="invalid">some fact</memory> Done.'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.savedFacts).toHaveLength(0)
     expect(repo.addFact).not.toHaveBeenCalled()
@@ -81,7 +83,7 @@ describe('extractAndSaveMemories', () => {
 
   it('strips tags with empty content', () => {
     const response = 'OK. <memory category="preference">  </memory> Done.'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.savedFacts).toHaveLength(0)
     expect(repo.addFact).not.toHaveBeenCalled()
@@ -90,7 +92,7 @@ describe('extractAndSaveMemories', () => {
 
   it('returns response unchanged when no tags present', () => {
     const response = 'Here are your new jobs today.'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.cleanedResponse).toBe('Here are your new jobs today.')
     expect(result.savedFacts).toHaveLength(0)
@@ -99,7 +101,7 @@ describe('extractAndSaveMemories', () => {
   it('handles multiline content in tags', () => {
     const response =
       'Got it. <memory category="answer">I have 8 years of React experience\nand led a team of 5</memory>'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.savedFacts).toHaveLength(1)
     expect(result.savedFacts[0].content).toBe(
@@ -114,7 +116,7 @@ describe('extractAndSaveMemories', () => {
       '<memory category="pattern">pat</memory>',
       '<memory category="answer">ans</memory>'
     ].join(' ')
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(result.savedFacts).toHaveLength(4)
     expect(result.savedFacts.map((f) => f.category)).toEqual([
@@ -145,7 +147,7 @@ describe('extractAndSaveMemories', () => {
 
     const response =
       '<memory category="preference">first</memory> <memory category="preference">second</memory>'
-    const result = extractAndSaveMemories(response, repo as any)
+    const result = extractAndSaveMemories(response, repo as unknown as MemoryRepo)
 
     expect(repo.addFact).toHaveBeenCalledTimes(2)
     expect(result.savedFacts).toHaveLength(1)

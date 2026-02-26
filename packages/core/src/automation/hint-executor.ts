@@ -1,11 +1,5 @@
 import type { Page } from 'patchright'
-import type {
-  ActionExecutor,
-  ActionResult,
-  PageContext,
-  SiteHintFile,
-  ActionStep
-} from '../types'
+import type { ActionExecutor, ActionResult, PageContext, SiteHintFile, ActionStep } from '../types'
 import { HINT_CONFIDENCE_THRESHOLD, HINT_SELECTOR_TIMEOUT } from '../constants'
 import { createLogger } from '../utils/logger'
 

@@ -30,6 +30,7 @@ export default function ScheduleDetailModal({
 
   useEffect(() => {
     if (!open || !schedule) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRuns([])
       return
     }
@@ -67,9 +68,7 @@ export default function ScheduleDetailModal({
         {loading && <Skeleton lines={4} />}
 
         {!loading && runs.length === 0 && (
-          <p className="text-xs text-[var(--cos-text-muted)] py-4 text-center">
-            No runs yet
-          </p>
+          <p className="text-xs text-[var(--cos-text-muted)] py-4 text-center">No runs yet</p>
         )}
 
         {!loading && runs.length > 0 && (
@@ -89,11 +88,7 @@ function RunRow({ run }: { run: ScheduleRun }): React.JSX.Element {
     <div className="flex items-center gap-2 px-2 py-1.5 rounded text-xs bg-[var(--cos-bg-tertiary)]">
       <Badge
         variant={
-          run.status === 'success'
-            ? 'success'
-            : run.status === 'error'
-              ? 'error'
-              : 'warning'
+          run.status === 'success' ? 'success' : run.status === 'error' ? 'error' : 'warning'
         }
       >
         {run.status === 'success' ? 'OK' : run.status}
@@ -106,10 +101,7 @@ function RunRow({ run }: { run: ScheduleRun }): React.JSX.Element {
       )}
 
       {run.errorMessage && (
-        <span
-          className="text-red-400 truncate flex-1"
-          title={run.errorMessage}
-        >
+        <span className="text-red-400 truncate flex-1" title={run.errorMessage}>
           {run.errorMessage}
         </span>
       )}

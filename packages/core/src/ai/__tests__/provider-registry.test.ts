@@ -250,9 +250,9 @@ describe('AIProviderRegistry', () => {
 
     it('throws when no provider registered and complete() is called', async () => {
       const service = registry.toService()
-      await expect(
-        service.complete({ systemPrompt: 'sys', userMessage: 'hi' })
-      ).rejects.toThrow('No AI provider registered')
+      await expect(service.complete({ systemPrompt: 'sys', userMessage: 'hi' })).rejects.toThrow(
+        'No AI provider registered'
+      )
     })
 
     it('throws when specified provider not found', async () => {
@@ -274,9 +274,8 @@ describe('AIProviderRegistry', () => {
       registry.register(provider)
       const service = registry.toService()
       const chunks: AIStreamChunk[] = []
-      await service.stream!(
-        { systemPrompt: 'sys', userMessage: 'hello' },
-        (chunk) => chunks.push(chunk)
+      await service.stream!({ systemPrompt: 'sys', userMessage: 'hello' }, (chunk) =>
+        chunks.push(chunk)
       )
       expect(provider.stream).toHaveBeenCalled()
       expect(chunks.length).toBeGreaterThan(0)
@@ -288,9 +287,8 @@ describe('AIProviderRegistry', () => {
       registry.register(provider)
       const service = registry.toService()
       const chunks: AIStreamChunk[] = []
-      await service.stream!(
-        { systemPrompt: 'sys', userMessage: 'hello' },
-        (chunk) => chunks.push(chunk)
+      await service.stream!({ systemPrompt: 'sys', userMessage: 'hello' }, (chunk) =>
+        chunks.push(chunk)
       )
       // 3 content chunks + 1 final done chunk
       expect(chunks).toHaveLength(4)
@@ -303,16 +301,20 @@ describe('AIProviderRegistry', () => {
     it('falls back to complete() + single chunk for non-streaming provider', async () => {
       const provider = createMockProvider({
         id: 'basic',
-        capabilities: { streaming: false, toolCalling: false, vision: false, models: ['basic-model'] },
+        capabilities: {
+          streaming: false,
+          toolCalling: false,
+          vision: false,
+          models: ['basic-model']
+        },
         complete: vi.fn().mockResolvedValue(mockResponse('full response', 'basic-model'))
         // No stream method
       })
       registry.register(provider)
       const service = registry.toService()
       const chunks: AIStreamChunk[] = []
-      await service.stream!(
-        { systemPrompt: 'sys', userMessage: 'hello' },
-        (chunk) => chunks.push(chunk)
+      await service.stream!({ systemPrompt: 'sys', userMessage: 'hello' }, (chunk) =>
+        chunks.push(chunk)
       )
       // Falls back: one chunk with full content + done
       expect(chunks).toHaveLength(1)

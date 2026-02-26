@@ -5,7 +5,7 @@
 // iMessage has no inline keyboards — approve/reject via text commands.
 // ============================================================================
 
-import type { JobListing, SearchProfile, ActionLog } from '@openorbit/core/types'
+import type { JobListing, SearchProfile, ActionLog, JobStatus } from '@openorbit/core/types'
 import type { JobsRepo } from '@openorbit/ext-jobs/main/db/jobs-repo'
 import type { ActionLogRepo } from '@openorbit/ext-jobs/main/db/action-log-repo'
 
@@ -110,9 +110,9 @@ export function formatActionLog(entries: ActionLog[]): string {
 
 export function formatStatusSummary(jobsRepo: JobsRepo, actionLogRepo: ActionLogRepo): string {
   try {
-    const newJobs = jobsRepo.list({ status: 'new' as any })
-    const approvedJobs = jobsRepo.list({ status: 'approved' as any })
-    const appliedJobs = jobsRepo.list({ status: 'applied' as any })
+    const newJobs = jobsRepo.list({ status: 'new' as JobStatus })
+    const approvedJobs = jobsRepo.list({ status: 'approved' as JobStatus })
+    const appliedJobs = jobsRepo.list({ status: 'applied' as JobStatus })
     const recentActions = actionLogRepo.getRecent(1)
 
     const lines = [

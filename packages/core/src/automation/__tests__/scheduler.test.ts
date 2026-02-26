@@ -592,9 +592,9 @@ describe('Scheduler', () => {
     })
 
     it('tracks durationMs', async () => {
-      const handler = vi.fn().mockImplementation(
-        () => new Promise<void>((resolve) => setTimeout(resolve, 20))
-      )
+      const handler = vi
+        .fn()
+        .mockImplementation(() => new Promise<void>((resolve) => setTimeout(resolve, 20)))
       const schedule = makeSchedule()
       mockGetById.mockReturnValue(schedule)
 
@@ -636,7 +636,15 @@ describe('Scheduler', () => {
   describe('listRuns()', () => {
     it('delegates to runsRepo', () => {
       const runs = [
-        { id: 'r1', scheduleId: 'sched-1', status: 'success', errorMessage: null, durationMs: 100, startedAt: '2025-01-01', completedAt: '2025-01-01' }
+        {
+          id: 'r1',
+          scheduleId: 'sched-1',
+          status: 'success',
+          errorMessage: null,
+          durationMs: 100,
+          startedAt: '2025-01-01',
+          completedAt: '2025-01-01'
+        }
       ]
       mockListBySchedule.mockReturnValue(runs)
 

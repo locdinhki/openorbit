@@ -125,9 +125,7 @@ export function getColumnNames(db: Database.Database, table: string): Set<string
 /** Validate that a table name exists in the database. Throws if invalid. */
 export function validateTableName(db: Database.Database, table: string): void {
   const result = db
-    .prepare(
-      `SELECT 1 FROM sqlite_master WHERE name = ? AND type IN ('table', 'view') LIMIT 1`
-    )
+    .prepare(`SELECT 1 FROM sqlite_master WHERE name = ? AND type IN ('table', 'view') LIMIT 1`)
     .get(table) as { '1': number } | undefined
 
   if (!result) {

@@ -83,7 +83,11 @@ export function executeImport(
   const targetHeaders = headers.filter((h) => validCols.has(mapping.get(h)!))
 
   if (targetHeaders.length === 0) {
-    return { importedCount: 0, skippedCount: rows.length, errors: [{ row: 0, error: 'No matching columns found' }] }
+    return {
+      importedCount: 0,
+      skippedCount: rows.length,
+      errors: [{ row: 0, error: 'No matching columns found' }]
+    }
   }
 
   const cols = targetHeaders.map((h) => `"${mapping.get(h)!}"`).join(', ')
@@ -115,7 +119,11 @@ export function executeImport(
   try {
     transaction()
   } catch (err) {
-    return { importedCount: 0, skippedCount: rows.length, errors: [{ row: 0, error: `Transaction failed: ${err}` }] }
+    return {
+      importedCount: 0,
+      skippedCount: rows.length,
+      errors: [{ row: 0, error: `Transaction failed: ${err}` }]
+    }
   }
 
   return { importedCount, skippedCount, errors }

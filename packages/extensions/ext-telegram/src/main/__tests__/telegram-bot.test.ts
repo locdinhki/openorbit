@@ -3,7 +3,13 @@
 // ============================================================================
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { TelegramBot, type TelegramBotConfig } from '../telegram-bot'
+import { TelegramBot, type TelegramBotConfig, type TelegramUpdate } from '../telegram-bot'
+
+/** Helper type to access private members in tests. */
+type BotInternals = {
+  abortController: AbortController
+  processUpdate(update: TelegramUpdate): Promise<void>
+}
 
 // Mock global fetch
 const mockFetch = vi.fn()
@@ -80,7 +86,7 @@ describe('TelegramBot', () => {
 
     const bot = new TelegramBot(makeConfig(), mockLog)
     // Manually set abort controller for sendMessage
-    ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
+    ;(bot as unknown as BotInternals).abortController = new AbortController()
 
     await bot.sendMessage(12345, 'Hello *world*')
 
@@ -104,7 +110,7 @@ describe('TelegramBot', () => {
     })
 
     const bot = new TelegramBot(makeConfig(), mockLog)
-    ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
+    ;(bot as unknown as BotInternals).abortController = new AbortController()
 
     const longMessage = 'x'.repeat(5000)
     await bot.sendMessage(12345, longMessage)
@@ -126,7 +132,7 @@ describe('TelegramBot', () => {
     bot.setMessageHandler(handler)
 
     // Process an update from unauthorized user
-    ;(bot as unknown as Record<string, unknown>).processUpdate({
+    ;(bot as unknown as BotInternals).processUpdate({
       update_id: 1,
       message: {
         message_id: 1,
@@ -150,8 +156,8 @@ describe('TelegramBot', () => {
     const bot = new TelegramBot(makeConfig({ authorizedChatIds: [] }), mockLog)
     const handler = vi.fn().mockResolvedValue('response')
     bot.setMessageHandler(handler)
-    ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-    await (bot as unknown as Record<string, unknown>).processUpdate({
+    ;(bot as unknown as BotInternals).abortController = new AbortController()
+    await (bot as unknown as BotInternals).processUpdate({
       update_id: 1,
       message: {
         message_id: 1,
@@ -173,8 +179,8 @@ describe('TelegramBot', () => {
     const bot = new TelegramBot(makeConfig({ authorizedChatIds: [] }), mockLog)
     const callbackHandler = vi.fn().mockResolvedValue('Job approved!')
     bot.setCallbackHandler(callbackHandler)
-    ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-    await (bot as unknown as Record<string, unknown>).processUpdate({
+    ;(bot as unknown as BotInternals).abortController = new AbortController()
+    await (bot as unknown as BotInternals).processUpdate({
       update_id: 2,
       callback_query: {
         id: 'cb-123',
@@ -201,8 +207,8 @@ describe('TelegramBot', () => {
       const bot = new TelegramBot(makeConfig({ authorizedChatIds: [] }), mockLog)
       const handler = vi.fn().mockResolvedValue('response')
       bot.setMessageHandler(handler)
-      ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-      await (bot as unknown as Record<string, unknown>).processUpdate({
+      ;(bot as unknown as BotInternals).abortController = new AbortController()
+      await (bot as unknown as BotInternals).processUpdate({
         update_id: 1,
         message: {
           message_id: 1,
@@ -247,8 +253,8 @@ describe('TelegramBot', () => {
       bot.setTranscriber(
         mockTranscriber as unknown as import('@openorbit/core/audio/voice-transcriber').VoiceTranscriber
       )
-      ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-      await (bot as unknown as Record<string, unknown>).processUpdate({
+      ;(bot as unknown as BotInternals).abortController = new AbortController()
+      await (bot as unknown as BotInternals).processUpdate({
         update_id: 1,
         message: {
           message_id: 1,
@@ -285,8 +291,8 @@ describe('TelegramBot', () => {
       bot.setTranscriber(
         mockTranscriber as unknown as import('@openorbit/core/audio/voice-transcriber').VoiceTranscriber
       )
-      ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-      await (bot as unknown as Record<string, unknown>).processUpdate({
+      ;(bot as unknown as BotInternals).abortController = new AbortController()
+      await (bot as unknown as BotInternals).processUpdate({
         update_id: 1,
         message: {
           message_id: 1,
@@ -317,8 +323,8 @@ describe('TelegramBot', () => {
       bot.setTranscriber(
         mockTranscriber as unknown as import('@openorbit/core/audio/voice-transcriber').VoiceTranscriber
       )
-      ;(bot as unknown as Record<string, unknown>).abortController = new AbortController()
-      await (bot as unknown as Record<string, unknown>).processUpdate({
+      ;(bot as unknown as BotInternals).abortController = new AbortController()
+      await (bot as unknown as BotInternals).processUpdate({
         update_id: 1,
         message: {
           message_id: 1,

@@ -39,7 +39,7 @@ function makeProfile(overrides?: Partial<SearchProfile>): SearchProfile {
     id: 'p-1',
     name: 'My Search',
     enabled: true,
-    platform: 'linkedin' as any,
+    platform: 'linkedin',
     search: {},
     application: {},
     createdAt: '2025-01-01T00:00:00Z',
@@ -57,8 +57,8 @@ function makeActionLog(overrides?: Partial<ActionLog>): ActionLog {
     intent: 'Click apply button',
     pageSnapshot: '',
     hintUsed: '',
-    executionMethod: 'ai' as any,
-    actionType: 'click' as any,
+    executionMethod: 'ai' as unknown,
+    actionType: 'click' as unknown,
     actionTarget: 'button',
     actionValue: null,
     success: true,
@@ -105,8 +105,8 @@ describe('formatJobDetail', () => {
       company: 'Linear',
       salary: '$200-250k',
       summary: 'Great role with impact',
-      highlights: 'Remote, equity',
-      redFlags: 'None'
+      highlights: ['Remote, equity'],
+      redFlags: ['None']
     })
     const result = formatJobDetail(job)
     expect(result).toContain('Staff Engineer')
@@ -126,8 +126,8 @@ describe('formatProfileList', () => {
 
   it('formats profile list', () => {
     const profiles = [
-      makeProfile({ name: 'SWE Search', platform: 'linkedin' as any, enabled: true }),
-      makeProfile({ id: 'p-2', name: 'PM Search', platform: 'indeed' as any, enabled: false })
+      makeProfile({ name: 'SWE Search', platform: 'linkedin', enabled: true }),
+      makeProfile({ id: 'p-2', name: 'PM Search', platform: 'indeed', enabled: false })
     ]
     const result = formatProfileList(profiles)
     expect(result).toContain('SWE Search')

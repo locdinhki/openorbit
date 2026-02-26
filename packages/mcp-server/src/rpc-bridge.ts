@@ -31,11 +31,7 @@ function getTokenPath(): string {
         'rpc-token'
       )
     default:
-      return join(
-        process.env['XDG_CONFIG_HOME'] ?? join(home, '.config'),
-        'openorbit',
-        'rpc-token'
-      )
+      return join(process.env['XDG_CONFIG_HOME'] ?? join(home, '.config'), 'openorbit', 'rpc-token')
   }
 }
 
@@ -45,8 +41,7 @@ export function readToken(tokenPath?: string): string {
     return readFileSync(path, 'utf-8').trim()
   } catch {
     throw new Error(
-      `Cannot read RPC token from ${path}.\n` +
-        'Make sure OpenOrbit desktop app is running.'
+      `Cannot read RPC token from ${path}.\n` + 'Make sure OpenOrbit desktop app is running.'
     )
   }
 }

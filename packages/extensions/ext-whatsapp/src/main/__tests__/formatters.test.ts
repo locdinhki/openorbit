@@ -56,15 +56,13 @@ function makeActionLog(overrides?: Partial<ActionLog>): ActionLog {
     url: 'https://linkedin.com',
     intent: 'Click apply button',
     pageSnapshot: '',
-    hintUsed: '',
+    hintUsed: {} as ActionLog['hintUsed'],
     executionMethod: 'ai' as unknown as ActionLog['executionMethod'],
-    actionType: 'click' as unknown as ActionLog['actionType'],
-    actionTarget: 'button',
-    actionValue: null,
+    action: {
+      type: 'click' as unknown as ActionLog['action']['type'],
+      target: 'button'
+    },
     success: true,
-    errorMessage: null,
-    correctedTarget: null,
-    correctedValue: null,
     ...overrides
   } as ActionLog
 }
@@ -116,7 +114,11 @@ describe('formatJobList', () => {
 
 describe('formatJobDetail', () => {
   it('formats full job detail', () => {
-    const job = makeJob({ summary: 'Great role', highlights: 'Good pay', redFlags: 'Long hours' })
+    const job = makeJob({
+      summary: 'Great role',
+      highlights: ['Good pay'],
+      redFlags: ['Long hours']
+    })
     const result = formatJobDetail(job)
     expect(result).toContain('Senior Engineer')
     expect(result).toContain('Acme Corp')

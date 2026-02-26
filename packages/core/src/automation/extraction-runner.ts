@@ -284,7 +284,9 @@ export class ExtractionRunner {
   ): Promise<void> {
     const searchUrl = adapter.buildSearchUrl(profile)
     log.info(`Navigating to search: ${searchUrl}`)
-    log.info(`Search keywords: [${profile.search.keywords.join(', ')}], location: [${profile.search.location.join(', ')}]`)
+    log.info(
+      `Search keywords: [${profile.search.keywords.join(', ')}], location: [${profile.search.location.join(', ')}]`
+    )
 
     this.updateStatus('running', `Searching: ${profile.search.keywords.join(', ')}`)
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded' })
@@ -506,7 +508,10 @@ export class ExtractionRunner {
 
     for (let i = 0; i < jobs.length; i++) {
       const job = jobs[i]
-      this.updateStatus('running', `Re-fetching descriptions: ${i + 1}/${jobs.length} — ${job.title}`)
+      this.updateStatus(
+        'running',
+        `Re-fetching descriptions: ${i + 1}/${jobs.length} — ${job.title}`
+      )
 
       try {
         const adapter = getOrCreateAdapter(job.platform)

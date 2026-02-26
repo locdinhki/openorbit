@@ -65,14 +65,55 @@ export default function LeftPanel(): React.JSX.Element {
   )
 }
 
-const FILTER_STATUSES: { key: JobStatus | 'all'; label: string; color: string; activeColor: string }[] = [
-  { key: 'all', label: 'All', color: 'text-[var(--cos-text-muted)]', activeColor: 'bg-[var(--cos-text-primary)]/15 text-[var(--cos-text-primary)] border-[var(--cos-text-primary)]/30' },
-  { key: 'new', label: 'New', color: 'text-[var(--cos-text-muted)]', activeColor: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
-  { key: 'reviewed', label: 'Reviewed', color: 'text-blue-400', activeColor: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
-  { key: 'approved', label: 'Approved', color: 'text-indigo-400', activeColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30' },
-  { key: 'rejected', label: 'Rejected', color: 'text-red-400', activeColor: 'bg-red-500/15 text-red-400 border-red-500/30' },
-  { key: 'applied', label: 'Applied', color: 'text-green-400', activeColor: 'bg-green-500/15 text-green-400 border-green-500/30' },
-  { key: 'skipped', label: 'Skipped', color: 'text-[var(--cos-text-muted)]', activeColor: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+const FILTER_STATUSES: {
+  key: JobStatus | 'all'
+  label: string
+  color: string
+  activeColor: string
+}[] = [
+  {
+    key: 'all',
+    label: 'All',
+    color: 'text-[var(--cos-text-muted)]',
+    activeColor:
+      'bg-[var(--cos-text-primary)]/15 text-[var(--cos-text-primary)] border-[var(--cos-text-primary)]/30'
+  },
+  {
+    key: 'new',
+    label: 'New',
+    color: 'text-[var(--cos-text-muted)]',
+    activeColor: 'bg-slate-500/15 text-slate-300 border-slate-500/30'
+  },
+  {
+    key: 'reviewed',
+    label: 'Reviewed',
+    color: 'text-blue-400',
+    activeColor: 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+  },
+  {
+    key: 'approved',
+    label: 'Approved',
+    color: 'text-indigo-400',
+    activeColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30'
+  },
+  {
+    key: 'rejected',
+    label: 'Rejected',
+    color: 'text-red-400',
+    activeColor: 'bg-red-500/15 text-red-400 border-red-500/30'
+  },
+  {
+    key: 'applied',
+    label: 'Applied',
+    color: 'text-green-400',
+    activeColor: 'bg-green-500/15 text-green-400 border-green-500/30'
+  },
+  {
+    key: 'skipped',
+    label: 'Skipped',
+    color: 'text-[var(--cos-text-muted)]',
+    activeColor: 'bg-slate-500/15 text-slate-300 border-slate-500/30'
+  }
 ]
 
 type SortKey = 'newest' | 'oldest' | 'score-high' | 'score-low' | 'company' | 'title'
@@ -175,11 +216,16 @@ function JobsSection({
         <span className="text-[10px] text-[var(--cos-text-muted)]">Sort:</span>
         <select
           value={sort}
-          onChange={(e) => { setSort(e.target.value as SortKey); setPage(0) }}
+          onChange={(e) => {
+            setSort(e.target.value as SortKey)
+            setPage(0)
+          }}
           className="text-[10px] bg-[var(--cos-bg-tertiary)] border border-[var(--cos-border)] text-[var(--cos-text-secondary)] rounded px-1.5 py-0.5 cursor-pointer outline-none focus:border-indigo-500/50"
         >
           {SORT_OPTIONS.map((o) => (
-            <option key={o.key} value={o.key}>{o.label}</option>
+            <option key={o.key} value={o.key}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>
@@ -214,7 +260,13 @@ function JobsSection({
                   className="absolute top-1.5 right-1.5 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 text-[var(--cos-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
                   title="Delete job"
                 >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>

@@ -10,9 +10,7 @@ interface StatusBarContainerProps {
   items: StatusBarContribution[]
 }
 
-export default function StatusBarContainer({
-  items
-}: StatusBarContainerProps): React.JSX.Element {
+export default function StatusBarContainer({ items }: StatusBarContainerProps): React.JSX.Element {
   const leftItems = items
     .filter((i) => i.alignment === 'left')
     .sort((a, b) => b.priority - a.priority)

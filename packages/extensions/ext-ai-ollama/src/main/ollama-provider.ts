@@ -26,6 +26,14 @@ import type { Logger } from '@openorbit/core/extensions/types'
 
 const DEFAULT_BASE_URL = 'http://localhost:11434'
 
+/** Shape of the Ollama /api/chat response (non-streaming). */
+interface OllamaChatResponse {
+  message?: { content: string }
+  model?: string
+  prompt_eval_count?: number
+  eval_count?: number
+}
+
 /** Default model mapping — users can override via settings. */
 const DEFAULT_TIER_MODELS: Record<ModelTier, string> = {
   fast: 'llama3.2:3b',
@@ -76,14 +84,14 @@ export class OllamaProvider implements AIProvider {
     try {
       this.log.info(`Ollama request: task=${task}, model=${model}`)
 
-      const data = await this.callAPI('/api/chat', {
+      const data = (await this.callAPI('/api/chat', {
         model,
         stream: false,
         messages: [
           { role: 'system', content: request.systemPrompt },
           { role: 'user', content: request.userMessage }
         ]
-      })
+      })) as OllamaChatResponse
 
       const result: AICompletionResponse = {
         content: data.message?.content ?? '',
@@ -133,11 +141,11 @@ export class OllamaProvider implements AIProvider {
         ...request.messages.map((m) => ({ role: m.role, content: m.content }))
       ]
 
-      const data = await this.callAPI('/api/chat', {
+      const data = (await this.callAPI('/api/chat', {
         model,
         stream: false,
         messages
-      })
+      })) as OllamaChatResponse
 
       const result: AICompletionResponse = {
         content: data.message?.content ?? '',
@@ -279,7 +287,7 @@ export class OllamaProvider implements AIProvider {
 
   private getBaseUrl(): string {
     const url = this.settingsRepo.get('ollama_base_url')
-    return (typeof url === 'string' && url.length > 0) ? url : DEFAULT_BASE_URL
+    return typeof url === 'string' && url.length > 0 ? url : DEFAULT_BASE_URL
   }
 
   private resolveModel(tier: ModelTier): string {

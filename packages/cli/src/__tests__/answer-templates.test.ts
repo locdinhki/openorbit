@@ -107,10 +107,9 @@ describe('formatContributionPreview()', () => {
 
 describe('buildContributionPayload()', () => {
   it('produces valid JSON with expected fields', () => {
-    const payload = buildContributionPayload(
-      [{ question: 'Why?', answer: 'Because' }],
-      { note: 'test contribution' }
-    )
+    const payload = buildContributionPayload([{ question: 'Why?', answer: 'Because' }], {
+      note: 'test contribution'
+    })
     const parsed = JSON.parse(payload)
     expect(parsed.version).toBe('1')
     expect(parsed.note).toBe('test contribution')

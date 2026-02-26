@@ -18,9 +18,7 @@ function SidebarSkeleton(): React.JSX.Element {
   )
 }
 
-export default function SidebarContainer({
-  activeId
-}: SidebarContainerProps): React.JSX.Element {
+export default function SidebarContainer({ activeId }: SidebarContainerProps): React.JSX.Element {
   if (!activeId) {
     return (
       <div className="flex items-center justify-center h-full text-xs text-[var(--cos-text-tertiary)]">

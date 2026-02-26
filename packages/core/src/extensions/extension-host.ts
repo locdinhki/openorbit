@@ -181,8 +181,7 @@ export class ExtensionHost {
     if (all.length > 0 && typeof (all[0] as { priority?: number }).priority === 'number') {
       all.sort(
         (a, b) =>
-          ((b as { priority: number }).priority ?? 0) -
-          ((a as { priority: number }).priority ?? 0)
+          ((b as { priority: number }).priority ?? 0) - ((a as { priority: number }).priority ?? 0)
       )
     }
     return all as NonNullable<ExtensionManifest['contributes'][K]>
@@ -261,11 +260,7 @@ export class ExtensionHost {
 
   private createContext(ext: LoadedExtension): ExtensionContext {
     // Scoped IPC
-    const ipc = createExtensionIPCHost(
-      ext.manifest.id,
-      this.deps.ipcMain,
-      this.deps.getMainWindow
-    )
+    const ipc = createExtensionIPCHost(ext.manifest.id, this.deps.ipcMain, this.deps.getMainWindow)
 
     // Scoped event bus
     const events = this.createEventBus(ext.manifest.id)

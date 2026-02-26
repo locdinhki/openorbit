@@ -5,9 +5,7 @@ describe('deduplicateTitle', () => {
   it('removes duplicated title text from LinkedIn extraction', () => {
     const input =
       'Agentic AI Developer (Python/LLM/RAG) Agentic AI Developer (Python/LLM/RAG) with verification'
-    expect(deduplicateTitle(input)).toBe(
-      'Agentic AI Developer (Python/LLM/RAG) with verification'
-    )
+    expect(deduplicateTitle(input)).toBe('Agentic AI Developer (Python/LLM/RAG) with verification')
   })
 
   it('removes exact duplicate', () => {

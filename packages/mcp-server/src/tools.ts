@@ -51,7 +51,9 @@ export function registerTools(server: McpServer, rpc: RPCBridge): void {
     },
     async (args) => {
       await rpc.call('jobs.approve', { id: args.id })
-      return { content: [{ type: 'text' as const, text: `Job ${args.id} approved for application.` }] }
+      return {
+        content: [{ type: 'text' as const, text: `Job ${args.id} approved for application.` }]
+      }
     }
   )
 
@@ -83,39 +85,24 @@ export function registerTools(server: McpServer, rpc: RPCBridge): void {
     }
   )
 
-  server.tool(
-    'stop_automation',
-    'Stop the running automation',
-    {},
-    async () => {
-      await rpc.call('automation.stop')
-      return { content: [{ type: 'text' as const, text: 'Automation stopped.' }] }
-    }
-  )
+  server.tool('stop_automation', 'Stop the running automation', {}, async () => {
+    await rpc.call('automation.stop')
+    return { content: [{ type: 'text' as const, text: 'Automation stopped.' }] }
+  })
 
-  server.tool(
-    'get_status',
-    'Get current automation status and metrics',
-    {},
-    async () => {
-      const result = await rpc.call('automation.status')
-      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] }
-    }
-  )
+  server.tool('get_status', 'Get current automation status and metrics', {}, async () => {
+    const result = await rpc.call('automation.status')
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] }
+  })
 
   // -------------------------------------------------------------------------
   // Profiles & Applications
   // -------------------------------------------------------------------------
 
-  server.tool(
-    'list_profiles',
-    'List all search profiles',
-    {},
-    async () => {
-      const result = await rpc.call('profiles.list')
-      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] }
-    }
-  )
+  server.tool('list_profiles', 'List all search profiles', {}, async () => {
+    const result = await rpc.call('profiles.list')
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] }
+  })
 
   server.tool(
     'list_applications',

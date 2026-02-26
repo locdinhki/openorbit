@@ -38,6 +38,22 @@ const TIER_MODEL_CHAINS: Record<ModelTier, string[]> = {
   premium: [OPENAI_MODELS.O1, OPENAI_MODELS.GPT4O]
 }
 
+/** Shape of the OpenAI /v1/chat/completions response. */
+interface OpenAIChatCompletionResponse {
+  choices: Array<{
+    message?: {
+      content?: string
+      tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>
+    }
+    finish_reason?: string
+  }>
+  model: string
+  usage?: {
+    prompt_tokens?: number
+    completion_tokens?: number
+  }
+}
+
 const MAX_RETRY_ATTEMPTS = 3
 const INITIAL_BACKOFF_MS = 1_000
 const MAX_BACKOFF_MS = 30_000
@@ -93,7 +109,10 @@ export class OpenAIProvider implements AIProvider {
         ]
       }
 
-      const data = await this.callAPI('/v1/chat/completions', body)
+      const data = (await this.callAPI(
+        '/v1/chat/completions',
+        body
+      )) as unknown as OpenAIChatCompletionResponse
 
       return {
         content: data.choices[0]?.message?.content ?? '',
@@ -115,11 +134,17 @@ export class OpenAIProvider implements AIProvider {
     return this.executeWithRetry(models, task, async (model) => {
       const messages = [
         { role: 'system' as const, content: request.systemPrompt },
-        ...request.messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+        ...request.messages.map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content
+        }))
       ]
 
       const body = { model, max_completion_tokens: maxTokens, messages }
-      const data = await this.callAPI('/v1/chat/completions', body)
+      const data = (await this.callAPI(
+        '/v1/chat/completions',
+        body
+      )) as unknown as OpenAIChatCompletionResponse
 
       return {
         content: data.choices[0]?.message?.content ?? '',
@@ -269,16 +294,17 @@ export class OpenAIProvider implements AIProvider {
         tools
       }
 
-      const data = await this.callAPI('/v1/chat/completions', body)
+      const data = (await this.callAPI(
+        '/v1/chat/completions',
+        body
+      )) as unknown as OpenAIChatCompletionResponse
       const choice = data.choices[0]
 
-      const toolCalls: AIToolCall[] = (choice?.message?.tool_calls ?? []).map(
-        (tc: { id: string; function: { name: string; arguments: string } }) => ({
-          id: tc.id,
-          name: tc.function.name,
-          input: JSON.parse(tc.function.arguments)
-        })
-      )
+      const toolCalls: AIToolCall[] = (choice?.message?.tool_calls ?? []).map((tc) => ({
+        id: tc.id,
+        name: tc.function.name,
+        input: JSON.parse(tc.function.arguments)
+      }))
 
       return {
         content: choice?.message?.content ?? '',
@@ -300,7 +326,9 @@ export class OpenAIProvider implements AIProvider {
   private getApiKey(): string {
     const key = this.settingsRepo.get('openai_api_key')
     if (!key || typeof key !== 'string') {
-      throw new AuthenticationError('OpenAI API key not configured. Go to Settings to add your key.')
+      throw new AuthenticationError(
+        'OpenAI API key not configured. Go to Settings to add your key.'
+      )
     }
     return key
   }
@@ -355,7 +383,8 @@ export class OpenAIProvider implements AIProvider {
         } catch (err) {
           lastError = err instanceof Error ? err : new Error(String(err))
           const latency = Date.now() - start
-          const isRateLimit = lastError.message.includes('rate') || lastError.message.includes('429')
+          const isRateLimit =
+            lastError.message.includes('rate') || lastError.message.includes('429')
           const isTimeout = lastError.message.includes('timeout')
 
           this.usageRepo.record({

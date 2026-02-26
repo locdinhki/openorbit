@@ -115,7 +115,9 @@ describe('GhlContactsRepo', () => {
 
   it('list with search query matches email', () => {
     repo.upsert(makeContact({ id: 'ct_a', name: 'User A', email: 'special@acme.com' }))
-    repo.upsert(makeContact({ id: 'ct_b', name: 'User B', email: 'normal@test.com' }))
+    repo.upsert(
+      makeContact({ id: 'ct_b', name: 'User B', email: 'normal@test.com', companyName: 'Other Co' })
+    )
 
     const results = repo.list({ query: 'acme' })
     expect(results).toHaveLength(1)

@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid'
 import type Database from 'better-sqlite3'
+import { getDatabase } from '@openorbit/core/db/database'
 
 export interface AnswerTemplate {
   id: string
@@ -37,7 +38,10 @@ function rowToTemplate(row: AnswerRow): AnswerTemplate {
 }
 
 export class AnswersRepo {
-  constructor(private db: Database.Database) {}
+  private db: Database.Database
+  constructor(db?: Database.Database) {
+    this.db = db ?? getDatabase()
+  }
 
   insert(template: { questionPattern: string; answer: string; platform?: string }): AnswerTemplate {
     const id = uuid()
@@ -110,9 +114,7 @@ export class AnswersRepo {
     }
 
     params.push(id)
-    this.db
-      .prepare(`UPDATE answer_templates SET ${sets.join(', ')} WHERE id = ?`)
-      .run(...params)
+    this.db.prepare(`UPDATE answer_templates SET ${sets.join(', ')} WHERE id = ?`).run(...params)
   }
 
   recordUsage(id: string): void {

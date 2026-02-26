@@ -1,4 +1,9 @@
-import type { SearchProfile, JobListing, SiteHintFile, ApplicationResult } from '@openorbit/core/types'
+import type {
+  SearchProfile,
+  JobListing,
+  SiteHintFile,
+  ApplicationResult
+} from '@openorbit/core/types'
 import type { Page } from 'patchright'
 import type { ProgressCallback, QuestionCallback } from './linkedin/linkedin-applicator'
 

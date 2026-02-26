@@ -93,9 +93,7 @@ export function queryTableData(db: Database.Database, params: TableDataParams): 
 
   // Data query
   const orderClause =
-    sortColumn && sortDirection
-      ? `ORDER BY "${sortColumn}" ${sortDirection.toUpperCase()}`
-      : ''
+    sortColumn && sortDirection ? `ORDER BY "${sortColumn}" ${sortDirection.toUpperCase()}` : ''
   const offset = (page - 1) * pageSize
   const dataSql = `SELECT * FROM "${table}" ${whereClause} ${orderClause} LIMIT ? OFFSET ?`
   const rows = db.prepare(dataSql).all(...whereParams, pageSize, offset) as Record<

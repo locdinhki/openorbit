@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import Database from 'better-sqlite3'
-import { listTables, getColumns, getIndexes, getPrimaryKey, validateTableName, isVirtualTable } from '../main/db/schema-introspector'
+import {
+  listTables,
+  getColumns,
+  getIndexes,
+  getPrimaryKey,
+  validateTableName,
+  isVirtualTable
+} from '../main/db/schema-introspector'
 
 let db: Database.Database
 

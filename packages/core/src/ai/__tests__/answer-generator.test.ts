@@ -92,9 +92,7 @@ describe('AnswerGenerator', () => {
 
     it('parses markdown-wrapped JSON', async () => {
       mockComplete.mockResolvedValue(
-        mockResponse(
-          '```json\n{"answer": "Yes", "confidence": 0.95, "needsReview": false}\n```'
-        )
+        mockResponse('```json\n{"answer": "Yes", "confidence": 0.95, "needsReview": false}\n```')
       )
 
       const result = await generator.generateAnswer('Are you authorized?', sampleJob)
@@ -103,9 +101,7 @@ describe('AnswerGenerator', () => {
     })
 
     it('returns fallback for garbage response', async () => {
-      mockComplete.mockResolvedValue(
-        mockResponse('This is not valid JSON response')
-      )
+      mockComplete.mockResolvedValue(mockResponse('This is not valid JSON response'))
 
       const result = await generator.generateAnswer('Question?', sampleJob)
       expect(result.confidence).toBe(0.3)
@@ -133,14 +129,10 @@ describe('AnswerGenerator', () => {
     it('processes questions sequentially', async () => {
       mockComplete
         .mockResolvedValueOnce(
-          mockResponse(
-            JSON.stringify({ answer: 'Answer 1', confidence: 0.9, needsReview: false })
-          )
+          mockResponse(JSON.stringify({ answer: 'Answer 1', confidence: 0.9, needsReview: false }))
         )
         .mockResolvedValueOnce(
-          mockResponse(
-            JSON.stringify({ answer: 'Answer 2', confidence: 0.8, needsReview: false })
-          )
+          mockResponse(JSON.stringify({ answer: 'Answer 2', confidence: 0.8, needsReview: false }))
         )
 
       const results = await generator.generateAnswers(['Q1?', 'Q2?'], sampleJob)

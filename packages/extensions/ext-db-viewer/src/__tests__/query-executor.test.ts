@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import Database from 'better-sqlite3'
-import { queryTableData, updateRecord, insertRecord, deleteRecord, executeSql } from '../main/db/query-executor'
+import {
+  queryTableData,
+  updateRecord,
+  insertRecord,
+  deleteRecord,
+  executeSql
+} from '../main/db/query-executor'
 
 let db: Database.Database
 
@@ -181,7 +187,12 @@ describe('updateRecord', () => {
 
 describe('insertRecord', () => {
   it('inserts a new record', () => {
-    const lastId = insertRecord(db, 'users', { id: 6, name: 'Frank', email: 'frank@test.com', age: 40 })
+    const lastId = insertRecord(db, 'users', {
+      id: 6,
+      name: 'Frank',
+      email: 'frank@test.com',
+      age: 40
+    })
     expect(lastId).toBe(6)
 
     const count = (db.prepare('SELECT COUNT(*) as cnt FROM users').get() as { cnt: number }).cnt

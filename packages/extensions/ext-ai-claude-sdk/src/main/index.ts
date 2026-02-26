@@ -18,7 +18,7 @@ const extension: ExtensionMainAPI = {
     } else {
       ctx.log.warn(
         'Claude Agent SDK provider not available — claude CLI not found or not authenticated. ' +
-        'Falling back to other providers.'
+          'Falling back to other providers.'
       )
     }
   }

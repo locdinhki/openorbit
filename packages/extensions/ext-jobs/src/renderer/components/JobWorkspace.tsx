@@ -32,12 +32,7 @@ export default function JobWorkspace(): React.JSX.Element {
       {/* Re-fetch bar — only when needed */}
       {hasMissingDescriptions && (
         <div className="px-4 py-2.5 border-b border-[var(--cos-border)] flex-shrink-0 flex items-center justify-end">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleRefetch}
-            disabled={refetching}
-          >
+          <Button size="sm" variant="ghost" onClick={handleRefetch} disabled={refetching}>
             {refetching ? 'Fetching...' : 'Re-fetch Descriptions'}
           </Button>
         </div>
@@ -47,9 +42,7 @@ export default function JobWorkspace(): React.JSX.Element {
       {refetching && currentAction && (
         <div className="px-4 py-2 border-b border-[var(--cos-border)] bg-[var(--cos-bg-tertiary)] flex items-center gap-2 flex-shrink-0">
           <div className="w-3 h-3 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin flex-shrink-0" />
-          <span className="text-xs text-[var(--cos-text-secondary)] truncate">
-            {currentAction}
-          </span>
+          <span className="text-xs text-[var(--cos-text-secondary)] truncate">{currentAction}</span>
         </div>
       )}
 
@@ -119,9 +112,7 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
           </svg>
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--cos-text-secondary)]">
-            No job selected
-          </p>
+          <p className="text-sm font-medium text-[var(--cos-text-secondary)]">No job selected</p>
           <p className="text-xs text-[var(--cos-text-muted)] mt-1">
             Pick a job from the list on the left to read its full description here.
           </p>
@@ -184,8 +175,18 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
             className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 mt-1.5"
           >
             Open in browser
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5L9 15" />
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5L9 15"
+              />
             </svg>
           </a>
         )}
@@ -213,9 +214,7 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
           {job.matchReasoning && (
             <p className="text-xs text-[var(--cos-text-secondary)]">{job.matchReasoning}</p>
           )}
-          {job.summary && (
-            <p className="text-sm text-[var(--cos-text-secondary)]">{job.summary}</p>
-          )}
+          {job.summary && <p className="text-sm text-[var(--cos-text-secondary)]">{job.summary}</p>}
           {job.highlights && job.highlights.length > 0 && (
             <ul className="space-y-1">
               {job.highlights.map((h, i) => (
@@ -245,12 +244,7 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
 
       {/* Analyze CTA — shown only when not yet scored */}
       {job.matchScore === undefined && (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleAnalyze}
-          disabled={analyzing}
-        >
+        <Button variant="primary" size="sm" onClick={handleAnalyze} disabled={analyzing}>
           {analyzing ? 'Analyzing...' : 'Analyze with Claude'}
         </Button>
       )}
@@ -293,4 +287,3 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
     </div>
   )
 }
-

@@ -18,14 +18,19 @@ vi.mock('../../config', () => ({
 
 const { SelectorHealer } = await import('../selector-healer')
 
-const mockComplete = vi.fn<[], Promise<AICompletionResponse>>()
+const mockComplete = vi.fn<() => Promise<AICompletionResponse>>()
 
 function createMockAIService(): AIService {
   return {
     registerProvider: vi.fn(),
     getProvider: vi.fn(),
     listProviders: () => [
-      { id: 'claude', displayName: 'Claude', configured: true, capabilities: { streaming: false, toolCalling: false, vision: false, models: [] } }
+      {
+        id: 'claude',
+        displayName: 'Claude',
+        configured: true,
+        capabilities: { streaming: false, toolCalling: false, vision: false, models: [] }
+      }
     ],
     setDefault: vi.fn(),
     complete: mockComplete,
@@ -35,7 +40,9 @@ function createMockAIService(): AIService {
 
 function makePage(overrides: Record<string, any> = {}): any {
   return {
-    evaluate: vi.fn().mockResolvedValue('<div class="new-panel">some content here for testing</div>'),
+    evaluate: vi
+      .fn()
+      .mockResolvedValue('<div class="new-panel">some content here for testing</div>'),
     locator: vi.fn().mockReturnValue({
       count: vi.fn().mockResolvedValue(1),
       first: vi.fn().mockReturnValue({

@@ -81,7 +81,8 @@ export class WhatsAppClient {
       version,
       auth: state,
       printQRInTerminal: false,
-      logger: silentLogger()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      logger: silentLogger() as any
     })
 
     this.socket.ev.on('creds.update', saveCreds)

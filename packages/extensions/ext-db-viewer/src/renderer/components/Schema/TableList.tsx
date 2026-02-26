@@ -7,7 +7,12 @@ interface Props {
   loading: boolean
 }
 
-export default function TableList({ tables, selectedTable, onSelectTable, loading }: Props): React.JSX.Element {
+export default function TableList({
+  tables,
+  selectedTable,
+  onSelectTable,
+  loading
+}: Props): React.JSX.Element {
   if (loading) {
     return <div className="p-3 text-xs text-[var(--cos-text-muted)]">Loading tables...</div>
   }
@@ -23,13 +28,28 @@ export default function TableList({ tables, selectedTable, onSelectTable, loadin
   return (
     <div className="py-1">
       {regular.length > 0 && (
-        <TableGroup label="Tables" tables={regular} selected={selectedTable} onSelect={onSelectTable} />
+        <TableGroup
+          label="Tables"
+          tables={regular}
+          selected={selectedTable}
+          onSelect={onSelectTable}
+        />
       )}
       {virtual.length > 0 && (
-        <TableGroup label="Virtual Tables" tables={virtual} selected={selectedTable} onSelect={onSelectTable} />
+        <TableGroup
+          label="Virtual Tables"
+          tables={virtual}
+          selected={selectedTable}
+          onSelect={onSelectTable}
+        />
       )}
       {system.length > 0 && (
-        <TableGroup label="System" tables={system} selected={selectedTable} onSelect={onSelectTable} />
+        <TableGroup
+          label="System"
+          tables={system}
+          selected={selectedTable}
+          onSelect={onSelectTable}
+        />
       )}
     </div>
   )

@@ -46,9 +46,11 @@ function App(): React.JSX.Element {
 
       // Hydrate persisted layout sizes before setting extensions
       try {
-        const sizesResult = await window.api.invoke(IPC.SETTINGS_GET, { key: 'ui.layout-sizes' })
+        const sizesResult = (await window.api.invoke(IPC.SETTINGS_GET, {
+          key: 'ui.layout-sizes'
+        })) as { success?: boolean; data?: string }
         if (sizesResult?.success && sizesResult.data) {
-          loadLayoutSizes(JSON.parse(sizesResult.data as string))
+          loadLayoutSizes(JSON.parse(sizesResult.data))
         }
       } catch {
         // Ignore — use defaults

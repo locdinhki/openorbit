@@ -59,15 +59,13 @@ function makeActionLog(overrides?: Partial<ActionLog>): ActionLog {
     url: 'https://linkedin.com',
     intent: 'Click apply button',
     pageSnapshot: '',
-    hintUsed: '',
+    hintUsed: '' as unknown as ActionLog['hintUsed'],
     executionMethod: 'ai' as unknown as ActionLog['executionMethod'],
-    actionType: 'click' as unknown as ActionLog['actionType'],
-    actionTarget: 'button',
-    actionValue: null,
+    action: {
+      type: 'click' as ActionLog['action']['type'],
+      target: 'button'
+    },
     success: true,
-    errorMessage: null,
-    correctedTarget: null,
-    correctedValue: null,
     ...overrides
   } as ActionLog
 }
@@ -143,7 +141,7 @@ describe('formatJobDetail', () => {
   })
 
   it('includes highlights and red flags as fields', () => {
-    const embed = formatJobDetail(makeJob({ highlights: 'Good pay', redFlags: 'Long hours' }))
+    const embed = formatJobDetail(makeJob({ highlights: ['Good pay'], redFlags: ['Long hours'] }))
     const json = embed.toJSON()
     expect(json.fields!.some((f) => f.name === 'Highlights')).toBe(true)
     expect(json.fields!.some((f) => f.name === 'Red Flags')).toBe(true)
@@ -155,8 +153,8 @@ describe('jobActionRow', () => {
     const row = jobActionRow('job-1')
     const json = row.toJSON()
     expect(json.components).toHaveLength(2)
-    expect(json.components[0].custom_id).toBe('approve:job-1')
-    expect(json.components[1].custom_id).toBe('reject:job-1')
+    expect((json.components[0] as { custom_id?: string }).custom_id).toBe('approve:job-1')
+    expect((json.components[1] as { custom_id?: string }).custom_id).toBe('reject:job-1')
   })
 })
 

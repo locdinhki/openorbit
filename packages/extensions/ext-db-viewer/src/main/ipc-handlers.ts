@@ -6,13 +6,19 @@
 // ============================================================================
 
 import { dialog } from 'electron'
-import { join } from 'path'
 import type { ExtensionContext } from '@openorbit/core/extensions/types'
 import { errorToResponse } from '@openorbit/core/errors'
 import { EXT_DB_VIEWER_IPC } from '../ipc-channels'
 import { extDbViewerSchemas } from '../ipc-schemas'
 import { listTables, getColumns, getIndexes } from './db/schema-introspector'
-import { queryTableData, updateRecord, insertRecord, deleteRecord, executeSql, getPrimaryKey } from './db/query-executor'
+import {
+  queryTableData,
+  updateRecord,
+  insertRecord,
+  deleteRecord,
+  executeSql,
+  getPrimaryKey
+} from './db/query-executor'
 import { exportTable } from './db/data-export'
 import { previewImport, executeImport } from './db/data-import'
 
@@ -114,7 +120,11 @@ export function registerExtDbViewerHandlers(ctx: ExtensionContext): void {
       try {
         // Dev mode check
         if (!isDevModeEnabled(db)) {
-          return { success: false, error: 'Developer mode required for delete operations', code: 'DEV_MODE_REQUIRED' }
+          return {
+            success: false,
+            error: 'Developer mode required for delete operations',
+            code: 'DEV_MODE_REQUIRED'
+          }
         }
         const affected = deleteRecord(db, table, primaryKey)
         return { success: true, data: { affected } }
@@ -154,7 +164,11 @@ export function registerExtDbViewerHandlers(ctx: ExtensionContext): void {
     (_event, { sql, params }) => {
       try {
         if (!isDevModeEnabled(db)) {
-          return { success: false, error: 'Developer mode required for SQL execution', code: 'DEV_MODE_REQUIRED' }
+          return {
+            success: false,
+            error: 'Developer mode required for SQL execution',
+            code: 'DEV_MODE_REQUIRED'
+          }
         }
         const result = executeSql(db, sql, params)
         return { success: true, data: result }

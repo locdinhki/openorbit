@@ -14,7 +14,6 @@ import type {
   AIService,
   AIToolDefinition,
   AIToolRequest,
-  AIToolResponse,
   AIToolCall,
   AIToolResult
 } from '../provider-types'
@@ -151,9 +150,9 @@ describe('Tool calling bridge', () => {
       const provider = createMockProvider({
         id: 'claude',
         capabilities: { streaming: true, toolCalling: true, vision: false, models: ['model'] },
-        completeWithTools: vi.fn().mockResolvedValue(
-          mockToolResponse([], 'end_turn', 'I can answer without tools.')
-        )
+        completeWithTools: vi
+          .fn()
+          .mockResolvedValue(mockToolResponse([], 'end_turn', 'I can answer without tools.'))
       })
       service.registerProvider(provider)
 

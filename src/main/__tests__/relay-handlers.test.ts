@@ -3,30 +3,28 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // --- Hoisted mocks ---
 
-const { mockWsOn, mockWsClients, MockWebSocket, MockWebSocketServer } = vi.hoisted(
-  () => {
-    const mockWsOn = vi.fn()
-    const mockWsClose = vi.fn()
-    const mockWsClients = new Set<any>()
+const { mockWsOn, mockWsClients, MockWebSocket, MockWebSocketServer } = vi.hoisted(() => {
+  const mockWsOn = vi.fn()
+  const mockWsClose = vi.fn()
+  const mockWsClients = new Set<any>()
 
-    const MockWebSocket = vi.fn().mockImplementation(function (this: any) {
-      this.on = vi.fn()
-      this.send = vi.fn()
-      this.close = mockWsClose
-      this.readyState = 1 // OPEN
-      this.authenticated = false
-    })
-    ;(MockWebSocket as any).OPEN = 1
+  const MockWebSocket = vi.fn().mockImplementation(function (this: any) {
+    this.on = vi.fn()
+    this.send = vi.fn()
+    this.close = mockWsClose
+    this.readyState = 1 // OPEN
+    this.authenticated = false
+  })
+  ;(MockWebSocket as any).OPEN = 1
 
-    const MockWebSocketServer = vi.fn().mockImplementation(function (this: any) {
-      this.on = mockWsOn
-      this.close = mockWsClose
-      this.clients = mockWsClients
-    })
+  const MockWebSocketServer = vi.fn().mockImplementation(function (this: any) {
+    this.on = mockWsOn
+    this.close = mockWsClose
+    this.clients = mockWsClients
+  })
 
-    return { mockWsOn, mockWsClients, MockWebSocket, MockWebSocketServer }
-  }
-)
+  return { mockWsOn, mockWsClients, MockWebSocket, MockWebSocketServer }
+})
 
 vi.mock('ws', () => ({
   WebSocket: MockWebSocket,
@@ -101,7 +99,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 42, url: 'https://linkedin.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 42, url: 'https://linkedin.com' }
+        })
+      )
 
       const sent = JSON.parse(ws.send.mock.calls[0][0])
       expect(sent.result).toEqual({ ok: true })
@@ -116,7 +120,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 55, url: 'https://example.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 55, url: 'https://example.com' }
+        })
+      )
 
       expect(server.getRelayTabIds()).toContain(55)
     })
@@ -130,7 +140,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 77, url: 'https://example.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 77, url: 'https://example.com' }
+        })
+      )
       ws.send.mockClear()
       await onMessage(JSON.stringify({ id: 2, method: 'relay.detach', params: { tabId: 77 } }))
 
@@ -149,11 +165,19 @@ describe('RPCServer relay protocol', () => {
       await authenticate(ws, onMessage)
 
       // Attach relay tab
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 10, url: 'https://linkedin.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 10, url: 'https://linkedin.com' }
+        })
+      )
       ws.send.mockClear()
 
       // Issue CDP command (don't await yet — run in background)
-      const cdpPromise = server.sendRelayCommand(10, 'Page.navigate', { url: 'https://linkedin.com/jobs' })
+      const cdpPromise = server.sendRelayCommand(10, 'Page.navigate', {
+        url: 'https://linkedin.com/jobs'
+      })
 
       // Extension replies with relay.result
       // Extract the commandId from the relay.command that was sent to the socket
@@ -161,11 +185,13 @@ describe('RPCServer relay protocol', () => {
       expect(relayMsg.method).toBe('relay.command')
       const commandId = relayMsg.params.commandId
 
-      await onMessage(JSON.stringify({
-        id: commandId,
-        method: 'relay.result',
-        params: { commandId, result: { frameId: 'main' }, error: null }
-      }))
+      await onMessage(
+        JSON.stringify({
+          id: commandId,
+          method: 'relay.result',
+          params: { commandId, result: { frameId: 'main' }, error: null }
+        })
+      )
 
       const result = await cdpPromise
       expect(result).toEqual({ frameId: 'main' })
@@ -178,7 +204,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 11, url: 'https://example.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 11, url: 'https://example.com' }
+        })
+      )
       ws.send.mockClear()
 
       const cdpPromise = server.sendRelayCommand(11, 'Runtime.evaluate', { expression: 'bad()' })
@@ -186,11 +218,13 @@ describe('RPCServer relay protocol', () => {
       const relayMsg = JSON.parse(ws.send.mock.calls[0][0])
       const commandId = relayMsg.params.commandId
 
-      await onMessage(JSON.stringify({
-        id: commandId,
-        method: 'relay.result',
-        params: { commandId, result: null, error: 'SyntaxError: bad is not defined' }
-      }))
+      await onMessage(
+        JSON.stringify({
+          id: commandId,
+          method: 'relay.result',
+          params: { commandId, result: null, error: 'SyntaxError: bad is not defined' }
+        })
+      )
 
       await expect(cdpPromise).rejects.toThrow('SyntaxError')
     })
@@ -218,7 +252,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 20, url: 'https://example.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 20, url: 'https://example.com' }
+        })
+      )
       ws.send.mockClear()
 
       const cdpPromise = server.sendRelayCommand(20, 'Page.navigate', {})
@@ -236,11 +276,13 @@ describe('RPCServer relay protocol', () => {
       const onMessage = getMessageHandler(ws)
       await authenticate(ws, onMessage)
 
-      await onMessage(JSON.stringify({
-        id: null,
-        method: 'relay.event',
-        params: { tabId: 42, cdpEvent: 'Page.loadEventFired', cdpParams: { timestamp: 123 } }
-      }))
+      await onMessage(
+        JSON.stringify({
+          id: null,
+          method: 'relay.event',
+          params: { tabId: 42, cdpEvent: 'Page.loadEventFired', cdpParams: { timestamp: 123 } }
+        })
+      )
 
       const sent = JSON.parse(ws.send.mock.calls[0][0])
       expect(sent.result).toEqual({ ok: true })
@@ -255,7 +297,13 @@ describe('RPCServer relay protocol', () => {
       connectHandler(relayWs, { socket: { remoteAddress: '127.0.0.1' } })
       const onMessage = getMessageHandler(relayWs)
       await authenticate(relayWs, onMessage)
-      await onMessage(JSON.stringify({ id: 1, method: 'relay.attach', params: { tabId: 30, url: 'https://example.com' } }))
+      await onMessage(
+        JSON.stringify({
+          id: 1,
+          method: 'relay.attach',
+          params: { tabId: 30, url: 'https://example.com' }
+        })
+      )
       relayWs.send.mockClear()
 
       // Trigger a broadcast manually by calling resolveRelayCommand on a non-existent command

@@ -21,7 +21,10 @@ vi.mock('@openorbit/core/utils/logger', () => ({
 }))
 
 vi.mock('@openorbit/core/ipc-schemas', () => ({
-  ipcSchemas: new Proxy({}, { get: () => ({ safeParse: (v: unknown) => ({ success: true, data: v ?? {} }) }) })
+  ipcSchemas: new Proxy(
+    {},
+    { get: () => ({ safeParse: (v: unknown) => ({ success: true, data: v ?? {} }) }) }
+  )
 }))
 
 vi.mock('@openorbit/core/errors', () => ({
@@ -32,16 +35,32 @@ vi.mock('@openorbit/core/errors', () => ({
 }))
 
 vi.mock('@openorbit/core/automation/session-manager', () => ({
-  SessionManager: class { init = vi.fn(); close = vi.fn(); isInitialized = vi.fn().mockReturnValue(false); hasExistingSession = vi.fn().mockReturnValue(false); getPage = vi.fn(); saveSession = vi.fn() }
+  SessionManager: class {
+    init = vi.fn()
+    close = vi.fn()
+    isInitialized = vi.fn().mockReturnValue(false)
+    hasExistingSession = vi.fn().mockReturnValue(false)
+    getPage = vi.fn()
+    saveSession = vi.fn()
+  }
 }))
 vi.mock('@openorbit/core/automation/extraction-runner', () => ({
-  ExtractionRunner: class { isRunning = vi.fn().mockReturnValue(false); stop = vi.fn() }
+  ExtractionRunner: class {
+    isRunning = vi.fn().mockReturnValue(false)
+    stop = vi.fn()
+  }
 }))
 vi.mock('@openorbit/core/automation/automation-coordinator', () => ({
-  AutomationCoordinator: class { isRunning = vi.fn().mockReturnValue(false); stop = vi.fn() }
+  AutomationCoordinator: class {
+    isRunning = vi.fn().mockReturnValue(false)
+    stop = vi.fn()
+  }
 }))
 vi.mock('@openorbit/core/db/settings-repo', () => ({
-  SettingsRepo: class { get = vi.fn(); set = vi.fn() }
+  SettingsRepo: class {
+    get = vi.fn()
+    set = vi.fn()
+  }
 }))
 vi.mock('@openorbit/core/ai/claude-service', () => ({
   getClaudeService: () => ({ resetClient: vi.fn() })
@@ -52,7 +71,12 @@ vi.mock('../ipc-validation', () => ({
 vi.mock('../updater', () => ({}))
 
 import { networkInterfaces } from 'os'
-import { getLocalIp, getTailscaleIp, resolvePairingInfo, type PairingContext } from '../ipc-handlers'
+import {
+  getLocalIp,
+  getTailscaleIp,
+  resolvePairingInfo,
+  type PairingContext
+} from '../ipc-handlers'
 
 // ---------------------------------------------------------------------------
 
@@ -70,7 +94,14 @@ describe('getLocalIp()', () => {
   it('returns the first non-loopback IPv4 address', () => {
     mockNetworkInterfaces({
       en0: [
-        { family: 'IPv4', address: '192.168.1.10', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '192.168.1.10',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
       ]
     })
     expect(getLocalIp()).toBe('192.168.1.10')
@@ -78,8 +109,26 @@ describe('getLocalIp()', () => {
 
   it('skips loopback addresses', () => {
     mockNetworkInterfaces({
-      lo: [{ family: 'IPv4', address: '127.0.0.1', internal: true, netmask: '255.0.0.0', mac: '', cidr: '' }],
-      en0: [{ family: 'IPv4', address: '10.0.0.2', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }]
+      lo: [
+        {
+          family: 'IPv4',
+          address: '127.0.0.1',
+          internal: true,
+          netmask: '255.0.0.0',
+          mac: '',
+          cidr: ''
+        }
+      ],
+      en0: [
+        {
+          family: 'IPv4',
+          address: '10.0.0.2',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getLocalIp()).toBe('10.0.0.2')
   })
@@ -88,7 +137,14 @@ describe('getLocalIp()', () => {
     mockNetworkInterfaces({
       en0: [
         { family: 'IPv6', address: 'fe80::1', internal: false, netmask: '/64', mac: '', cidr: '' },
-        { family: 'IPv4', address: '192.168.0.5', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '192.168.0.5',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
       ]
     })
     expect(getLocalIp()).toBe('192.168.0.5')
@@ -101,7 +157,16 @@ describe('getLocalIp()', () => {
 
   it('falls back to 127.0.0.1 when only loopback interfaces exist', () => {
     mockNetworkInterfaces({
-      lo: [{ family: 'IPv4', address: '127.0.0.1', internal: true, netmask: '255.0.0.0', mac: '', cidr: '' }]
+      lo: [
+        {
+          family: 'IPv4',
+          address: '127.0.0.1',
+          internal: true,
+          netmask: '255.0.0.0',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getLocalIp()).toBe('127.0.0.1')
   })
@@ -114,43 +179,106 @@ describe('getTailscaleIp()', () => {
 
   it('returns tailscale IP in the 100.64-127.x.x range', () => {
     mockNetworkInterfaces({
-      en0: [{ family: 'IPv4', address: '192.168.1.10', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }],
-      utun3: [{ family: 'IPv4', address: '100.100.50.1', internal: false, netmask: '255.255.255.255', mac: '', cidr: '' }]
+      en0: [
+        {
+          family: 'IPv4',
+          address: '192.168.1.10',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
+      ],
+      utun3: [
+        {
+          family: 'IPv4',
+          address: '100.100.50.1',
+          internal: false,
+          netmask: '255.255.255.255',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBe('100.100.50.1')
   })
 
   it('returns null when no tailscale interface exists', () => {
     mockNetworkInterfaces({
-      en0: [{ family: 'IPv4', address: '192.168.1.10', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }]
+      en0: [
+        {
+          family: 'IPv4',
+          address: '192.168.1.10',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBeNull()
   })
 
   it('returns null for 100.x addresses outside CGNAT range', () => {
     mockNetworkInterfaces({
-      en0: [{ family: 'IPv4', address: '100.50.0.1', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }]
+      en0: [
+        {
+          family: 'IPv4',
+          address: '100.50.0.1',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBeNull()
   })
 
   it('detects 100.64.x.x as lowest tailscale range', () => {
     mockNetworkInterfaces({
-      utun0: [{ family: 'IPv4', address: '100.64.0.1', internal: false, netmask: '255.255.255.255', mac: '', cidr: '' }]
+      utun0: [
+        {
+          family: 'IPv4',
+          address: '100.64.0.1',
+          internal: false,
+          netmask: '255.255.255.255',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBe('100.64.0.1')
   })
 
   it('detects 100.127.x.x as highest tailscale range', () => {
     mockNetworkInterfaces({
-      utun0: [{ family: 'IPv4', address: '100.127.255.254', internal: false, netmask: '255.255.255.255', mac: '', cidr: '' }]
+      utun0: [
+        {
+          family: 'IPv4',
+          address: '100.127.255.254',
+          internal: false,
+          netmask: '255.255.255.255',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBe('100.127.255.254')
   })
 
   it('ignores 100.128+ addresses (outside CGNAT)', () => {
     mockNetworkInterfaces({
-      en0: [{ family: 'IPv4', address: '100.128.0.1', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }]
+      en0: [
+        {
+          family: 'IPv4',
+          address: '100.128.0.1',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
+      ]
     })
     expect(getTailscaleIp()).toBeNull()
   })
@@ -160,7 +288,14 @@ describe('resolvePairingInfo()', () => {
   beforeEach(() => {
     vi.mocked(networkInterfaces).mockReturnValue({
       en0: [
-        { family: 'IPv4', address: '10.1.2.3', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '10.1.2.3',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
       ]
     } as any)
   })
@@ -195,10 +330,24 @@ describe('resolvePairingInfo()', () => {
   it('includes tailnetUrl when tailscale IP is available', () => {
     vi.mocked(networkInterfaces).mockReturnValue({
       en0: [
-        { family: 'IPv4', address: '10.1.2.3', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '10.1.2.3',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
       ],
       utun3: [
-        { family: 'IPv4', address: '100.100.50.1', internal: false, netmask: '255.255.255.255', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '100.100.50.1',
+          internal: false,
+          netmask: '255.255.255.255',
+          mac: '',
+          cidr: ''
+        }
       ]
     } as any)
 
@@ -214,10 +363,24 @@ describe('resolvePairingInfo()', () => {
   it('uses correct port in tailnet URL from pairing context', () => {
     vi.mocked(networkInterfaces).mockReturnValue({
       en0: [
-        { family: 'IPv4', address: '10.1.2.3', internal: false, netmask: '255.255.255.0', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '10.1.2.3',
+          internal: false,
+          netmask: '255.255.255.0',
+          mac: '',
+          cidr: ''
+        }
       ],
       utun3: [
-        { family: 'IPv4', address: '100.64.0.5', internal: false, netmask: '255.255.255.255', mac: '', cidr: '' }
+        {
+          family: 'IPv4',
+          address: '100.64.0.5',
+          internal: false,
+          netmask: '255.255.255.255',
+          mac: '',
+          cidr: ''
+        }
       ]
     } as any)
 

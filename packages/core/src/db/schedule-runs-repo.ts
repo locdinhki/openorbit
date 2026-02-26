@@ -38,9 +38,10 @@ export class ScheduleRunsRepo {
   insertStart(scheduleId: string): string {
     const db = getDatabase()
     const id = randomUUID()
-    db.prepare(
-      `INSERT INTO schedule_runs (id, schedule_id, status) VALUES (?, ?, 'running')`
-    ).run(id, scheduleId)
+    db.prepare(`INSERT INTO schedule_runs (id, schedule_id, status) VALUES (?, ?, 'running')`).run(
+      id,
+      scheduleId
+    )
     return id
   }
 

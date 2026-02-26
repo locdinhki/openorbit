@@ -108,9 +108,7 @@ describe('JobAnalyzer', () => {
     })
 
     it('returns fallback for garbage input', async () => {
-      mockComplete.mockResolvedValue(
-        mockResponse('This is not JSON at all, just some random text')
-      )
+      mockComplete.mockResolvedValue(mockResponse('This is not JSON at all, just some random text'))
 
       const result = await analyzer.analyze(sampleJob)
       expect(result.matchScore).toBe(50)

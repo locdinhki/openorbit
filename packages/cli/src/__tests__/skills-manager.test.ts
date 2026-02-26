@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mkdirSync, writeFileSync, rmSync, readdirSync } from 'fs'
+import { mkdirSync, writeFileSync, rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { SkillsManager } from '../skills-manager'
@@ -129,7 +129,7 @@ describe('SkillsManager', () => {
         json: () => Promise.resolve(MOCK_REGISTRY)
       } as Response)
 
-      await expect(mgr.install('@community/unknown')).rejects.toThrow("not found in registry")
+      await expect(mgr.install('@community/unknown')).rejects.toThrow('not found in registry')
     })
 
     it('throws when skill download fails', async () => {

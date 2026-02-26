@@ -271,19 +271,15 @@ export class JobsRepo {
   }
 
   updateDescription(id: string, description: string): void {
-    this.db.prepare('UPDATE jobs SET description = ?, updated_at = ? WHERE id = ?').run(
-      description,
-      new Date().toISOString(),
-      id
-    )
+    this.db
+      .prepare('UPDATE jobs SET description = ?, updated_at = ? WHERE id = ?')
+      .run(description, new Date().toISOString(), id)
   }
 
   updateTitle(id: string, title: string): void {
-    this.db.prepare('UPDATE jobs SET title = ?, updated_at = ? WHERE id = ?').run(
-      title,
-      new Date().toISOString(),
-      id
-    )
+    this.db
+      .prepare('UPDATE jobs SET title = ?, updated_at = ? WHERE id = ?')
+      .run(title, new Date().toISOString(), id)
   }
 
   delete(id: string): void {

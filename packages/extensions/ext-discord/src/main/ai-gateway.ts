@@ -49,7 +49,6 @@ export interface AIGatewayDeps {
 }
 
 export class AIGateway {
-  private db: Database.Database
   private log: Logger
   private jobsRepo: JobsRepo
   private profilesRepo: ProfilesRepo
@@ -59,7 +58,6 @@ export class AIGateway {
   private memoryContext: MemoryContextBuilder
 
   constructor(deps: AIGatewayDeps) {
-    this.db = deps.db
     this.log = deps.log
     this.jobsRepo = new JobsRepo(deps.db)
     this.profilesRepo = new ProfilesRepo(deps.db)
@@ -153,7 +151,7 @@ export class AIGateway {
     const lower = text.trim().toLowerCase()
 
     // Direct command shortcuts for common operations
-    const directResult = this.tryDirectCommand(lower)
+    const directResult = await this.tryDirectCommand(lower)
     if (directResult !== null) return directResult
 
     // Fall back to AI for natural language processing
@@ -164,7 +162,7 @@ export class AIGateway {
   // Direct commands (fast path — no AI needed)
   // -------------------------------------------------------------------------
 
-  tryDirectCommand(text: string): string | null {
+  async tryDirectCommand(text: string): Promise<string | null> {
     if (text === '/jobs' || text === '/new' || text === 'new jobs' || text === 'jobs') {
       // For DM text commands, return a text summary
       // (Rich embeds are handled by the slash command handler in index.ts)

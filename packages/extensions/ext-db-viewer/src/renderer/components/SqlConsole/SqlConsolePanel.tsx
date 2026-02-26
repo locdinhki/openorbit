@@ -63,9 +63,7 @@ export default function SqlConsolePanel(): React.JSX.Element {
       {/* Results */}
       <div className="flex-1 overflow-auto p-2">
         {console.error && (
-          <div className="text-xs text-red-400 bg-red-500/10 rounded p-2 mb-2">
-            {console.error}
-          </div>
+          <div className="text-xs text-red-400 bg-red-500/10 rounded p-2 mb-2">{console.error}</div>
         )}
 
         {console.results && (
@@ -145,9 +143,7 @@ export default function SqlConsolePanel(): React.JSX.Element {
                   className="w-full text-left px-2 py-1 text-[10px] text-[var(--cos-text-secondary)] hover:bg-[var(--cos-bg-hover)] rounded cursor-pointer truncate font-mono"
                   title={entry.sql}
                 >
-                  <span className="text-[var(--cos-text-muted)]">
-                    [{entry.statementType}]
-                  </span>{' '}
+                  <span className="text-[var(--cos-text-muted)]">[{entry.statementType}]</span>{' '}
                   {entry.sql}
                 </button>
               ))}

@@ -26,9 +26,7 @@ export default function PanelContainer({
   panels,
   onSelectPanel
 }: PanelContainerProps): React.JSX.Element {
-  const Component = activeId
-    ? (getExtensionView(activeId) as React.ComponentType | null)
-    : null
+  const Component = activeId ? (getExtensionView(activeId) as React.ComponentType | null) : null
 
   return (
     <div className="flex flex-col h-full">

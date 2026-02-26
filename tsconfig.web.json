@@ -21,6 +21,18 @@
       ],
       "@openorbit/ext-jobs/*": [
         "packages/extensions/ext-jobs/src/*"
+      ],
+      "@openorbit/ext-ai-claude/*": [
+        "packages/extensions/ext-ai-claude/src/*"
+      ],
+      "@openorbit/ext-db-viewer/*": [
+        "packages/extensions/ext-db-viewer/src/*"
+      ],
+      "@openorbit/ext-zillow/*": [
+        "packages/extensions/ext-zillow/src/*"
+      ],
+      "@openorbit/ext-ghl/*": [
+        "packages/extensions/ext-ghl/src/*"
       ]
     }
   }

@@ -262,7 +262,9 @@ export class JobsRepo {
   listMissingDescription(): JobListing[] {
     const db = getDatabase()
     const rows = db
-      .prepare("SELECT * FROM jobs WHERE description = '' OR description IS NULL ORDER BY created_at DESC")
+      .prepare(
+        "SELECT * FROM jobs WHERE description = '' OR description IS NULL ORDER BY created_at DESC"
+      )
       .all() as JobRow[]
     return rows.map(rowToJob)
   }

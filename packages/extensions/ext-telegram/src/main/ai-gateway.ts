@@ -16,7 +16,13 @@ import { JobsRepo } from '@openorbit/ext-jobs/main/db/jobs-repo'
 import { ProfilesRepo } from '@openorbit/ext-jobs/main/db/profiles-repo'
 import { ActionLogRepo } from '@openorbit/ext-jobs/main/db/action-log-repo'
 import { ApplicationsRepo } from '@openorbit/ext-jobs/main/db/applications-repo'
-import { formatJobList, formatJobDetail, formatProfileList, formatActionLog, formatStatusSummary } from './formatters'
+import type { JobStatus } from '@openorbit/core/types'
+import {
+  formatJobList,
+  formatProfileList,
+  formatActionLog,
+  formatStatusSummary
+} from './formatters'
 
 // ---------------------------------------------------------------------------
 // System prompt
@@ -48,7 +54,8 @@ export interface AIGatewayDeps {
 }
 
 export class AIGateway {
-  private db: Database.Database
+  // @ts-expect-error reserved for future use
+  private _db: Database.Database
   private log: Logger
   private jobsRepo: JobsRepo
   private profilesRepo: ProfilesRepo
@@ -58,7 +65,7 @@ export class AIGateway {
   private memoryContext: MemoryContextBuilder
 
   constructor(deps: AIGatewayDeps) {
-    this.db = deps.db
+    this._db = deps.db
     this.log = deps.log
     this.jobsRepo = new JobsRepo(deps.db)
     this.profilesRepo = new ProfilesRepo(deps.db)
@@ -128,17 +135,13 @@ export class AIGateway {
       if (action === 'approve') {
         this.jobsRepo.updateStatus(jobId, 'approved')
         const job = this.jobsRepo.getById(jobId)
-        return job
-          ? `Approved: *${job.title}* at ${job.company}`
-          : `Job ${jobId} approved.`
+        return job ? `Approved: *${job.title}* at ${job.company}` : `Job ${jobId} approved.`
       }
 
       if (action === 'reject') {
         this.jobsRepo.updateStatus(jobId, 'rejected')
         const job = this.jobsRepo.getById(jobId)
-        return job
-          ? `Rejected: *${job.title}* at ${job.company}`
-          : `Job ${jobId} rejected.`
+        return job ? `Rejected: *${job.title}* at ${job.company}` : `Job ${jobId} rejected.`
       }
 
       return 'Unknown action.'
@@ -169,12 +172,12 @@ export class AIGateway {
 
   private tryDirectCommand(text: string): string | null {
     if (text === '/jobs' || text === '/new' || text === 'new jobs' || text === 'jobs') {
-      const jobs = this.jobsRepo.list({ status: 'new' as any, limit: 10 })
+      const jobs = this.jobsRepo.list({ status: 'new' as JobStatus, limit: 10 })
       return formatJobList(jobs, 'New Jobs')
     }
 
     if (text === '/approved') {
-      const jobs = this.jobsRepo.list({ status: 'approved' as any, limit: 10 })
+      const jobs = this.jobsRepo.list({ status: 'approved' as JobStatus, limit: 10 })
       return formatJobList(jobs, 'Approved Jobs')
     }
 
@@ -223,7 +226,7 @@ export class AIGateway {
 
   private buildToolPrompt(): string {
     return [
-      'You have access to the following data about the user\'s job search.',
+      "You have access to the following data about the user's job search.",
       'Use this information to answer their questions.',
       '',
       'Current data:',
@@ -233,8 +236,8 @@ export class AIGateway {
 
   private getDataSnapshot(): string {
     try {
-      const newJobs = this.jobsRepo.list({ status: 'new' as any, limit: 5 })
-      const approvedJobs = this.jobsRepo.list({ status: 'approved' as any, limit: 5 })
+      const newJobs = this.jobsRepo.list({ status: 'new' as JobStatus, limit: 5 })
+      const approvedJobs = this.jobsRepo.list({ status: 'approved' as JobStatus, limit: 5 })
       const recentLog = this.actionLogRepo.getRecent(5)
       const profiles = this.profilesRepo.list()
 
@@ -243,7 +246,9 @@ export class AIGateway {
       if (newJobs.length > 0) {
         sections.push(`New jobs (${newJobs.length} shown):`)
         for (const job of newJobs) {
-          sections.push(`  - [${job.id}] "${job.title}" at ${job.company} (score: ${job.matchScore ?? 'N/A'})`)
+          sections.push(
+            `  - [${job.id}] "${job.title}" at ${job.company} (score: ${job.matchScore ?? 'N/A'})`
+          )
         }
       } else {
         sections.push('No new jobs found.')
@@ -257,13 +262,17 @@ export class AIGateway {
       }
 
       if (profiles.length > 0) {
-        sections.push(`\nSearch profiles: ${profiles.map((p) => `${p.name} (${p.platform})`).join(', ')}`)
+        sections.push(
+          `\nSearch profiles: ${profiles.map((p) => `${p.name} (${p.platform})`).join(', ')}`
+        )
       }
 
       if (recentLog.length > 0) {
         sections.push(`\nRecent actions (${recentLog.length}):`)
         for (const entry of recentLog) {
-          sections.push(`  - ${entry.timestamp}: ${entry.intent} (${entry.success ? 'success' : 'failed'})`)
+          sections.push(
+            `  - ${entry.timestamp}: ${entry.intent} (${entry.success ? 'success' : 'failed'})`
+          )
         }
       }
 

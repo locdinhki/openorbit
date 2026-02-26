@@ -195,7 +195,11 @@ describe('MemoryContextBuilder', () => {
     it('includes relevant context from search', () => {
       mockSearch.mockReturnValue([
         {
-          fact: makeFact({ id: 'fact-3', category: 'company', content: 'Stripe has great culture' }),
+          fact: makeFact({
+            id: 'fact-3',
+            category: 'company',
+            content: 'Stripe has great culture'
+          }),
           score: 1.0
         }
       ])

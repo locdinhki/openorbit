@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { writeFileSync, unlinkSync, existsSync } from 'fs'
+import { writeFileSync, readFileSync, unlinkSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import Database from 'better-sqlite3'
@@ -45,7 +45,6 @@ describe('exportTable', () => {
     expect(result.rowCount).toBe(3)
     expect(existsSync(path)).toBe(true)
 
-    const { readFileSync } = require('fs')
     const content = readFileSync(path, 'utf-8')
     const lines = content.split('\n')
     expect(lines[0]).toBe('id,name,price,active,data')
@@ -58,7 +57,6 @@ describe('exportTable', () => {
     const result = exportTable(db, 'items', 'json', path)
     expect(result.rowCount).toBe(3)
 
-    const { readFileSync } = require('fs')
     const data = JSON.parse(readFileSync(path, 'utf-8'))
     expect(data).toHaveLength(3)
     expect(data[0].name).toBe('Widget')
@@ -98,7 +96,7 @@ describe('previewImport', () => {
 
   it('previews a JSON file', () => {
     const path = tmpPath('import.json')
-    writeFileSync(path, JSON.stringify([{ id: 10, name: 'JsonItem', price: 3.50 }]), 'utf-8')
+    writeFileSync(path, JSON.stringify([{ id: 10, name: 'JsonItem', price: 3.5 }]), 'utf-8')
 
     const result = previewImport(db, 'items', path, 'json')
     expect(result.totalRows).toBe(1)

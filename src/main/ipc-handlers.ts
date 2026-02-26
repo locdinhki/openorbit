@@ -362,7 +362,8 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
 
   validatedHandle(IPC.AI_PROVIDERS, ipcSchemas['ai:providers'], () => {
     try {
-      if (!aiService) return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
+      if (!aiService)
+        return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
       return { success: true, data: aiService.listProviders() }
     } catch (err) {
       log.error('Failed to list AI providers', err)
@@ -372,7 +373,8 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
 
   validatedHandle(IPC.AI_SET_DEFAULT, ipcSchemas['ai:set-default'], (_event, { providerId }) => {
     try {
-      if (!aiService) return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
+      if (!aiService)
+        return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
       aiService.setDefault(providerId)
       return { success: true }
     } catch (err) {
@@ -386,7 +388,8 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
     ipcSchemas['ai:complete'],
     async (_event, { providerId, ...request }) => {
       try {
-        if (!aiService) return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
+        if (!aiService)
+          return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
         const result = await aiService.complete(request, providerId)
         return { success: true, data: result }
       } catch (err) {
@@ -401,7 +404,8 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
     ipcSchemas['ai:chat'],
     async (_event, { providerId, ...request }) => {
       try {
-        if (!aiService) return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
+        if (!aiService)
+          return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
         const result = await aiService.chat(request, providerId)
         return { success: true, data: result }
       } catch (err) {
@@ -416,8 +420,10 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
     ipcSchemas['ai:stream'],
     async (_event, { providerId, ...request }) => {
       try {
-        if (!aiService) return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
-        if (!aiService.stream) return { success: false, error: 'Streaming not supported', code: 'NOT_SUPPORTED' }
+        if (!aiService)
+          return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
+        if (!aiService.stream)
+          return { success: false, error: 'Streaming not supported', code: 'NOT_SUPPORTED' }
 
         // Stream chunks pushed to renderer via IPC push events
         const result = await aiService.stream(
@@ -451,35 +457,27 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
     }
   })
 
-  validatedHandle(
-    IPC.SCHEDULE_CREATE,
-    ipcSchemas['schedule:create'],
-    (_event, input) => {
-      try {
-        if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
-        const created = scheduler.createSchedule(input)
-        return { success: true, data: created }
-      } catch (err) {
-        log.error('Failed to create schedule', err)
-        return errorToResponse(err)
-      }
+  validatedHandle(IPC.SCHEDULE_CREATE, ipcSchemas['schedule:create'], (_event, input) => {
+    try {
+      if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
+      const created = scheduler.createSchedule(input)
+      return { success: true, data: created }
+    } catch (err) {
+      log.error('Failed to create schedule', err)
+      return errorToResponse(err)
     }
-  )
+  })
 
-  validatedHandle(
-    IPC.SCHEDULE_UPDATE,
-    ipcSchemas['schedule:update'],
-    (_event, { id, updates }) => {
-      try {
-        if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
-        const updated = scheduler.updateSchedule(id, updates)
-        return { success: true, data: updated }
-      } catch (err) {
-        log.error('Failed to update schedule', err)
-        return errorToResponse(err)
-      }
+  validatedHandle(IPC.SCHEDULE_UPDATE, ipcSchemas['schedule:update'], (_event, { id, updates }) => {
+    try {
+      if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
+      const updated = scheduler.updateSchedule(id, updates)
+      return { success: true, data: updated }
+    } catch (err) {
+      log.error('Failed to update schedule', err)
+      return errorToResponse(err)
     }
-  )
+  })
 
   validatedHandle(IPC.SCHEDULE_DELETE, ipcSchemas['schedule:delete'], (_event, { id }) => {
     try {
@@ -492,20 +490,16 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
     }
   })
 
-  validatedHandle(
-    IPC.SCHEDULE_TOGGLE,
-    ipcSchemas['schedule:toggle'],
-    (_event, { id, enabled }) => {
-      try {
-        if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
-        const updated = scheduler.toggleSchedule(id, enabled)
-        return { success: true, data: updated }
-      } catch (err) {
-        log.error('Failed to toggle schedule', err)
-        return errorToResponse(err)
-      }
+  validatedHandle(IPC.SCHEDULE_TOGGLE, ipcSchemas['schedule:toggle'], (_event, { id, enabled }) => {
+    try {
+      if (!scheduler) return { success: false, error: 'Scheduler not initialized' }
+      const updated = scheduler.toggleSchedule(id, enabled)
+      return { success: true, data: updated }
+    } catch (err) {
+      log.error('Failed to toggle schedule', err)
+      return errorToResponse(err)
     }
-  )
+  })
 
   validatedHandle(IPC.SCHEDULER_TOOLS, ipcSchemas['scheduler:tools'], () => {
     try {

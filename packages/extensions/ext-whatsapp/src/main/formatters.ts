@@ -53,12 +53,12 @@ export function formatJobDetail(job: JobListing): string {
   }
 
   if (job.highlights) {
-    lines.push(`*Highlights:* ${job.highlights}`)
+    lines.push(`*Highlights:* ${job.highlights.join(', ')}`)
     lines.push('')
   }
 
   if (job.redFlags) {
-    lines.push(`*Red Flags:* ${job.redFlags}`)
+    lines.push(`*Red Flags:* ${job.redFlags.join(', ')}`)
     lines.push('')
   }
 

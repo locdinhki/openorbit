@@ -33,9 +33,7 @@ export default function Toggle({
           className={`${sizeClasses[size]} bg-[var(--cos-border-light)] peer-checked:bg-indigo-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:transition-transform`}
         />
       </div>
-      {label && (
-        <span className="text-xs text-[var(--cos-text-secondary)]">{label}</span>
-      )}
+      {label && <span className="text-xs text-[var(--cos-text-secondary)]">{label}</span>}
     </label>
   )
 }

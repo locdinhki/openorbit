@@ -5,8 +5,44 @@
 import { useEffect, useCallback } from 'react'
 import { useShellStore } from '../store/shell-store'
 import { ipc } from './ipc-client'
+import type { Schedule } from '@openorbit/core/db/schedules-repo'
+import type { ToolMeta } from '@openorbit/core/automation/scheduler-types'
 
-export function useSchedules() {
+interface SchedulesHook {
+  schedules: Schedule[]
+  tools: ToolMeta[]
+  loading: boolean
+  executingScheduleIds: Set<string>
+  createSchedule: (input: {
+    name: string
+    taskType: string
+    cronExpression: string
+    enabled?: boolean
+    config?: Record<string, unknown>
+  }) => Promise<{ success: boolean; data?: Schedule; error?: string }>
+  updateSchedule: (
+    id: string,
+    updates: Partial<{
+      name: string
+      cronExpression: string
+      enabled: boolean
+      config: Record<string, unknown>
+    }>
+  ) => Promise<{ success: boolean; data?: Schedule; error?: string }>
+  deleteSchedule: (id: string) => Promise<{ success: boolean; error?: string }>
+  toggleSchedule: (
+    id: string,
+    enabled: boolean
+  ) => Promise<{ success: boolean; data?: Schedule; error?: string }>
+  triggerSchedule: (id: string) => Promise<{ success: boolean; error?: string }>
+  refresh: () => Promise<void>
+  wizardOpen: boolean
+  editingScheduleId: string | null
+  openWizard: (scheduleId?: string) => void
+  closeWizard: () => void
+}
+
+export function useSchedules(): SchedulesHook {
   const {
     schedules,
     tools,

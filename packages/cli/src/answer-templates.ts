@@ -20,13 +20,13 @@ export interface AnonymizedTemplate {
 // Patterns that identify PII in answers
 const PII_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   // Email addresses
-  { pattern: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, replacement: '[EMAIL]' },
+  { pattern: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, replacement: '[EMAIL]' },
   // Phone numbers (US and international)
   { pattern: /(\+?1?[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g, replacement: '[PHONE]' },
   // URLs
   { pattern: /https?:\/\/[^\s,)]+/g, replacement: '[URL]' },
   // LinkedIn URLs (catch before generic URL)
-  { pattern: /linkedin\.com\/in\/[a-zA-Z0-9\-_%]+/g, replacement: '[LINKEDIN]' },
+  { pattern: /linkedin\.com\/in\/[a-zA-Z0-9\-_%]+/g, replacement: '[LINKEDIN]' }
   // Common full-name patterns (Firstname Lastname at start of sentence or quoted)
   // This is heuristic — we flag for user review rather than auto-remove
 ]

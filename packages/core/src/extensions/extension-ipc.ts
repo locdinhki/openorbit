@@ -52,8 +52,7 @@ export function createExtensionIPCHost(
       }
 
       ipcMain.handle(channel, async (event: unknown, ...rawArgs: unknown[]) => {
-        const argsObj =
-          rawArgs.length === 0 ? {} : rawArgs.length === 1 ? rawArgs[0] : rawArgs[0]
+        const argsObj = rawArgs.length === 0 ? {} : rawArgs.length === 1 ? rawArgs[0] : rawArgs[0]
 
         const parsed = schema.safeParse(argsObj ?? {})
         if (!parsed.success) {

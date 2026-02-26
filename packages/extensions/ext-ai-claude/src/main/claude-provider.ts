@@ -181,10 +181,7 @@ export class ClaudeProvider implements AIProvider {
       let outputTokens = 0
 
       for await (const event of stream) {
-        if (
-          event.type === 'content_block_delta' &&
-          event.delta.type === 'text_delta'
-        ) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
           fullContent += event.delta.text
           onChunk({ delta: event.delta.text, done: false })
         } else if (event.type === 'message_delta') {
@@ -300,8 +297,7 @@ export class ClaudeProvider implements AIProvider {
 
     for (const model of models) {
       for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
-        const keyInfo =
-          attempt === 0 ? this.getNextKey() : (this.rotateKey() ?? this.getNextKey())
+        const keyInfo = attempt === 0 ? this.getNextKey() : (this.rotateKey() ?? this.getNextKey())
         const client = this.getClientForKey(keyInfo.key)
         const start = Date.now()
 

@@ -302,10 +302,7 @@ export class RelayPage {
 
   async evaluate<T>(fn: (arg?: unknown) => T, arg?: unknown): Promise<T> {
     const fnStr = fn.toString()
-    const expr =
-      arg !== undefined
-        ? `(${fnStr})(${JSON.stringify(arg)})`
-        : `(${fnStr})()`
+    const expr = arg !== undefined ? `(${fnStr})(${JSON.stringify(arg)})` : `(${fnStr})()`
     const res = (await this.send('Runtime.evaluate', {
       expression: expr,
       returnByValue: true,
@@ -367,7 +364,9 @@ export class RelayPage {
 
   async selectOption(selector: string, value: string | { label: string }): Promise<string[]> {
     const valExpr =
-      typeof value === 'string' ? JSON.stringify(value) : `{ label: ${JSON.stringify(value.label)} }`
+      typeof value === 'string'
+        ? JSON.stringify(value)
+        : `{ label: ${JSON.stringify(value.label)} }`
     await this.send('Runtime.evaluate', {
       expression: `(function() {
         const el = document.querySelector(${JSON.stringify(selector)})

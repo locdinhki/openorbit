@@ -38,7 +38,7 @@ export class GhlChatHandler {
     // Try tool-calling provider
     const provider = this.ai.getProvider()
     if (provider?.capabilities.toolCalling && provider.completeWithTools) {
-      return this.agenticLoop(message, provider)
+      return this.agenticLoop(message, { completeWithTools: provider.completeWithTools })
     }
 
     // Fallback: simple chat with data snapshot

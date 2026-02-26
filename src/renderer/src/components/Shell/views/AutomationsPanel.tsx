@@ -33,11 +33,11 @@ export default function AutomationsPanel(): React.JSX.Element {
   const [detailScheduleId, setDetailScheduleId] = useState<string | null>(null)
 
   const editingSchedule = editingScheduleId
-    ? schedules.find((s) => s.id === editingScheduleId) ?? null
+    ? (schedules.find((s) => s.id === editingScheduleId) ?? null)
     : null
 
   const detailSchedule = detailScheduleId
-    ? schedules.find((s) => s.id === detailScheduleId) ?? null
+    ? (schedules.find((s) => s.id === detailScheduleId) ?? null)
     : null
 
   return (
@@ -62,9 +62,7 @@ export default function AutomationsPanel(): React.JSX.Element {
 
         {!loading && schedules.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-sm text-[var(--cos-text-muted)]">
-              No automations configured yet
-            </p>
+            <p className="text-sm text-[var(--cos-text-muted)]">No automations configured yet</p>
             <p className="text-xs text-[var(--cos-text-muted)] mt-1">
               Create a schedule to automate tasks
             </p>
@@ -109,7 +107,9 @@ export default function AutomationsPanel(): React.JSX.Element {
         open={detailScheduleId !== null}
         onClose={() => setDetailScheduleId(null)}
         schedule={detailSchedule}
-        tool={detailSchedule ? tools.find((t) => t.taskType === detailSchedule.taskType) : undefined}
+        tool={
+          detailSchedule ? tools.find((t) => t.taskType === detailSchedule.taskType) : undefined
+        }
       />
     </div>
   )
@@ -155,11 +155,7 @@ function ScheduleCard({
           {schedule.name}
         </span>
         <div onClick={(e) => e.stopPropagation()}>
-          <Toggle
-            checked={schedule.enabled}
-            onChange={onToggle}
-            size="sm"
-          />
+          <Toggle checked={schedule.enabled} onChange={onToggle} size="sm" />
         </div>
       </div>
 
@@ -212,8 +208,18 @@ function ScheduleCard({
             className="p-1 rounded hover:bg-[var(--cos-bg-hover)] text-[var(--cos-text-muted)] hover:text-[var(--cos-text-secondary)] transition-colors cursor-pointer"
             title="Edit"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
           </button>
           <button
@@ -221,8 +227,18 @@ function ScheduleCard({
             className="p-1 rounded hover:bg-red-600/10 text-[var(--cos-text-muted)] hover:text-red-400 transition-colors cursor-pointer"
             title="Delete"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         </div>

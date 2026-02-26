@@ -7,7 +7,24 @@ export interface Filter {
   value?: string
 }
 
-export function useTableData(table: string | null) {
+interface TableDataHook {
+  rows: Record<string, unknown>[]
+  totalCount: number
+  page: number
+  setPage: React.Dispatch<React.SetStateAction<number>>
+  pageSize: number
+  setPageSize: React.Dispatch<React.SetStateAction<number>>
+  sortColumn: string | undefined
+  sortDirection: 'asc' | 'desc' | undefined
+  toggleSort: (column: string) => void
+  filters: Filter[]
+  setFilters: React.Dispatch<React.SetStateAction<Filter[]>>
+  loading: boolean
+  refresh: () => Promise<void>
+  totalPages: number
+}
+
+export function useTableData(table: string | null): TableDataHook {
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -24,7 +41,14 @@ export function useTableData(table: string | null) {
       return
     }
     setLoading(true)
-    const result = await ipc.data.query({ table, page, pageSize, sortColumn, sortDirection, filters })
+    const result = await ipc.data.query({
+      table,
+      page,
+      pageSize,
+      sortColumn,
+      sortDirection,
+      filters
+    })
     if (result.success && result.data) {
       setRows(result.data.rows)
       setTotalCount(result.data.totalCount)
@@ -33,11 +57,13 @@ export function useTableData(table: string | null) {
   }, [table, page, pageSize, sortColumn, sortDirection, filters])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetch()
   }, [fetch])
 
   // Reset page when table or filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1)
   }, [table, filters])
 

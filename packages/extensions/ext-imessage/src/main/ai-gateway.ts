@@ -54,7 +54,8 @@ export interface AIGatewayDeps {
 }
 
 export class AIGateway {
-  private db: Database.Database
+  // @ts-expect-error reserved for future use
+  private _db: Database.Database
   private log: Logger
   private jobsRepo: JobsRepo
   private profilesRepo: ProfilesRepo
@@ -64,7 +65,7 @@ export class AIGateway {
   private memoryContext: MemoryContextBuilder
 
   constructor(deps: AIGatewayDeps) {
-    this.db = deps.db
+    this._db = deps.db
     this.log = deps.log
     this.jobsRepo = new JobsRepo(deps.db)
     this.profilesRepo = new ProfilesRepo(deps.db)
@@ -158,7 +159,7 @@ export class AIGateway {
     const lower = text.trim().toLowerCase()
 
     // Direct command shortcuts for common operations
-    const directResult = this.tryDirectCommand(lower)
+    const directResult = await this.tryDirectCommand(lower)
     if (directResult !== null) return directResult
 
     // Fall back to AI for natural language processing
@@ -169,7 +170,7 @@ export class AIGateway {
   // Direct commands (fast path — no AI needed)
   // -------------------------------------------------------------------------
 
-  private tryDirectCommand(text: string): string | null {
+  private async tryDirectCommand(text: string): Promise<string | null> {
     if (text === '/jobs' || text === '/new' || text === 'new jobs' || text === 'jobs') {
       const jobs = this.jobsRepo.list({ status: 'new' as JobStatus, limit: 10 })
       return formatJobList(jobs, 'New Jobs')

@@ -41,11 +41,7 @@ export function getDataDir(): string {
     case 'darwin':
       return join(home, 'Library', 'Application Support', 'openorbit', 'data')
     case 'win32':
-      return join(
-        process.env['APPDATA'] ?? join(home, 'AppData', 'Roaming'),
-        'openorbit',
-        'data'
-      )
+      return join(process.env['APPDATA'] ?? join(home, 'AppData', 'Roaming'), 'openorbit', 'data')
     default:
       return join(process.env['XDG_CONFIG_HOME'] ?? join(home, '.config'), 'openorbit', 'data')
   }

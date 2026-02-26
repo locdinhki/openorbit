@@ -54,7 +54,7 @@ const extension: ExtensionMainAPI = {
 
         // Slash command handler — returns text for simple commands
         client.setSlashCommandHandler(async (_userId, commandName) => {
-          const result = gateway!.tryDirectCommand(`/${commandName}`)
+          const result = await gateway!.tryDirectCommand(`/${commandName}`)
           if (result !== null) return result
           return `Unknown command: /${commandName}`
         })
@@ -142,7 +142,7 @@ function registerIPCHandlers(ctx: ExtensionContext): void {
           })
 
           client.setSlashCommandHandler(async (_userId, commandName) => {
-            const result = gateway!.tryDirectCommand(`/${commandName}`)
+            const result = await gateway!.tryDirectCommand(`/${commandName}`)
             if (result !== null) return result
             return `Unknown command: /${commandName}`
           })

@@ -68,8 +68,7 @@ export const ipc = {
       maxWidth?: number
       maxHeight?: number
       everyNthFrame?: number
-    }): Promise<IPCResult> =>
-      api.invoke(IPC.SCREENCAST_START, opts ?? {}) as Promise<IPCResult>,
+    }): Promise<IPCResult> => api.invoke(IPC.SCREENCAST_START, opts ?? {}) as Promise<IPCResult>,
 
     stop: (platform?: string): Promise<IPCResult> =>
       api.invoke(IPC.SCREENCAST_STOP, { platform }) as Promise<IPCResult>
@@ -118,7 +117,7 @@ export const ipc = {
       api.invoke(IPC.AI_STREAM, request) as Promise<IPCResult<AICompletionResponse>>,
 
     onStreamChunk: (callback: (chunk: AIStreamChunk) => void): (() => void) =>
-      api.on(IPC.AI_STREAM_CHUNK, callback)
+      api.on(IPC.AI_STREAM_CHUNK, callback as (...args: unknown[]) => void)
   },
 
   schedules: {
@@ -173,8 +172,7 @@ export const ipc = {
         error?: string
         durationMs: number
       }) => void
-    ): (() => void) =>
-      api.on(IPC.SCHEDULE_RUN_COMPLETE, callback as (...args: unknown[]) => void)
+    ): (() => void) => api.on(IPC.SCHEDULE_RUN_COMPLETE, callback as (...args: unknown[]) => void)
   },
 
   scheduler: {

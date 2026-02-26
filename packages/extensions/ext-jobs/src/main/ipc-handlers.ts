@@ -144,22 +144,18 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
     }
   })
 
-  ipc.handle(
-    EXT_JOBS_IPC.UPDATE,
-    extJobsSchemas['ext-jobs:update'],
-    (_event, { id, updates }) => {
-      try {
-        if (updates.status) {
-          jobsRepo.updateStatus(id, updates.status as Parameters<JobsRepo['updateStatus']>[1])
-        }
-        const job = jobsRepo.getById(id)
-        return { success: true, data: job }
-      } catch (err) {
-        log.error('Failed to update job', err)
-        return errorToResponse(err)
+  ipc.handle(EXT_JOBS_IPC.UPDATE, extJobsSchemas['ext-jobs:update'], (_event, { id, updates }) => {
+    try {
+      if (updates.status) {
+        jobsRepo.updateStatus(id, updates.status as Parameters<JobsRepo['updateStatus']>[1])
       }
+      const job = jobsRepo.getById(id)
+      return { success: true, data: job }
+    } catch (err) {
+      log.error('Failed to update job', err)
+      return errorToResponse(err)
     }
-  )
+  })
 
   ipc.handle(EXT_JOBS_IPC.APPROVE, extJobsSchemas['ext-jobs:approve'], (_event, { id }) => {
     try {
@@ -262,22 +258,18 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
     }
   })
 
-  ipc.handle(
-    EXT_JOBS_IPC.AUTOMATION_STATUS,
-    extJobsSchemas['ext-jobs:automation-status'],
-    () => {
-      return coordinator
-        ? coordinator.getStatus()
-        : {
-            state: 'idle',
-            jobsExtracted: 0,
-            jobsAnalyzed: 0,
-            applicationsSubmitted: 0,
-            actionsPerMinute: 0,
-            errors: []
-          }
-    }
-  )
+  ipc.handle(EXT_JOBS_IPC.AUTOMATION_STATUS, extJobsSchemas['ext-jobs:automation-status'], () => {
+    return coordinator
+      ? coordinator.getStatus()
+      : {
+          state: 'idle',
+          jobsExtracted: 0,
+          jobsAnalyzed: 0,
+          applicationsSubmitted: 0,
+          actionsPerMinute: 0,
+          errors: []
+        }
+  })
 
   // --- Chat ---
 

@@ -16,7 +16,9 @@ export function registerAdaptersCommand(program: Command): void {
         console.log('Install adapters with npm:')
         console.log('  npm install @openorbit/glassdoor')
         console.log('')
-        console.log('Community adapters must have "openorbit-adapter" in their package.json keywords.')
+        console.log(
+          'Community adapters must have "openorbit-adapter" in their package.json keywords.'
+        )
       } else {
         console.log(`Found ${found.length} adapter(s):`)
         for (const adapter of found) {

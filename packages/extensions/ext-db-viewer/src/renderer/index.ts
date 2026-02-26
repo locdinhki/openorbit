@@ -5,7 +5,10 @@
 // into the shell's view registry via the ExtensionRendererContext.
 // ============================================================================
 
-import type { ExtensionRendererAPI, ExtensionRendererContext } from '@openorbit/core/extensions/types'
+import type {
+  ExtensionRendererAPI,
+  ExtensionRendererContext
+} from '@openorbit/core/extensions/types'
 
 import DbViewerSidebar from './components/DbViewerSidebar'
 import DbViewerWorkspace from './components/DbViewerWorkspace'

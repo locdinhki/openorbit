@@ -220,9 +220,7 @@ ${domSnapshot}
         (s) => typeof s === 'string' && s.length > 0 && s.length < 200
       )
       parsed.confidence =
-        typeof parsed.confidence === 'number'
-          ? Math.max(0, Math.min(1, parsed.confidence))
-          : 0.5
+        typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0.5
       return parsed
     } catch {
       log.warn('Failed to parse AI repair response', { raw: result.content.slice(0, 200) })

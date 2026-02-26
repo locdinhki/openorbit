@@ -10,9 +10,7 @@ interface ToolbarContainerProps {
   items: ToolbarContribution[]
 }
 
-export default function ToolbarContainer({
-  items
-}: ToolbarContainerProps): React.JSX.Element {
+export default function ToolbarContainer({ items }: ToolbarContainerProps): React.JSX.Element {
   const sorted = [...items].sort((a, b) => b.priority - a.priority)
 
   // If no extensions contributed toolbar items, render a minimal bar
