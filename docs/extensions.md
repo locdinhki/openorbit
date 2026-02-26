@@ -301,6 +301,390 @@ Natural language also works: "any new jobs?", "approve the stripe one", "what's 
 
 ---
 
+### ext-db-viewer (Database Viewer)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-db-viewer` |
+| **Display Name** | Database |
+| **Package** | `@openorbit/ext-db-viewer` |
+
+**What it does:** Full-featured database viewer and editor for the app's SQLite database. Browse schemas, view/edit data with pagination and filtering, run raw SQL (dev mode), and import/export tables.
+
+**Capabilities:**
+- Schema browser — tables, columns, indexes, row counts
+- Data grid — sortable, filterable, paginated (up to 500 rows/page)
+- Inline cell editing + full-record editor modal
+- SQL console (dev mode only) — parameterized queries, history
+- CSV and JSON import/export with column mapping
+- Dev mode toggle gates destructive operations
+
+**IPC Channels:** 13 channels covering schema inspection, data access, CRUD, SQL execution, dev mode, and import/export.
+
+| Channel | Description |
+|---------|-------------|
+| `ext-db-viewer:schema-tables` | List all tables with row counts |
+| `ext-db-viewer:schema-columns` | Column definitions for a table |
+| `ext-db-viewer:schema-indexes` | Index info for a table |
+| `ext-db-viewer:table-data` | Query data with pagination, sorting, filtering |
+| `ext-db-viewer:record-update` | Update record by primary key |
+| `ext-db-viewer:record-insert` | Insert new record |
+| `ext-db-viewer:record-delete` | Delete record (dev mode required) |
+| `ext-db-viewer:sql-execute` | Run raw SQL (dev mode required) |
+| `ext-db-viewer:dev-mode` | Get/set developer mode flag |
+| `ext-db-viewer:export-table` | Export table to CSV or JSON |
+| `ext-db-viewer:import-select` | File picker for import |
+| `ext-db-viewer:import-preview` | Parse and preview import with column matching |
+| `ext-db-viewer:import-execute` | Execute import with column mapping (transactional) |
+
+**Database Tables:** None — introspects existing tables via `sqlite_master` and `PRAGMA` queries. Stores dev-mode flag in the core `settings` table.
+
+**UI Contributions:**
+- **Sidebar** — table list with schema drill-down
+- **Workspace** — data grid with filters, pagination, inline editing
+- **Panel** — SQL console with query history
+
+**Setup:** No configuration needed. Activates on startup. Toggle dev mode in the sidebar to unlock SQL console and delete operations.
+
+---
+
+### ext-zillow (Zillow Property Data)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-zillow` |
+| **Display Name** | Zillow |
+| **Package** | `@openorbit/ext-zillow` |
+
+**What it does:** Scrapes Zillow Zestimate values for property addresses using headless browser automation (Patchright). Caches results locally for fast re-lookups. Provides the scraping engine that ext-ghl uses for ARV enrichment.
+
+**Capabilities:**
+- Address-to-Zestimate lookup via Zillow.com scraping
+- Local SQLite cache with deduplication
+- Cache management (list, delete, purge)
+- Real-time scrape progress push events
+- Cross-extension API consumed by ext-ghl
+
+**IPC Channels:** 6 channels.
+
+| Channel | Description |
+|---------|-------------|
+| `ext-zillow:search` | Scrape Zillow for address and cache result |
+| `ext-zillow:get-arv` | Cache-first ARV lookup |
+| `ext-zillow:cache-list` | List cached lookups |
+| `ext-zillow:cache-delete` | Delete single cache entry |
+| `ext-zillow:cache-purge` | Delete all cache entries |
+| `ext-zillow:scrape-progress` | Push: real-time scraping status |
+
+**Database Tables:** 1 table (`arv_cache`) — stores address, Zestimate, Zillow URL, errors, and timestamp. Indexed on `(address1, city, state, postal_code)`.
+
+**How the Scraper Works:**
+1. Constructs Zillow URL from address components
+2. Navigates via Patchright (headless Chrome with anti-detection)
+3. If on a search results page, clicks the first property card
+4. Extracts Zestimate via DOM TreeWalker (validates $10K–$10M range)
+5. Caches result and returns
+
+**UI Contributions:**
+- **Sidebar** — address form + recent lookups list
+- **Workspace** — Zestimate display with Zillow link
+
+**Prerequisites:**
+- Patchright browser (managed by core's SessionManager)
+
+**Setup:** No configuration needed. Activates on startup.
+
+---
+
+### ext-ghl (GoHighLevel CRM)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-ghl` |
+| **Display Name** | GoHighLevel |
+| **Package** | `@openorbit/ext-ghl` |
+
+**What it does:** Full CRM integration with GoHighLevel. Syncs contacts, pipelines, opportunities, conversations, and calendars. Includes AI-powered chat with tool calling, daily briefings, and automated Zillow ARV enrichment for real estate contacts.
+
+**Capabilities:**
+- Contact sync and CRUD
+- Pipeline board with opportunity management
+- Conversation threads (send SMS/Email)
+- Calendar and event viewing
+- AI chat with 6 CRM tools (agentic loop)
+- Daily briefing generation
+- ARV enrichment automation (cross-extension with ext-zillow)
+
+**IPC Channels:** 30 channels.
+
+| Group | Channels | Description |
+|-------|----------|-------------|
+| Settings | `settings-get`, `settings-set`, `connection-test` | API token and location ID management |
+| Contacts | `contacts-list`, `contacts-get`, `contacts-create`, `contacts-update`, `contacts-delete`, `contacts-sync` | Full contact CRUD + bulk sync |
+| Pipelines | `pipelines-list` | List pipelines with stages |
+| Opportunities | `opps-list`, `opps-get`, `opps-create`, `opps-update`, `opps-update-status`, `opps-delete`, `opps-sync` | Deal management + status transitions |
+| Conversations | `convs-list`, `convs-get`, `convs-messages`, `convs-send` | Message threads + send SMS/Email |
+| Calendars | `cals-list`, `cal-events-list` | Calendar and event queries |
+| AI Chat | `chat-send`, `chat-clear` | Agentic CRM assistant |
+| ARV Enrichment | `arv-enrich-start`, `arv-enrich-status` | Zillow Zestimate automation |
+| Custom Fields | `custom-fields-list` | GHL custom field definitions |
+| Push Events | `sync-progress`, `arv-enrich-progress` | Real-time progress to renderer |
+
+All channels prefixed with `ext-ghl:`.
+
+**Database Tables:** 4 tables across 2 migrations.
+
+| Table | Migration | Purpose |
+|-------|-----------|---------|
+| `ghl_contacts` | V1 | Synced contacts with address, tags, custom fields |
+| `ghl_opportunities` | V1 | Pipeline deals with status (open/won/lost/abandoned) |
+| `ghl_pipelines` | V1 | Pipelines with stages (JSON) |
+| `ghl_arv_runs` | V2 | ARV enrichment run history |
+
+**GHL SDK:** Custom SDK with 5 resource classes — Contacts, Opportunities, Calendars, Conversations, CustomFields. Wraps the GHL REST API (`services.leadconnectorhq.com`).
+
+**AI Chat Tools:**
+
+| Tool | Description |
+|------|-------------|
+| `list_contacts` | Search contacts by name/email/phone/company |
+| `get_contact` | Fetch full contact details |
+| `list_opportunities` | List pipeline deals (filter by status) |
+| `list_calendar_events` | Get appointments by date range |
+| `list_conversations` | Get recent conversations |
+| `list_pipelines` | Get all pipelines and stages |
+
+**Scheduler Tasks:**
+- `ghl-daily-briefing` — AI-generated summary of today's events, conversations, and deals
+- `ghl-arv-enrichment` — Bulk Zillow Zestimate lookup for pipeline contacts (writes to GHL custom field)
+
+**UI Contributions:**
+- **Sidebar** — 4-tab nav (Contacts, Pipeline, Conversations, Calendars) + connection settings
+- **Workspace** — contact/opportunity detail views
+- **Panel** — AI chat interface
+
+**Prerequisites:**
+- GoHighLevel account with API token and Location ID
+- ext-zillow installed (for ARV enrichment)
+- At least one AI provider configured (for chat and briefings)
+
+**Setup:**
+
+| Setting Key | Description |
+|-------------|-------------|
+| `ghl.api-token` | GoHighLevel API Bearer token |
+| `ghl.location-id` | GHL Location ID for your workspace |
+
+---
+
+## Messaging Gateway Extensions
+
+Messaging gateways provide remote access to OpenOrbit from mobile devices. Each gateway connects to a different messaging platform but shares the same core pattern: direct commands for quick actions, natural language via Claude Agent SDK for everything else, and voice message transcription via OpenAI Whisper.
+
+**Common Features Across All Gateways:**
+- Direct commands: `/jobs`, `/approved`, `/applied`, `/profiles`, `/status`, `/log`, `/help`, `approve N`, `reject N`
+- AI-powered natural language queries via Claude Agent SDK (Sonnet)
+- Voice message transcription (requires `voice.openai-api-key` setting)
+- Authorization allowlists (optional — empty = allow all)
+- Memory context awareness across conversations
+- Read from ext-jobs data (jobs, profiles, action logs, applications)
+
+### ext-telegram (Telegram Bot)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-telegram` |
+| **Display Name** | Telegram Bot |
+| **Package** | `@openorbit/ext-telegram` |
+
+**What it does:** Always-on messaging interface to control OpenOrbit from your phone via Telegram. Supports slash commands, natural language queries via Claude, and inline keyboard buttons for job approve/reject.
+
+**Prerequisites:**
+- Telegram account
+- OpenOrbit desktop app running
+
+**Setup:**
+
+#### Step 1: Create a Telegram bot
+1. Open Telegram and message [@BotFather](https://t.me/BotFather)
+2. Send `/newbot`
+3. Choose a display name (e.g., "OpenOrbit")
+4. Choose a username (e.g., "my_openorbit_bot")
+5. BotFather replies with a **bot token** — copy it
+
+#### Step 2: Get your chat ID
+1. Message [@userinfobot](https://t.me/userinfobot) on Telegram
+2. It replies with your numeric chat ID (e.g., `123456789`)
+
+#### Step 3: Configure in OpenOrbit
+
+| Setting Key | Value |
+|-------------|-------|
+| `telegram.bot-token` | Your bot token from BotFather |
+| `telegram.authorized-chat-ids` | Your chat ID (comma-separated for multiple users) |
+
+Or use the extension's IPC channel:
+```
+ext-telegram:config-set { token: "BOT_TOKEN", "authorized-chat-ids": "123456789" }
+```
+
+#### Step 4: Restart OpenOrbit
+
+The bot starts automatically. Check logs for `"ext-telegram: bot started"`.
+
+**Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `/jobs` | List new jobs |
+| `/approved` | List approved jobs |
+| `/applied` | List applied jobs |
+| `/profiles` | List search profiles |
+| `/status` | Automation status summary |
+| `/log` | Recent action log |
+| `/help` | Show all commands |
+
+Natural language also works: "any new jobs?", "approve the stripe one", "what's the status?"
+
+**IPC Channels:**
+
+| Channel | Description |
+|---------|-------------|
+| `ext-telegram:config-get` | Get bot token, authorized chat IDs, enabled status |
+| `ext-telegram:config-set` | Update bot configuration |
+| `ext-telegram:status` | Bot running/stopped/error status |
+
+**Platform-Specific:**
+- Inline keyboard buttons for approve/reject on job listings
+- Rich text formatting with Telegram markdown
+- Message limit: 4096 characters (auto-chunked)
+
+---
+
+### ext-discord (Discord Bot)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-discord` |
+| **Display Name** | Discord Bot |
+| **Package** | `@openorbit/ext-discord` |
+| **Dependency** | `discord.js` ^14.18.0 |
+
+**What it does:** Discord DM bot gateway for remote job search control. Processes direct messages only (ignores channels). Supports slash commands, rich embeds with approve/reject buttons, and voice message transcription.
+
+**Prerequisites:**
+- Discord account
+- Discord bot created via [Developer Portal](https://discord.com/developers/applications) with Message Content Intent enabled
+
+**Setup:**
+
+| Setting Key | Description |
+|-------------|-------------|
+| `discord.bot-token` | Discord bot token from Developer Portal |
+| `discord.authorized-user-ids` | Comma-separated Discord user IDs (empty = allow all) |
+| `voice.openai-api-key` | OpenAI API key for voice transcription (optional) |
+
+**IPC Channels:** 3 channels.
+
+| Channel | Description |
+|---------|-------------|
+| `ext-discord:config-get` | Get bot token, authorized user IDs, connection status |
+| `ext-discord:config-set` | Update bot config and restart |
+| `ext-discord:status` | Bot connected/disconnected status |
+
+**Platform-Specific:**
+- Rich embeds with color-coded job status (green=new, blue=approved, red=rejected)
+- Approve/Reject action buttons on job listings
+- Slash command registration with Discord
+- DM-only (group/channel messages ignored)
+- Message limit: 2000 characters (auto-chunked)
+
+---
+
+### ext-imessage (iMessage Bot)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-imessage` |
+| **Display Name** | iMessage Bot |
+| **Package** | `@openorbit/ext-imessage` |
+
+**What it does:** iMessage bot gateway via BlueBubbles bridge. Receives messages through a local webhook server, processes them with AI, and replies via the BlueBubbles API. macOS only.
+
+**Prerequisites:**
+- macOS with iMessage configured
+- [BlueBubbles](https://bluebubbles.app/) server running on the same Mac (or accessible on network)
+
+**Setup:**
+
+| Setting Key | Description |
+|-------------|-------------|
+| `imessage.server-url` | BlueBubbles server URL (e.g., `http://192.168.1.100:1234`) |
+| `imessage.password` | BlueBubbles API password |
+| `imessage.authorized-handles` | Comma-separated phone numbers/emails (e.g., `+15551234567,user@icloud.com`) |
+| `imessage.webhook-port` | Local webhook port (default: `18792`) |
+| `voice.openai-api-key` | OpenAI API key for voice transcription (optional) |
+
+**IPC Channels:** 3 channels.
+
+| Channel | Description |
+|---------|-------------|
+| `ext-imessage:config-get` | Get server URL, password, authorized handles |
+| `ext-imessage:config-set` | Update config and restart webhook server |
+| `ext-imessage:status` | Webhook server running status |
+
+**Platform-Specific:**
+- Webhook-based: runs local HTTP server to receive BlueBubbles webhooks
+- Plain text formatting (no markdown/embeds in iMessage)
+- DM-only (group messages ignored, self-messages filtered)
+- Typing indicator support
+- Message limit: 4000 characters (auto-chunked)
+
+---
+
+### ext-whatsapp (WhatsApp Bot)
+
+| Field | Value |
+|-------|-------|
+| **ID** | `ext-whatsapp` |
+| **Display Name** | WhatsApp Bot |
+| **Package** | `@openorbit/ext-whatsapp` |
+| **Dependency** | `@whiskeysockets/baileys` ^6.7.18 |
+
+**What it does:** WhatsApp bot gateway via Baileys (reverse-engineered WhatsApp Web client). Connects over WebSocket, authenticates via QR code scan, and processes DMs with AI.
+
+**Prerequisites:**
+- WhatsApp account on your phone
+- Ability to scan QR code during initial pairing
+
+**Setup:**
+
+| Setting Key | Description |
+|-------------|-------------|
+| `whatsapp.authorized-numbers` | Comma-separated phone numbers in E.164 format (e.g., `15551234567`) |
+| `whatsapp.data-dir` | Credential storage directory (default: `{storagePath}/whatsapp-auth`) |
+| `voice.openai-api-key` | OpenAI API key for voice transcription (optional) |
+
+**IPC Channels:** 3 channels + 1 push event.
+
+| Channel | Description |
+|---------|-------------|
+| `ext-whatsapp:config-get` | Get authorized numbers, data dir, connection status |
+| `ext-whatsapp:config-set` | Update config and restart client |
+| `ext-whatsapp:status` | Connection status |
+| `ext-whatsapp:qr-code` | Push: QR code for WhatsApp Web pairing |
+
+**Platform-Specific:**
+- QR code pairing (first run or re-auth)
+- Persistent credentials via Baileys multi-file auth state
+- Auto-reconnect with exponential backoff (up to 60s)
+- WhatsApp `*bold*` text formatting
+- Read receipts after processing
+- DM-only (group messages ignored)
+- Message limit: 4000 characters (auto-chunked)
+
+---
+
 ## Standalone Packages
 
 ### openorbit-mcp (MCP Server)
@@ -423,7 +807,13 @@ Extensions activate alphabetically, which determines provider priority:
 2. `ext-ai-claude-sdk` — registers Claude Max plan provider (becomes default if configured)
 3. `ext-ai-ollama` — registers Ollama local provider
 4. `ext-ai-openai` — registers OpenAI provider
-5. `ext-jobs` — registers job search IPC handlers + scheduler task
-6. `ext-telegram` — starts Telegram bot (if configured)
+5. `ext-db-viewer` — registers database viewer IPC handlers
+6. `ext-discord` — starts Discord bot (if configured)
+7. `ext-ghl` — registers GoHighLevel CRM handlers + scheduler tasks
+8. `ext-imessage` — starts iMessage webhook server (if configured)
+9. `ext-jobs` — registers job search IPC handlers + scheduler task
+10. `ext-telegram` — starts Telegram bot (if configured)
+11. `ext-whatsapp` — starts WhatsApp client (if configured)
+12. `ext-zillow` — registers Zillow scraper IPC handlers
 
 The first AI provider that reports `isConfigured() === true` and registers becomes the default. Since ext-ai-claude-sdk activates before ext-ai-claude, the Max plan provider takes priority when available.
