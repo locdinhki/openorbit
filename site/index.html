@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     /* ── Reset & Base ─────────────────────────────────────── */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -251,7 +252,7 @@
       border-radius: 12px;
       background: var(--accent-glow);
       margin-bottom: 20px;
-      font-size: 1.4rem;
+      color: var(--accent-light);
     }
     .feature-card h3 {
       font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;
@@ -345,7 +346,8 @@
       transform: translateY(-4px);
     }
     .eco-icon {
-      font-size: 2.2rem; margin-bottom: 16px;
+      margin-bottom: 16px;
+      color: var(--accent-light);
     }
     .eco-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
     .eco-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
@@ -518,7 +520,7 @@
   <section class="hero">
     <div class="container">
       <div class="hero-badge animate">
-        <span class="badge">Phase 6 Complete &mdash; 502 Tests Passing</span>
+        <span class="badge">Phase 9 Complete &mdash; 722 Tests Passing</span>
       </div>
       <h1 class="animate animate-delay-1">
         Your Job Search,<br/><span class="gradient-text">On Autopilot</span>
@@ -566,20 +568,20 @@
     <div class="container">
       <div class="stats-grid">
         <div>
-          <div class="stat-number gradient-text">3</div>
-          <div class="stat-label">Platforms Supported</div>
-        </div>
-        <div>
-          <div class="stat-number gradient-text">48</div>
-          <div class="stat-label">IPC Channels</div>
-        </div>
-        <div>
-          <div class="stat-number gradient-text">502</div>
-          <div class="stat-label">Tests Passing</div>
+          <div class="stat-number gradient-text">9</div>
+          <div class="stat-label">Extensions</div>
         </div>
         <div>
           <div class="stat-number gradient-text">4</div>
-          <div class="stat-label">Device Ecosystem</div>
+          <div class="stat-label">AI Providers</div>
+        </div>
+        <div>
+          <div class="stat-number gradient-text">722</div>
+          <div class="stat-label">Tests Passing</div>
+        </div>
+        <div>
+          <div class="stat-number gradient-text">77</div>
+          <div class="stat-label">IPC Channels</div>
         </div>
       </div>
     </div>
@@ -594,34 +596,34 @@
       </div>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">&#x1F916;</div>
-          <h3>AI-Powered Scoring</h3>
-          <p>Claude AI analyzes every job posting, scores match quality 0-100, identifies red flags, and highlights strong fits based on your profile.</p>
+          <div class="feature-icon"><i data-lucide="brain" width="24" height="24"></i></div>
+          <h3>Multi-AI Scoring</h3>
+          <p>4 AI providers (Claude SDK, Claude API, OpenAI, Ollama) analyze every listing, score match quality 0&ndash;100, and flag red flags.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x26A1;</div>
+          <div class="feature-icon"><i data-lucide="zap" width="24" height="24"></i></div>
           <h3>Easy Apply Engine</h3>
           <p>Full LinkedIn Easy Apply automation with multi-step form detection, answer templates, and intelligent question handling.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x1F6E1;</div>
+          <div class="feature-icon"><i data-lucide="shield-check" width="24" height="24"></i></div>
           <h3>Stealth Mode</h3>
-          <p>Human behavior simulation with random delays, typing variation, idle pauses, and anti-detection measures built into every action.</p>
+          <p>Human behavior simulation with random delays, typing variation, idle pauses, and Patchright anti-detection built into every action.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x1F9E0;</div>
-          <h3>Memory System</h3>
-          <p>SQLite with full-text search and vector similarity. Learns from your history, reuses answers, and gets smarter over time.</p>
+          <div class="feature-icon"><i data-lucide="puzzle" width="24" height="24"></i></div>
+          <h3>Extension System</h3>
+          <p>9 extensions with hot-loading, shared services, and isolated IPC. Add AI providers, job platforms, or messaging bots as plugins.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x1F4CB;</div>
-          <h3>Answer Templates</h3>
-          <p>Generate and store answers to common application questions. Pauses for your approval on new custom questions.</p>
+          <div class="feature-icon"><i data-lucide="message-circle" width="24" height="24"></i></div>
+          <h3>Remote Control</h3>
+          <p>Manage your job search from Telegram, iMessage, or WhatsApp. AI-powered bots with inline keyboards and direct commands.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x1F50C;</div>
-          <h3>Extensible Adapters</h3>
-          <p>Pluggable platform adapter system. Add new job sites without touching core logic through a standardized interface.</p>
+          <div class="feature-icon"><i data-lucide="database" width="24" height="24"></i></div>
+          <h3>Database Tooling</h3>
+          <p>Built-in schema browser, data grid, SQL console, and export/import. Full visibility into your job search data.</p>
         </div>
       </div>
     </div>
@@ -699,28 +701,50 @@
     <div class="container">
       <div class="section-header">
         <h2>A Complete<br/><span class="gradient-text">Cross-Device Ecosystem</span></h2>
-        <p>Control your job search from anywhere &mdash; desktop, terminal, browser, or phone.</p>
+        <p>Control your job search from anywhere &mdash; desktop, terminal, chat apps, or phone.</p>
       </div>
       <div class="eco-grid">
         <div class="eco-card">
-          <div class="eco-icon">&#x1F5A5;</div>
+          <div class="eco-icon"><i data-lucide="monitor" width="32" height="32"></i></div>
           <h3>Desktop App</h3>
-          <p>Full-featured Electron app with 3-panel UI, real-time automation dashboard, and Claude chat.</p>
+          <p>Electron 36 + React 19 with 3-panel UI, real-time dashboard, scheduler, and AI chat.</p>
         </div>
         <div class="eco-card">
-          <div class="eco-icon">&#x2328;</div>
+          <div class="eco-icon"><i data-lucide="terminal" width="32" height="32"></i></div>
           <h3>CLI</h3>
-          <p>10+ commands for power users. Search, analyze, apply, manage skills and adapters from your terminal.</p>
+          <p>11 commands for power users. Search, analyze, apply, schedule, manage skills and adapters.</p>
         </div>
         <div class="eco-card">
-          <div class="eco-icon">&#x1F310;</div>
+          <div class="eco-icon"><i data-lucide="cpu" width="32" height="32"></i></div>
+          <h3>MCP Server</h3>
+          <p>10 tools bridging OpenOrbit to Claude Code and other MCP clients for AI-native automation.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon"><i data-lucide="send" width="32" height="32"></i></div>
+          <h3>Telegram Bot</h3>
+          <p>AI-powered remote control with inline keyboards, direct commands, and push notifications.</p>
+        </div>
+      </div>
+      <div class="eco-grid" style="margin-top:24px;">
+        <div class="eco-card">
+          <div class="eco-icon"><i data-lucide="message-square" width="32" height="32"></i></div>
+          <h3>iMessage Bot</h3>
+          <p>Remote job search via BlueBubbles. Search, review, and approve jobs from iMessage.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon"><i data-lucide="phone" width="32" height="32"></i></div>
+          <h3>WhatsApp Bot</h3>
+          <p>Remote job search via Baileys protocol. AI-powered commands from WhatsApp.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon"><i data-lucide="globe" width="32" height="32"></i></div>
           <h3>Chrome Extension</h3>
-          <p>Relay automation through your real Chrome browser via DevTools Protocol for maximum stealth.</p>
+          <p>Relay automation through your real Chrome browser via DevTools Protocol for stealth.</p>
         </div>
         <div class="eco-card">
-          <div class="eco-icon">&#x1F4F1;</div>
+          <div class="eco-icon"><i data-lucide="smartphone" width="32" height="32"></i></div>
           <h3>iOS Companion</h3>
-          <p>SwiftUI app with QR pairing, push notifications, and swipe-based approval for jobs on the go.</p>
+          <p>SwiftUI app with QR pairing, push notifications, and swipe-based job approval.</p>
         </div>
       </div>
     </div>
@@ -736,23 +760,23 @@
         <span class="works-pill"><span class="works-pill-icon" style="color:#0a66c2;">&#x1F517;</span> LinkedIn</span>
         <span class="works-pill"><span class="works-pill-icon" style="color:#2164f3;">&#x1F50D;</span> Indeed</span>
         <span class="works-pill"><span class="works-pill-icon" style="color:#14a800;">&#x1F4BC;</span> Upwork</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#d4a274;">&#x2728;</span> Anthropic</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#ea4335;">&#x1F310;</span> Chrome</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#ccc;">&#x2318;</span> macOS</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#0078d4;">&#x229E;</span> Windows</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#d4a274;">&#x2728;</span> Claude SDK</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#10a37f;">&#x2728;</span> OpenAI</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#ccc;">&#x1F9E0;</span> Ollama</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#0088cc;">&#x1F4AC;</span> Telegram</span>
       </div>
       <div class="works-pills">
-        <span class="works-pill"><span class="works-pill-icon" style="color:#e95500;">&#x1F427;</span> Linux</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#34d058;">&#x1F4AC;</span> iMessage</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#25d366;">&#x1F4AC;</span> WhatsApp</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#ea4335;">&#x1F310;</span> Chrome</span>
         <span class="works-pill"><span class="works-pill-icon" style="color:#007aff;">&#x1F4F1;</span> iOS</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#44a8e0;">&#x1F4BE;</span> SQLite</span>
         <span class="works-pill"><span class="works-pill-icon" style="color:#47848f;">&#x26A1;</span> Electron</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#f0db4f;">&#x007B; &#x007D;</span> JSON-RPC</span>
-        <span class="works-pill"><span class="works-pill-icon" style="color:#ff6347;">&#x1F511;</span> JWT Auth</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#f0db4f;">&#x007B; &#x007D;</span> MCP</span>
         <span class="works-pill"><span class="works-pill-icon" style="color:#2d8c3e;">&#x1F3AD;</span> Patchright</span>
       </div>
       <div class="works-links">
         <a href="integrations.html" class="works-link">
-          View all 15+ integrations &nbsp;&rarr;
+          View all 20+ integrations &nbsp;&rarr;
         </a>
       </div>
     </div>
@@ -813,6 +837,9 @@
       el.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
       observer.observe(el);
     });
+
+    // Initialize Lucide icons
+    lucide.createIcons();
   </script>
 </body>
 </html>

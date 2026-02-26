@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -115,9 +116,8 @@
       transform: translateY(-3px);
     }
     .int-icon {
-      font-size: 2rem;
-      line-height: 1;
       margin-bottom: 16px;
+      color: var(--accent-light);
     }
     .int-card h3 {
       font-size: 0.95rem;
@@ -175,8 +175,12 @@
     }
     footer nav a:hover { color: var(--text); }
     footer nav .dot { color: var(--text-muted); font-size: 0.85rem; }
-    footer p {
-      font-size: 0.8rem; color: var(--text-muted);
+    .footer-credit {
+      font-size: 0.85rem; color: var(--text-muted);
+    }
+    .footer-disclaimer {
+      font-size: 0.75rem; color: var(--text-muted); opacity: 0.7;
+      margin-top: 8px;
     }
 
     /* ── Responsive ───────────────────────────────────────── */
@@ -205,7 +209,7 @@
     <section class="page-header">
       <h1 class="animate"><span class="gradient-text">Integrations</span></h1>
       <p class="animate animate-d1">
-        15+ integrations with the platforms, AI, and tools you already use.<br/>
+        20+ integrations with the platforms, AI providers, messaging apps, and tools you already use.<br/>
         Search from your desktop, apply from your phone, automate everything.
       </p>
     </section>
@@ -216,32 +220,75 @@
       <p class="category-desc">Search, extract, and apply across multiple job boards from one engine.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#0a66c2;">&#x1F517;</div>
+          <div class="int-icon" style="color:#0a66c2;"><i data-lucide="link" width="28" height="28"></i></div>
           <h3>LinkedIn</h3>
           <p>Easy Apply engine, extraction &amp; AI scoring</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#2164f3;">&#x1F50D;</div>
+          <div class="int-icon" style="color:#2164f3;"><i data-lucide="search" width="28" height="28"></i></div>
           <h3>Indeed</h3>
           <p>Job discovery &amp; multi-step form filling</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#14a800;">&#x1F4BC;</div>
+          <div class="int-icon" style="color:#14a800;"><i data-lucide="briefcase" width="28" height="28"></i></div>
           <h3>Upwork</h3>
           <p>Opportunity monitoring &amp; proposal drafts</p>
         </div>
       </div>
     </section>
 
-    <!-- ── AI Models ─────────────────────────────────────── -->
+    <!-- ── AI Providers ────────────────────────────────────── -->
     <section class="category">
-      <h2 class="category-title"><span class="chevron">&#x276F;</span> AI Models</h2>
-      <p class="category-desc">Multi-model failover powered by Anthropic &mdash; fast analysis and deep reasoning.</p>
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> AI Providers</h2>
+      <p class="category-desc">4 providers with model tier routing, tool calling, and automatic failover.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#d4a274;">&#x2728;</div>
-          <h3>Anthropic</h3>
-          <p>Claude Sonnet + Opus for scoring, analysis &amp; cover letters</p>
+          <div class="int-icon" style="color:#d4a274;"><i data-lucide="sparkles" width="28" height="28"></i></div>
+          <h3>Claude SDK</h3>
+          <p>Default provider via Max plan &mdash; Agent SDK with streaming</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#d4a274;"><i data-lucide="bot" width="28" height="28"></i></div>
+          <h3>Claude API</h3>
+          <p>Anthropic REST API &mdash; streaming, tool calling, vision</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#10a37f;"><i data-lucide="brain" width="28" height="28"></i></div>
+          <h3>OpenAI</h3>
+          <p>GPT-4o-mini, GPT-4o, o1 &mdash; streaming &amp; function calling</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#ccc;"><i data-lucide="server" width="28" height="28"></i></div>
+          <h3>Ollama</h3>
+          <p>Local LLMs &mdash; auto-discovers models, no API key needed</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Messaging & Remote Control ─────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Messaging &amp; Remote Control</h2>
+      <p class="category-desc">AI-powered bots for managing your job search from any messaging app.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#0088cc;"><i data-lucide="send" width="28" height="28"></i></div>
+          <h3>Telegram</h3>
+          <p>Bot gateway with inline keyboards &amp; push notifications</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#34d058;"><i data-lucide="message-square" width="28" height="28"></i></div>
+          <h3>iMessage</h3>
+          <p>BlueBubbles protocol &mdash; search &amp; approve from Messages</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#25d366;"><i data-lucide="phone" width="28" height="28"></i></div>
+          <h3>WhatsApp</h3>
+          <p>Baileys protocol &mdash; AI-powered job commands</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#007aff;"><i data-lucide="smartphone" width="28" height="28"></i></div>
+          <h3>iOS Companion</h3>
+          <p>SwiftUI app with QR pairing &amp; push notifications</p>
         </div>
       </div>
     </section>
@@ -252,24 +299,19 @@
       <p class="category-desc">Run the desktop app anywhere. Control from your phone with the companion app.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#ccc;">&#x2318;</div>
+          <div class="int-icon" style="color:#ccc;"><i data-lucide="monitor" width="28" height="28"></i></div>
           <h3>macOS</h3>
           <p>System tray, auto-updater, notarized DMG</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#0078d4;">&#x229E;</div>
+          <div class="int-icon" style="color:#0078d4;"><i data-lucide="monitor" width="28" height="28"></i></div>
           <h3>Windows</h3>
           <p>NSIS installer, tray, background automation</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#e95500;">&#x1F427;</div>
+          <div class="int-icon" style="color:#e95500;"><i data-lucide="monitor" width="28" height="28"></i></div>
           <h3>Linux</h3>
           <p>AppImage &amp; DEB with full parity</p>
-        </div>
-        <div class="int-card">
-          <div class="int-icon" style="color:#007aff;">&#x1F4F1;</div>
-          <h3>iOS</h3>
-          <p>SwiftUI, QR pairing, push notifications</p>
         </div>
       </div>
     </section>
@@ -280,12 +322,12 @@
       <p class="category-desc">Stealth-first browser automation through your real Chrome or a patched engine.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#ea4335;">&#x1F310;</div>
+          <div class="int-icon" style="color:#ea4335;"><i data-lucide="globe" width="28" height="28"></i></div>
           <h3>Chrome Extension</h3>
           <p>Manifest V3 relay via DevTools Protocol</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#2d8c3e;">&#x1F3AD;</div>
+          <div class="int-icon" style="color:#2d8c3e;"><i data-lucide="shield" width="28" height="28"></i></div>
           <h3>Patchright</h3>
           <p>Stealth Playwright fork, persistent profiles</p>
         </div>
@@ -295,27 +337,55 @@
     <!-- ── Protocols & Infrastructure ────────────────────── -->
     <section class="category">
       <h2 class="category-title"><span class="chevron">&#x276F;</span> Protocols &amp; Infrastructure</h2>
-      <p class="category-desc">Type-safe IPC, remote RPC, and a durable database layer.</p>
+      <p class="category-desc">Type-safe IPC, remote RPC, MCP bridge, and a durable database layer.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#f0db4f;">&#x007B; &#x007D;</div>
+          <div class="int-icon" style="color:#f0db4f;"><i data-lucide="braces" width="28" height="28"></i></div>
           <h3>JSON-RPC 2.0</h3>
           <p>WebSocket server on :18790 for remote control</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#47848f;">&#x26A1;</div>
+          <div class="int-icon" style="color:#47848f;"><i data-lucide="zap" width="28" height="28"></i></div>
           <h3>Electron IPC</h3>
-          <p>48 Zod-validated channels, type-safe</p>
+          <p>77 Zod-validated channels, type-safe</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#44a8e0;">&#x1F4BE;</div>
+          <div class="int-icon" style="color:#44a8e0;"><i data-lucide="database" width="28" height="28"></i></div>
           <h3>SQLite</h3>
-          <p>WAL mode, FTS5, sqlite-vec, migrations</p>
+          <p>WAL mode, FTS5, sqlite-vec, 7 migrations</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#ff6347;">&#x1F511;</div>
+          <div class="int-icon" style="color:#ff6347;"><i data-lucide="key-round" width="28" height="28"></i></div>
           <h3>JWT Auth</h3>
           <p>Token-based auth for RPC connections</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Developer Tools ────────────────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Developer Tools</h2>
+      <p class="category-desc">MCP server, CLI, database viewer, and extension SDK for building on top of OpenOrbit.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#a78bfa;"><i data-lucide="cpu" width="28" height="28"></i></div>
+          <h3>MCP Server</h3>
+          <p>10 tools bridging OpenOrbit to Claude Code &amp; MCP clients</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#22c55e;"><i data-lucide="terminal" width="28" height="28"></i></div>
+          <h3>CLI</h3>
+          <p>11 commands &mdash; search, apply, schedule, manage adapters</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#06b6d4;"><i data-lucide="table" width="28" height="28"></i></div>
+          <h3>DB Viewer</h3>
+          <p>Schema browser, data grid, SQL console, export/import</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#f59e0b;"><i data-lucide="puzzle" width="28" height="28"></i></div>
+          <h3>Extension SDK</h3>
+          <p>9 extensions with shared services &amp; isolated IPC</p>
         </div>
       </div>
     </section>
@@ -324,7 +394,7 @@
     <section class="cta-section">
       <h2>Ready to get started?</h2>
       <p>Install OpenOrbit and start automating your job search in minutes.</p>
-      <a href="index.html" class="cta-btn">Get Started</a>
+      <a href="https://github.com/locdinhki/openorbit" class="cta-btn">Get Started</a>
     </section>
   </div>
 
@@ -338,9 +408,10 @@
         <span class="dot">&middot;</span>
         <a href="index.html#ecosystem">Ecosystem</a>
         <span class="dot">&middot;</span>
-        <a href="https://github.com/openorbit">GitHub</a>
+        <a href="https://github.com/locdinhki/openorbit">GitHub</a>
       </nav>
-      <p>&copy; 2026 OpenOrbit. Built with purpose.</p>
+      <p class="footer-credit">Built by <a href="https://x.com/TheSquirrelSoup" style="color:var(--accent-light);">Vincent Thieu</a></p>
+      <p class="footer-disclaimer">Independent project, not affiliated with organizations of similar names.</p>
     </div>
   </footer>
 
@@ -360,6 +431,8 @@
       el.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
       observer.observe(el);
     });
+
+    lucide.createIcons();
   </script>
 </body>
 </html>
