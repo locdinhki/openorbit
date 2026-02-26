@@ -404,7 +404,7 @@
 
     /* ── Quick Start ──────────────────────────────────────── */
     .quick-start {
-      padding: 120px 0;
+      padding: 60px 0 80px;
       position: relative;
     }
     .quick-start::before {
@@ -505,6 +505,101 @@
       footer .container { flex-direction: column; gap: 16px; }
     }
 
+    /* ── Mascot ───────────────────────────────────────────── */
+    .mascot-wrap {
+      position: relative;
+      width: 180px; height: 180px;
+      margin: 0 auto 32px;
+    }
+    .mascot-glow {
+      position: absolute;
+      inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      animation: mascotPulse 3s ease-in-out infinite;
+    }
+    .mascot-svg {
+      position: relative;
+      width: 100%; height: 100%;
+      animation: mascotFloat 4s ease-in-out infinite;
+      filter: drop-shadow(0 8px 32px rgba(124, 58, 237, 0.4));
+    }
+    .mascot-ring {
+      position: absolute;
+      inset: -16px;
+      border: 2px solid transparent;
+      border-top-color: var(--gradient-1);
+      border-right-color: var(--gradient-2);
+      border-radius: 50%;
+      animation: mascotOrbit 6s linear infinite;
+    }
+    .mascot-ring-2 {
+      position: absolute;
+      inset: -30px;
+      border: 1.5px solid transparent;
+      border-bottom-color: var(--gradient-3);
+      border-left-color: var(--gradient-2);
+      border-radius: 50%;
+      animation: mascotOrbit 8s linear infinite reverse;
+      opacity: 0.5;
+    }
+    .mascot-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      box-shadow: 0 0 8px var(--accent-light);
+    }
+    .mascot-dot-1 {
+      top: -16px; left: 50%;
+      animation: mascotOrbitDot1 6s linear infinite;
+      transform-origin: 0 106px;
+    }
+    .mascot-dot-2 {
+      bottom: -30px; right: 50%;
+      animation: mascotOrbitDot2 8s linear infinite reverse;
+      transform-origin: 0 -76px;
+      background: var(--gradient-3);
+      box-shadow: 0 0 8px var(--gradient-3);
+      width: 6px; height: 6px;
+    }
+    .mascot-star {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: #fff;
+      border-radius: 50%;
+      animation: mascotTwinkle 2s ease-in-out infinite;
+    }
+    .mascot-star:nth-child(5) { top: 10%; left: 5%; animation-delay: 0s; }
+    .mascot-star:nth-child(6) { top: 20%; right: 0%; animation-delay: 0.7s; }
+    .mascot-star:nth-child(7) { bottom: 15%; left: 0%; animation-delay: 1.3s; }
+    .mascot-star:nth-child(8) { bottom: 5%; right: 8%; animation-delay: 0.4s; width: 2px; height: 2px; }
+
+    @keyframes mascotFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes mascotPulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.08); }
+    }
+    @keyframes mascotOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes mascotOrbitDot1 {
+      from { transform: rotate(0deg) translateX(106px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(106px) rotate(-360deg); }
+    }
+    @keyframes mascotOrbitDot2 {
+      from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+    }
+    @keyframes mascotTwinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+
     /* ── Animations ───────────────────────────────────────── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -553,9 +648,79 @@
   <!-- ── Hero ────────────────────────────────────────────── -->
   <section class="hero">
     <div class="container">
-      <div class="hero-badge animate">
-        <span class="badge">Phase 9 Complete &mdash; 722 Tests Passing</span>
+      <!-- Mascot -->
+      <div class="mascot-wrap animate">
+        <div class="mascot-glow"></div>
+        <div class="mascot-ring"></div>
+        <div class="mascot-ring-2"></div>
+        <div class="mascot-dot mascot-dot-1"></div>
+        <div class="mascot-dot mascot-dot-2"></div>
+        <div class="mascot-star"></div>
+        <div class="mascot-star"></div>
+        <div class="mascot-star"></div>
+        <div class="mascot-star"></div>
+        <svg class="mascot-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mg" x1="40" y1="40" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#06b6d4"/>
+            </linearGradient>
+            <linearGradient id="visor" x1="70" y1="65" x2="130" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#1e1b4b"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <radialGradient id="visorShine" cx="0.35" cy="0.3" r="0.5">
+              <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <!-- Body / Suit -->
+          <ellipse cx="100" cy="145" rx="32" ry="22" fill="url(#mg)" opacity="0.8"/>
+          <!-- Helmet -->
+          <circle cx="100" cy="88" r="52" fill="#1a1a2e" stroke="url(#mg)" stroke-width="3"/>
+          <!-- Inner helmet rim -->
+          <circle cx="100" cy="88" r="46" fill="none" stroke="#2a2a4e" stroke-width="1"/>
+          <!-- Visor -->
+          <ellipse cx="100" cy="85" rx="38" ry="34" fill="url(#visor)" stroke="url(#mg)" stroke-width="2"/>
+          <ellipse cx="100" cy="85" rx="38" ry="34" fill="url(#visorShine)"/>
+          <!-- Eyes -->
+          <circle cx="84" cy="82" r="7" fill="#a78bfa" filter="url(#glow)">
+            <animate attributeName="r" values="7;7.5;7" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="116" cy="82" r="7" fill="#06b6d4" filter="url(#glow)">
+            <animate attributeName="r" values="7;7.5;7" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+          </circle>
+          <!-- Eye highlights -->
+          <circle cx="82" cy="79" r="2.5" fill="#fff" opacity="0.8"/>
+          <circle cx="114" cy="79" r="2.5" fill="#fff" opacity="0.8"/>
+          <!-- Smile -->
+          <path d="M88 96 Q100 106 112 96" stroke="#a78bfa" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+          <!-- Antenna base -->
+          <rect x="96" y="32" width="8" height="8" rx="2" fill="url(#mg)"/>
+          <!-- Antenna stick -->
+          <line x1="100" y1="32" x2="100" y2="16" stroke="url(#mg)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Antenna orb -->
+          <circle cx="100" cy="13" r="5" fill="#7c3aed" filter="url(#glow)">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="100" cy="13" r="3" fill="#a78bfa">
+            <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <!-- Arms -->
+          <ellipse cx="58" cy="130" rx="12" ry="8" fill="url(#mg)" opacity="0.7" transform="rotate(-20 58 130)"/>
+          <ellipse cx="142" cy="130" rx="12" ry="8" fill="url(#mg)" opacity="0.7" transform="rotate(20 142 130)"/>
+          <!-- Feet -->
+          <ellipse cx="82" cy="165" rx="14" ry="8" fill="url(#mg)" opacity="0.6"/>
+          <ellipse cx="118" cy="165" rx="14" ry="8" fill="url(#mg)" opacity="0.6"/>
+          <!-- Helmet reflection -->
+          <path d="M62 70 Q65 55 80 50" stroke="#fff" stroke-width="2" fill="none" opacity="0.15" stroke-linecap="round"/>
+        </svg>
       </div>
+
       <h1 class="animate animate-delay-1">
         Your Job Search,<br/><span class="gradient-text">On Autopilot</span>
       </h1>
@@ -597,25 +762,49 @@
     </div>
   </section>
 
-  <!-- ── Stats ───────────────────────────────────────────── -->
-  <section class="stats">
+  <!-- ── Quick Start ────────────────────────────────────── -->
+  <section class="quick-start" id="quick-start">
     <div class="container">
-      <div class="stats-grid">
-        <div>
-          <div class="stat-number gradient-text">9</div>
-          <div class="stat-label">Extensions</div>
+      <div class="section-header">
+        <h2><span class="gradient-text">Quick Start</span></h2>
+        <p>Download the app or build from source. Up and running in under 5 minutes.</p>
+      </div>
+      <div class="qs-grid">
+        <div class="qs-column">
+          <h3><i data-lucide="download" width="20" height="20"></i> Download</h3>
+          <div class="download-list">
+            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
+              <i data-lucide="monitor" width="22" height="22"></i>
+              macOS
+              <span class="dl-meta">.dmg</span>
+            </a>
+            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
+              <i data-lucide="app-window" width="22" height="22"></i>
+              Windows
+              <span class="dl-meta">.exe</span>
+            </a>
+            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
+              <i data-lucide="terminal" width="22" height="22"></i>
+              Linux
+              <span class="dl-meta">.AppImage</span>
+            </a>
+          </div>
         </div>
-        <div>
-          <div class="stat-number gradient-text">4</div>
-          <div class="stat-label">AI Providers</div>
-        </div>
-        <div>
-          <div class="stat-number gradient-text">722</div>
-          <div class="stat-label">Tests Passing</div>
-        </div>
-        <div>
-          <div class="stat-number gradient-text">77</div>
-          <div class="stat-label">IPC Channels</div>
+        <div class="qs-column">
+          <h3><i data-lucide="code" width="20" height="20"></i> Build from Source</h3>
+          <div class="qs-terminal">
+            <div class="qs-terminal-header">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+            </div>
+            <div class="qs-terminal-body">
+              <div><span class="prompt">$</span> <span class="cmd">git clone https://github.com/locdinhki/openorbit.git</span></div>
+              <div><span class="prompt">$</span> <span class="cmd">cd openorbit</span></div>
+              <div><span class="prompt">$</span> <span class="cmd">npm install</span></div>
+              <div><span class="prompt">$</span> <span class="cmd">npm run dev</span></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -812,54 +1001,6 @@
         <a href="integrations.html" class="works-link">
           View all 20+ integrations &nbsp;&rarr;
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Quick Start ────────────────────────────────────── -->
-  <section class="quick-start" id="quick-start">
-    <div class="container">
-      <div class="section-header">
-        <h2><span class="gradient-text">Quick Start</span></h2>
-        <p>Download the app or build from source. Up and running in under 5 minutes.</p>
-      </div>
-      <div class="qs-grid">
-        <div class="qs-column">
-          <h3><i data-lucide="download" width="20" height="20"></i> Download</h3>
-          <div class="download-list">
-            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
-              <i data-lucide="monitor" width="22" height="22"></i>
-              macOS
-              <span class="dl-meta">.dmg</span>
-            </a>
-            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
-              <i data-lucide="app-window" width="22" height="22"></i>
-              Windows
-              <span class="dl-meta">.exe</span>
-            </a>
-            <a href="https://github.com/locdinhki/openorbit/releases/latest" class="download-btn">
-              <i data-lucide="terminal" width="22" height="22"></i>
-              Linux
-              <span class="dl-meta">.AppImage</span>
-            </a>
-          </div>
-        </div>
-        <div class="qs-column">
-          <h3><i data-lucide="code" width="20" height="20"></i> Build from Source</h3>
-          <div class="qs-terminal">
-            <div class="qs-terminal-header">
-              <div class="terminal-dot red"></div>
-              <div class="terminal-dot yellow"></div>
-              <div class="terminal-dot green"></div>
-            </div>
-            <div class="qs-terminal-body">
-              <div><span class="prompt">$</span> <span class="cmd">git clone https://github.com/locdinhki/openorbit.git</span></div>
-              <div><span class="prompt">$</span> <span class="cmd">cd openorbit</span></div>
-              <div><span class="prompt">$</span> <span class="cmd">npm install</span></div>
-              <div><span class="prompt">$</span> <span class="cmd">npm run dev</span></div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </section>
