@@ -15,12 +15,23 @@ export default defineConfig({
         '@openorbit/ext-jobs': resolve('packages/extensions/ext-jobs/src'),
         '@openorbit/ext-telegram': resolve('packages/extensions/ext-telegram/src'),
         '@openorbit/ext-imessage': resolve('packages/extensions/ext-imessage/src'),
-        '@openorbit/ext-db-viewer': resolve('packages/extensions/ext-db-viewer/src')
+        '@openorbit/ext-db-viewer': resolve('packages/extensions/ext-db-viewer/src'),
+        '@openorbit/ext-whatsapp': resolve('packages/extensions/ext-whatsapp/src'),
+        '@openorbit/ext-discord': resolve('packages/extensions/ext-discord/src'),
+        '@openorbit/ext-zillow': resolve('packages/extensions/ext-zillow/src'),
+        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src')
       }
     },
     build: {
       rollupOptions: {
-        external: ['better-sqlite3', 'sqlite-vec', 'ws', '@anthropic-ai/claude-agent-sdk']
+        external: [
+          'better-sqlite3',
+          'sqlite-vec',
+          'ws',
+          '@anthropic-ai/claude-agent-sdk',
+          '@whiskeysockets/baileys',
+          'discord.js'
+        ]
       }
     }
   },
@@ -43,7 +54,11 @@ export default defineConfig({
         '@openorbit/ext-jobs': resolve('packages/extensions/ext-jobs/src'),
         '@openorbit/ext-telegram': resolve('packages/extensions/ext-telegram/src'),
         '@openorbit/ext-imessage': resolve('packages/extensions/ext-imessage/src'),
-        '@openorbit/ext-db-viewer': resolve('packages/extensions/ext-db-viewer/src')
+        '@openorbit/ext-db-viewer': resolve('packages/extensions/ext-db-viewer/src'),
+        '@openorbit/ext-whatsapp': resolve('packages/extensions/ext-whatsapp/src'),
+        '@openorbit/ext-discord': resolve('packages/extensions/ext-discord/src'),
+        '@openorbit/ext-zillow': resolve('packages/extensions/ext-zillow/src'),
+        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src')
       }
     },
     plugins: [react(), tailwindcss()]

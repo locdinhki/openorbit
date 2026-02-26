@@ -11,7 +11,7 @@ const mockLog = {
   error: vi.fn()
 }
 
-function makeOkResponse(body: any = {}): Response {
+function makeOkResponse(body: unknown = {}): Response {
   return {
     ok: true,
     status: 200,
@@ -90,9 +90,9 @@ describe('BlueBubblesClient', () => {
     it('throws on API error', async () => {
       mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Internal error'))
 
-      await expect(
-        client.sendMessage('iMessage;-;+15551234567', 'Hello!')
-      ).rejects.toThrow('BlueBubbles API error 500: Internal error')
+      await expect(client.sendMessage('iMessage;-;+15551234567', 'Hello!')).rejects.toThrow(
+        'BlueBubbles API error 500: Internal error'
+      )
     })
   })
 
@@ -111,9 +111,48 @@ describe('BlueBubblesClient', () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       // Should not throw — typing indicator is non-critical
-      await expect(
-        client.sendTypingIndicator('iMessage;-;+15551234567')
-      ).resolves.toBeUndefined()
+      await expect(client.sendTypingIndicator('iMessage;-;+15551234567')).resolves.toBeUndefined()
+    })
+  })
+
+  describe('downloadAttachment', () => {
+    it('downloads attachment by GUID', async () => {
+      const audioBytes = new Uint8Array([0x00, 0x01, 0x02, 0x03])
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'audio/caf' }),
+        arrayBuffer: () => Promise.resolve(audioBytes.buffer)
+      } as unknown as Response)
+
+      const buffer = await client.downloadAttachment('att-audio-123')
+      expect(Buffer.isBuffer(buffer)).toBe(true)
+      expect(buffer.length).toBe(4)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/attachment/att-audio-123/download'),
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    it('throws on download error', async () => {
+      mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not found'))
+
+      await expect(client.downloadAttachment('att-missing')).rejects.toThrow(
+        'BlueBubbles download error 404'
+      )
+    })
+
+    it('includes password in download URL', async () => {
+      const audioBytes = new Uint8Array([0x00])
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        arrayBuffer: () => Promise.resolve(audioBytes.buffer)
+      } as unknown as Response)
+
+      await client.downloadAttachment('att-1')
+      expect(mockFetch.mock.calls[0][0]).toContain('password=test-pass')
     })
   })
 

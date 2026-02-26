@@ -39,7 +39,7 @@ function makeProfile(overrides?: Partial<SearchProfile>): SearchProfile {
     id: 'p-1',
     name: 'My Search',
     enabled: true,
-    platform: 'linkedin' as any,
+    platform: 'linkedin' as unknown as SearchProfile['platform'],
     search: {},
     application: {},
     createdAt: '2025-01-01T00:00:00Z',
@@ -57,8 +57,8 @@ function makeActionLog(overrides?: Partial<ActionLog>): ActionLog {
     intent: 'Click apply button',
     pageSnapshot: '',
     hintUsed: '',
-    executionMethod: 'ai' as any,
-    actionType: 'click' as any,
+    executionMethod: 'ai' as unknown as ActionLog['executionMethod'],
+    actionType: 'click' as unknown as ActionLog['actionType'],
     actionTarget: 'button',
     actionValue: null,
     success: true,
@@ -102,8 +102,8 @@ describe('formatJobList', () => {
   it('includes approve/reject hint', () => {
     const jobs = [makeJob()]
     const result = formatJobList(jobs, 'Jobs')
-    expect(result).toContain("approve N")
-    expect(result).toContain("reject N")
+    expect(result).toContain('approve N')
+    expect(result).toContain('reject N')
   })
 
   it('handles missing match score', () => {
@@ -183,7 +183,10 @@ describe('formatStatusSummary', () => {
       getRecent: vi.fn().mockReturnValue([])
     }
 
-    const result = formatStatusSummary(jobsRepo as any, actionLogRepo as any)
+    const result = formatStatusSummary(
+      jobsRepo as unknown as Parameters<typeof formatStatusSummary>[0],
+      actionLogRepo as unknown as Parameters<typeof formatStatusSummary>[1]
+    )
     expect(result).toContain('Status Summary')
     expect(result).toContain('New jobs: 1')
     expect(result).toContain('Approved: 2')
@@ -198,7 +201,10 @@ describe('formatStatusSummary', () => {
     }
     const actionLogRepo = { getRecent: vi.fn() }
 
-    const result = formatStatusSummary(jobsRepo as any, actionLogRepo as any)
+    const result = formatStatusSummary(
+      jobsRepo as unknown as Parameters<typeof formatStatusSummary>[0],
+      actionLogRepo as unknown as Parameters<typeof formatStatusSummary>[1]
+    )
     expect(result).toContain('Unable to retrieve status')
   })
 })

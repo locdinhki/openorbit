@@ -11,11 +11,15 @@ import { IPC } from '@openorbit/core/ipc-channels'
 import extAiClaudeRenderer from '@openorbit/ext-ai-claude/renderer/index'
 import extJobsRenderer from '@openorbit/ext-jobs/renderer/index'
 import extDbViewerRenderer from '@openorbit/ext-db-viewer/renderer/index'
+import extZillowRenderer from '@openorbit/ext-zillow/renderer/index'
+import extGhlRenderer from '@openorbit/ext-ghl/renderer/index'
 
 const rendererModules = new Map<string, ExtensionRendererAPI>([
   ['ext-ai-claude', extAiClaudeRenderer],
   ['ext-jobs', extJobsRenderer],
-  ['ext-db-viewer', extDbViewerRenderer]
+  ['ext-db-viewer', extDbViewerRenderer],
+  ['ext-zillow', extZillowRenderer],
+  ['ext-ghl', extGhlRenderer]
 ])
 
 function App(): React.JSX.Element {

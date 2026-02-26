@@ -1,19 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { extractMessage } from '../webhook-server'
-
-const mockLog = {
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn()
-}
 
 // ---------------------------------------------------------------------------
 // extractMessage() — unit tests for payload parsing
 // ---------------------------------------------------------------------------
 
 describe('extractMessage', () => {
-  function makePayload(overrides?: Record<string, any>) {
+  function makePayload(overrides?: Record<string, unknown>): Record<string, unknown> {
     return {
       type: 'new-message',
       data: {
@@ -47,12 +40,12 @@ describe('extractMessage', () => {
     expect(result).toBeNull()
   })
 
-  it('returns null for empty text', () => {
+  it('returns null for empty text without audio', () => {
     const result = extractMessage(makePayload({ text: '' }))
     expect(result).toBeNull()
   })
 
-  it('returns null for whitespace-only text', () => {
+  it('returns null for whitespace-only text without audio', () => {
     const result = extractMessage(makePayload({ text: '   ' }))
     expect(result).toBeNull()
   })
@@ -86,5 +79,54 @@ describe('extractMessage', () => {
       })
     )
     expect(result?.handle).toBe('user@icloud.com')
+  })
+
+  // -------------------------------------------------------------------------
+  // Audio attachment extraction
+  // -------------------------------------------------------------------------
+
+  describe('audio attachments', () => {
+    it('extracts audio attachment GUID when no text', () => {
+      const result = extractMessage(
+        makePayload({
+          text: '',
+          attachments: [{ guid: 'att-audio-123', mimeType: 'audio/caf', filename: 'voice.caf' }]
+        })
+      )
+      expect(result).not.toBeNull()
+      expect(result?.audioAttachmentGuid).toBe('att-audio-123')
+      expect(result?.text).toBe('')
+    })
+
+    it('ignores non-audio attachments', () => {
+      const result = extractMessage(
+        makePayload({
+          text: '',
+          attachments: [{ guid: 'att-img-123', mimeType: 'image/jpeg', filename: 'photo.jpg' }]
+        })
+      )
+      expect(result).toBeNull()
+    })
+
+    it('prefers text over audio attachment', () => {
+      const result = extractMessage(
+        makePayload({
+          text: 'Hello!',
+          attachments: [{ guid: 'att-audio-123', mimeType: 'audio/caf', filename: 'voice.caf' }]
+        })
+      )
+      expect(result?.text).toBe('Hello!')
+      expect(result?.audioAttachmentGuid).toBeUndefined()
+    })
+
+    it('returns null for audio without guid', () => {
+      const result = extractMessage(
+        makePayload({
+          text: '',
+          attachments: [{ mimeType: 'audio/caf', filename: 'voice.caf' }]
+        })
+      )
+      expect(result).toBeNull()
+    })
   })
 })

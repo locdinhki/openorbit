@@ -50,6 +50,19 @@ export class BlueBubblesClient {
     }
   }
 
+  async downloadAttachment(guid: string): Promise<Buffer> {
+    const separator = '?'
+    const url = `${this.serverUrl}/api/v1/attachment/${encodeURIComponent(guid)}/download${separator}password=${encodeURIComponent(this.password)}`
+
+    const response = await fetch(url, { method: 'GET' })
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(`BlueBubbles download error ${response.status}: ${text}`)
+    }
+
+    return Buffer.from(await response.arrayBuffer())
+  }
+
   async sendTypingIndicator(chatGuid: string): Promise<void> {
     try {
       await this.apiCall('PUT', `/api/v1/chat/${encodeURIComponent(chatGuid)}/typing`)
@@ -67,7 +80,7 @@ export class BlueBubblesClient {
     method: string,
     path: string,
     body?: Record<string, unknown>
-  ): Promise<any> {
+  ): Promise<unknown> {
     const separator = path.includes('?') ? '&' : '?'
     const url = `${this.serverUrl}${path}${separator}password=${encodeURIComponent(this.password)}`
 

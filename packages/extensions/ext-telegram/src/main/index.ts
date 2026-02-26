@@ -8,6 +8,7 @@
 import { z } from 'zod'
 import type { ExtensionMainAPI, ExtensionContext } from '@openorbit/core/extensions/types'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
+import { VoiceTranscriber } from '@openorbit/core/audio/voice-transcriber'
 import { TelegramBot } from './telegram-bot'
 import { AIGateway } from './ai-gateway'
 
@@ -31,7 +32,10 @@ const extension: ExtensionMainAPI = {
 
     if (token) {
       const chatIds = chatIdsRaw
-        ? chatIdsRaw.split(',').map((id) => parseInt(id.trim(), 10)).filter((id) => !isNaN(id))
+        ? chatIdsRaw
+            .split(',')
+            .map((id) => parseInt(id.trim(), 10))
+            .filter((id) => !isNaN(id))
         : []
 
       try {
@@ -44,6 +48,12 @@ const extension: ExtensionMainAPI = {
         bot.setCallbackHandler(async (_chatId, _callbackId, data) => {
           return gateway!.processCallback(data)
         })
+
+        // Wire voice transcriber
+        const transcriber = new VoiceTranscriber({
+          openaiApiKey: settings.get('voice.openai-api-key') as string | undefined
+        })
+        bot.setTranscriber(transcriber)
 
         await bot.start()
         ctx.log.info('ext-telegram: bot started')
@@ -100,7 +110,10 @@ function registerIPCHandlers(ctx: ExtensionContext): void {
 
       if (args.token) {
         const chatIds = args['authorized-chat-ids']
-          ? args['authorized-chat-ids'].split(',').map((id) => parseInt(id.trim(), 10)).filter((id) => !isNaN(id))
+          ? args['authorized-chat-ids']
+              .split(',')
+              .map((id) => parseInt(id.trim(), 10))
+              .filter((id) => !isNaN(id))
           : []
 
         try {
@@ -113,6 +126,12 @@ function registerIPCHandlers(ctx: ExtensionContext): void {
           bot.setCallbackHandler(async (_chatId, _callbackId, data) => {
             return gateway!.processCallback(data)
           })
+
+          const settings2 = new SettingsRepo()
+          const transcriber = new VoiceTranscriber({
+            openaiApiKey: settings2.get('voice.openai-api-key') as string | undefined
+          })
+          bot.setTranscriber(transcriber)
 
           await bot.start()
           return { success: true }

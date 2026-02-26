@@ -102,12 +102,61 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'ext-whatsapp',
+          root: './packages/extensions/ext-whatsapp/src',
+          environment: 'node',
+          include: ['**/__tests__/**/*.test.ts'],
+          alias: {
+            '@openorbit/core': resolve(__dirname, 'packages/core/src'),
+            '@openorbit/ext-jobs': resolve(__dirname, 'packages/extensions/ext-jobs/src')
+          }
+        }
+      },
+      {
+        test: {
+          name: 'ext-discord',
+          root: './packages/extensions/ext-discord/src',
+          environment: 'node',
+          include: ['**/__tests__/**/*.test.ts'],
+          alias: {
+            '@openorbit/core': resolve(__dirname, 'packages/core/src'),
+            '@openorbit/ext-jobs': resolve(__dirname, 'packages/extensions/ext-jobs/src')
+          }
+        }
+      },
+      {
+        test: {
           name: 'ext-db-viewer',
           root: './packages/extensions/ext-db-viewer/src',
           environment: 'node',
           include: ['**/__tests__/**/*.test.ts'],
           alias: {
             '@openorbit/core': resolve(__dirname, 'packages/core/src')
+          }
+        }
+      },
+      {
+        test: {
+          name: 'ext-zillow',
+          root: './packages/extensions/ext-zillow/src',
+          environment: 'node',
+          include: ['**/__tests__/**/*.test.ts'],
+          alias: {
+            '@openorbit/core': resolve(__dirname, 'packages/core/src'),
+            '@openorbit/ext-zillow': resolve(__dirname, 'packages/extensions/ext-zillow/src')
+          }
+        }
+      },
+      {
+        test: {
+          name: 'ext-ghl',
+          root: './packages/extensions/ext-ghl/src',
+          environment: 'node',
+          include: ['**/__tests__/**/*.test.ts'],
+          alias: {
+            '@openorbit/core': resolve(__dirname, 'packages/core/src'),
+            '@openorbit/ext-zillow': resolve(__dirname, 'packages/extensions/ext-zillow/src'),
+            '@openorbit/ext-ghl': resolve(__dirname, 'packages/extensions/ext-ghl/src')
           }
         }
       }

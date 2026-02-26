@@ -41,7 +41,11 @@ import extAiOllamaMain from '@openorbit/ext-ai-ollama/main/index'
 import extJobsMain from '@openorbit/ext-jobs/main/index'
 import extTelegramMain from '@openorbit/ext-telegram/main/index'
 import extImessageMain from '@openorbit/ext-imessage/main/index'
+import extWhatsappMain from '@openorbit/ext-whatsapp/main/index'
+import extDiscordMain from '@openorbit/ext-discord/main/index'
 import extDbViewerMain from '@openorbit/ext-db-viewer/main/index'
+import extZillowMain from '@openorbit/ext-zillow/main/index'
+import extGhlMain from '@openorbit/ext-ghl/main/index'
 
 let mainWindow: BrowserWindow | null = null
 let configWatcher: ConfigWatcher | null = null
@@ -98,7 +102,6 @@ function createWindow(): void {
     mainWindow!.show()
   })
 
-
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -137,12 +140,14 @@ function createWindow(): void {
     ['ext-jobs', extJobsMain],
     ['ext-telegram', extTelegramMain],
     ['ext-imessage', extImessageMain],
-    ['ext-db-viewer', extDbViewerMain]
+    ['ext-whatsapp', extWhatsappMain],
+    ['ext-discord', extDiscordMain],
+    ['ext-db-viewer', extDbViewerMain],
+    ['ext-zillow', extZillowMain],
+    ['ext-ghl', extGhlMain]
   ])
 
-  const projectRoot = is.dev
-    ? resolve(__dirname, '../..')
-    : resolve(app.getAppPath(), '../..')
+  const projectRoot = is.dev ? resolve(__dirname, '../..') : resolve(app.getAppPath(), '../..')
 
   extensionHost = initExtensionHost({
     ipcMain,
@@ -249,6 +254,7 @@ app.whenReady().then(() => {
   const rpcToken = loadOrCreateToken(tokenPath)
 
   // Read bind host from settings (default: localhost only)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- must import after initCore initializes DB
   const { SettingsRepo } = require('@openorbit/core/db/settings-repo')
   const settingsRepo = new SettingsRepo()
   const rpcBindHost = (settingsRepo.get('rpc.bind-host') as string) ?? '127.0.0.1'

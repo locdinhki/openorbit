@@ -11,17 +11,17 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #0C0A09;
-      --bg-card: #141210;
-      --bg-card-hover: #1C1916;
-      --border: #2A2420;
-      --border-glow: #C2620733;
-      --text: #EDE8E3;
-      --text-muted: #857B72;
-      --accent: #C26207;
-      --accent-light: #F08030;
-      --accent-glow: #C2620720;
-      --gradient-1: #C26207;
+      --bg: #060B18;
+      --bg-card: #0C1425;
+      --bg-card-hover: #131E35;
+      --border: #1B2844;
+      --border-glow: #2563EB33;
+      --text: #E2E8F0;
+      --text-muted: #94A3B8;
+      --accent: #2563EB;
+      --accent-light: #3B82F6;
+      --accent-glow: #2563EB20;
+      --gradient-1: #2563EB;
       --gradient-2: #059669;
       --gradient-3: #34D399;
       --success: #34D399;
@@ -36,6 +36,28 @@
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, #0F1D3A 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, #0D1A2F 0%, transparent 40%),
+        radial-gradient(circle at 80% 60%, #091428 0%, transparent 35%),
+        radial-gradient(1px 1px at 10% 15%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 25% 35%, #94A3B8 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 40% 8%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 55% 55%, #94A3B8 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 70% 20%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 85% 45%, #94A3B8 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 15% 70%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 60% 85%, #94A3B8 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 90% 75%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 35% 90%, #fff 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 5% 50%, #94A3B8 0.5px, transparent 0.5px),
+        radial-gradient(1px 1px at 75% 95%, #fff 0.5px, transparent 0.5px),
+        var(--bg);
+      pointer-events: none;
     }
     a { color: inherit; text-decoration: none; }
     .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
@@ -374,7 +396,7 @@
       <p class="category-desc">MCP server, CLI, database viewer, and extension SDK for building on top of OpenOrbit.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#F08030;"><i data-lucide="cpu" width="28" height="28"></i></div>
+          <div class="int-icon" style="color:#3B82F6;"><i data-lucide="cpu" width="28" height="28"></i></div>
           <h3>MCP Server</h3>
           <p>10 tools bridging OpenOrbit to Claude Code &amp; MCP clients</p>
         </div>
@@ -384,7 +406,7 @@
           <p>11 commands &mdash; search, apply, schedule, manage adapters</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#D97706;"><i data-lucide="table" width="28" height="28"></i></div>
+          <div class="int-icon" style="color:#3B82F6;"><i data-lucide="table" width="28" height="28"></i></div>
           <h3>DB Viewer</h3>
           <p>Schema browser, data grid, SQL console, export/import</p>
         </div>

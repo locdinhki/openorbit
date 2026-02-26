@@ -17,7 +17,12 @@ export interface WebhookServerConfig {
   password: string
 }
 
-export type MessageHandler = (handle: string, chatGuid: string, text: string) => Promise<string>
+export type MessageHandler = (
+  handle: string,
+  chatGuid: string,
+  text: string,
+  audioAttachmentGuid?: string
+) => Promise<string>
 
 // ---------------------------------------------------------------------------
 // WebhookServer
@@ -118,7 +123,7 @@ export class WebhookServer {
     if (!this.onMessage) return
 
     try {
-      await this.onMessage(msg.handle, msg.chatGuid, msg.text)
+      await this.onMessage(msg.handle, msg.chatGuid, msg.text, msg.audioAttachmentGuid)
     } catch (err) {
       this.log.error('Error processing webhook message:', err)
     }
@@ -129,15 +134,17 @@ export class WebhookServer {
 // Payload parsing
 // ---------------------------------------------------------------------------
 
-interface ParsedMessage {
+export interface ParsedMessage {
   handle: string
   chatGuid: string
   text: string
+  audioAttachmentGuid?: string
 }
 
-export function extractMessage(payload: any): ParsedMessage | null {
-  // BlueBubbles webhook payload structure
-  const data = payload?.data
+export function extractMessage(payload: unknown): ParsedMessage | null {
+  // BlueBubbles webhook payload structure — dynamic shape from external API
+  const p = payload as Record<string, Record<string, unknown>> | null | undefined
+  const data = p?.data
   if (!data) return null
 
   // Skip messages from self
@@ -146,26 +153,36 @@ export function extractMessage(payload: any): ParsedMessage | null {
   // Skip group messages
   if (data.isGroup) return null
 
-  // Need text content
-  const text = data.text?.trim()
-  if (!text) return null
-
   // Extract sender handle
-  const handle = data.handle?.address
+  const handle = (data.handle as Record<string, string> | undefined)?.address
   if (!handle) return null
 
   // Extract chat GUID from first chat
-  const chatGuid = data.chats?.[0]?.guid
+  const chats = data.chats as Array<Record<string, string>> | undefined
+  const chatGuid = chats?.[0]?.guid
   if (!chatGuid) return null
 
-  return { handle, chatGuid, text }
+  // Check for text content
+  const text = (data.text as string | undefined)?.trim()
+  if (text) {
+    return { handle, chatGuid, text }
+  }
+
+  // Check for audio attachment when no text
+  const attachments = data.attachments as Array<Record<string, string>> | undefined
+  const attachment = attachments?.[0]
+  if (attachment?.mimeType?.startsWith('audio/') && attachment.guid) {
+    return { handle, chatGuid, text: '', audioAttachmentGuid: attachment.guid }
+  }
+
+  return null
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parseBody(req: IncomingMessage): Promise<any | null> {
+function parseBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve) => {
     const chunks: Buffer[] = []
 

@@ -12,18 +12,20 @@ vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
 // Mock memory modules
 const mockGetByCategory = vi.fn().mockReturnValue([])
 const mockSearch = vi.fn().mockReturnValue([])
-const mockAddFact = vi.fn((category: string, content: string, source: string, confidence: number) => ({
-  id: `fact-${Date.now()}`,
-  category,
-  content,
-  source,
-  confidence,
-  metadata: {},
-  createdAt: '2025-01-01',
-  updatedAt: '2025-01-01',
-  accessedAt: '2025-01-01',
-  accessCount: 0
-}))
+const mockAddFact = vi.fn(
+  (category: string, content: string, source: string, confidence: number) => ({
+    id: `fact-${Date.now()}`,
+    category,
+    content,
+    source,
+    confidence,
+    metadata: {},
+    createdAt: '2025-01-01',
+    updatedAt: '2025-01-01',
+    accessedAt: '2025-01-01',
+    accessCount: 0
+  })
+)
 
 vi.mock('@openorbit/core/db/memory-repo', () => ({
   MemoryRepo: class {
@@ -84,9 +86,9 @@ vi.mock('@openorbit/ext-jobs/main/db/jobs-repo', () => {
 vi.mock('@openorbit/ext-jobs/main/db/profiles-repo', () => {
   return {
     ProfilesRepo: class MockProfilesRepo {
-      list = vi.fn().mockReturnValue([
-        { id: 'p-1', name: 'SWE', platform: 'linkedin', enabled: true }
-      ])
+      list = vi
+        .fn()
+        .mockReturnValue([{ id: 'p-1', name: 'SWE', platform: 'linkedin', enabled: true }])
     }
   }
 })
