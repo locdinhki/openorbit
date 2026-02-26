@@ -1,6 +1,6 @@
 {
   "name": "openorbit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Autonomous job search and application platform",
   "main": "./out/main/index.js",
   "author": "Vincent Thieu",
