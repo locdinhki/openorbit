@@ -1,0 +1,38 @@
+OpenOrbit Source Available License
+
+Copyright (c) 2025 Vincent Thieu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, and run the Software, subject to the following conditions:
+
+1. PERMITTED USE. You may use the Software for:
+   (a) Personal, non-commercial purposes.
+   (b) Internal business operations within a business you own or operate
+       (e.g., using the Software as a tool to support your own business).
+
+2. RESTRICTED USE. You may NOT, without prior written permission from the
+   copyright holder:
+   (a) Sell, sublicense, or distribute the Software, or any modified version
+       of it, as a standalone product or service.
+   (b) Offer the Software, or any modified version of it, as a hosted or
+       managed service to third parties.
+   (c) Use the Software as the primary basis for a competing commercial
+       product or service.
+
+3. CONTRIBUTIONS. Contributions (pull requests, patches, etc.) submitted to
+   this project are licensed under the same terms as this license.
+
+4. ATTRIBUTION. The above copyright notice and this license shall be included
+   in all copies or substantial portions of the Software.
+
+5. COMMERCIAL LICENSING. For use cases not covered above, contact
+   vincent@openorbit.dev to obtain a commercial license.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

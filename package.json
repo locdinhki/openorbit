@@ -2,6 +2,7 @@
   "name": "openorbit",
   "version": "1.0.2",
   "description": "Autonomous job search and application platform",
+  "license": "SEE LICENSE IN LICENSE",
   "main": "./out/main/index.js",
   "author": "Vincent Thieu",
   "homepage": "https://electron-vite.org",
