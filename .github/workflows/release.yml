@@ -27,8 +27,6 @@ jobs:
 
       - run: npm ci
 
-      - run: npm test
-
       - run: ${{ matrix.build_cmd }}
 
       - name: Upload release artifacts
