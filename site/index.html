@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenOrbit — Autonomous Job Search & Application Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #06060a;
+      --bg-card: #0d0d14;
+      --bg-card-hover: #131320;
+      --border: #1a1a2e;
+      --border-glow: #7c3aed33;
+      --text: #e4e4ef;
+      --text-muted: #8888a4;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: #7c3aed40;
+      --gradient-1: #7c3aed;
+      --gradient-2: #2563eb;
+      --gradient-3: #06b6d4;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Utility ──────────────────────────────────────────── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: var(--accent-glow);
+      border: 1px solid var(--accent);
+      font-size: 0.8rem; font-weight: 600; color: var(--accent-light);
+      letter-spacing: 0.02em;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* ── Navigation ───────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      backdrop-filter: blur(20px);
+      background: #06060acc;
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em;
+    }
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      font-size: 0.9rem; color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 8px 20px; border-radius: 8px;
+      background: var(--accent);
+      font-size: 0.85rem; font-weight: 600; color: #fff;
+      transition: all 0.2s;
+      border: none; cursor: pointer;
+    }
+    .nav-cta:hover { background: #6d28d9; transform: translateY(-1px); }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 160px 0 100px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge { margin-bottom: 24px; }
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .hero-buttons {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+      font-size: 1rem; font-weight: 600; color: #fff;
+      transition: all 0.3s;
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    /* ── Terminal Preview ─────────────────────────────────── */
+    .terminal-preview {
+      max-width: 720px; margin: 60px auto 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px #00000060;
+    }
+    .terminal-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 20px;
+      background: #0a0a12;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ef4444; }
+    .terminal-dot.yellow { background: #f59e0b; }
+    .terminal-dot.green { background: #22c55e; }
+    .terminal-title {
+      flex: 1; text-align: center;
+      font-size: 0.8rem; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .terminal-body {
+      padding: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+    }
+    .terminal-body .prompt { color: var(--accent-light); }
+    .terminal-body .cmd { color: var(--text); }
+    .terminal-body .success { color: var(--success); }
+    .terminal-body .info { color: var(--gradient-3); }
+    .terminal-body .warn { color: var(--warning); }
+
+    /* ── Stats Bar ────────────────────────────────────────── */
+    .stats {
+      padding: 60px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 2.5rem; font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;
+    }
+
+    /* ── Features ─────────────────────────────────────────── */
+    .features {
+      padding: 120px 0;
+    }
+    .section-header {
+      text-align: center; margin-bottom: 64px;
+    }
+    .section-header h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-header p {
+      font-size: 1.1rem; color: var(--text-muted); max-width: 560px; margin: 0 auto;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      padding: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-glow);
+      background: var(--bg-card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px #00000040;
+    }
+    .feature-icon {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      background: var(--accent-glow);
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+    }
+    .feature-card h3 {
+      font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 0.92rem; color: var(--text-muted); line-height: 1.6;
+    }
+
+    /* ── How it Works ─────────────────────────────────────── */
+    .how-it-works {
+      padding: 120px 0;
+      background: linear-gradient(180deg, transparent, #0a0a1408, transparent);
+    }
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 36px; left: 16.66%; right: 16.66%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+      opacity: 0.3;
+    }
+    .step { text-align: center; position: relative; }
+    .step-number {
+      width: 72px; height: 72px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--accent);
+      font-size: 1.5rem; font-weight: 800;
+      color: var(--accent-light);
+      position: relative; z-index: 1;
+    }
+    .step h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+    .step p { font-size: 0.92rem; color: var(--text-muted); max-width: 280px; margin: 0 auto; }
+
+    /* ── Platforms ─────────────────────────────────────────── */
+    .platforms {
+      padding: 120px 0;
+    }
+    .platform-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+    }
+    .platform-card {
+      display: flex; align-items: center; gap: 24px;
+      padding: 28px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+    .platform-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+    .platform-logo {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 14px;
+      font-size: 1.6rem; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .platform-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .platform-card p { font-size: 0.85rem; color: var(--text-muted); }
+    .linkedin .platform-logo { background: #0a66c220; color: #0a66c2; }
+    .indeed .platform-logo { background: #2164f320; color: #2164f3; }
+    .upwork .platform-logo { background: #14a80020; color: #14a800; }
+    .more .platform-logo { background: var(--accent-glow); color: var(--accent-light); }
+
+    /* ── Ecosystem ────────────────────────────────────────── */
+    .ecosystem {
+      padding: 120px 0;
+    }
+    .eco-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    }
+    .eco-card {
+      padding: 32px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .eco-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-4px);
+    }
+    .eco-icon {
+      font-size: 2.2rem; margin-bottom: 16px;
+    }
+    .eco-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .eco-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Works With ───────────────────────────────────────── */
+    .works-with {
+      padding: 80px 0 100px;
+      border-top: 1px solid var(--border);
+    }
+    .works-with .section-header { margin-bottom: 40px; }
+    .works-with .section-header h2 {
+      font-size: 1.6rem; font-weight: 800; font-style: italic;
+    }
+    .works-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .works-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--text);
+      transition: all 0.25s;
+      background: transparent;
+    }
+    .works-pill:hover {
+      border-color: #ffffff30;
+      background: #ffffff08;
+    }
+    .works-pill-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+    .works-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 28px;
+    }
+    .works-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--accent-light);
+      transition: gap 0.2s;
+    }
+    .works-link:hover { gap: 10px; }
+    .works-link svg { transition: transform 0.2s; }
+    .works-link:hover svg { transform: translateX(2px); }
+
+    /* ── CTA ──────────────────────────────────────────────── */
+    .cta {
+      padding: 120px 0;
+      text-align: center;
+      position: relative;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .cta p {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 480px; margin: 0 auto 40px;
+    }
+    .cta-code {
+      display: inline-flex; align-items: center; gap: 12px;
+      margin-top: 24px;
+      padding: 14px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .cta-code span { color: var(--accent-light); }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+    footer .container {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-left {
+      font-size: 0.85rem; color: var(--text-muted);
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-size: 0.85rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .features-grid, .steps { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .eco-grid { grid-template-columns: repeat(2, 1fr); }
+      .platform-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .eco-grid { grid-template-columns: 1fr; }
+      footer .container { flex-direction: column; gap: 16px; }
+    }
+
+    /* ── Animations ───────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate {
+      opacity: 0;
+      animation: fadeUp 0.6s ease-out forwards;
+    }
+    .animate-delay-1 { animation-delay: 0.1s; }
+    .animate-delay-2 { animation-delay: 0.2s; }
+    .animate-delay-3 { animation-delay: 0.3s; }
+    .animate-delay-4 { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <!-- ── Navigation ──────────────────────────────────────── -->
+  <nav>
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="12" stroke="url(#g)" stroke-width="2.5" fill="none"/>
+          <circle cx="14" cy="14" r="5" fill="url(#g)"/>
+          <path d="M14 2 C14 2 22 8 22 14 C22 20 14 26 14 26" stroke="url(#g)" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <path d="M14 2 C14 2 6 8 6 14 C6 20 14 26 14 26" stroke="url(#g)" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="28" y2="28">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="gradient-text">OpenOrbit</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#platforms">Platforms</a>
+        <a href="#ecosystem">Ecosystem</a>
+        <a href="#integrations">Integrations</a>
+      </div>
+      <a href="https://github.com/openorbit" class="nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- ── Hero ────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge animate">
+        <span class="badge">Phase 6 Complete &mdash; 502 Tests Passing</span>
+      </div>
+      <h1 class="animate animate-delay-1">
+        Your Job Search,<br/><span class="gradient-text">On Autopilot</span>
+      </h1>
+      <p class="animate animate-delay-2">
+        OpenOrbit is an autonomous job search and application platform. It discovers opportunities, evaluates fit with AI, and applies on your behalf &mdash; across LinkedIn, Indeed, Upwork, and more.
+      </p>
+      <div class="hero-buttons animate animate-delay-3">
+        <a href="https://github.com/openorbit" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download for macOS
+        </a>
+        <a href="#features" class="btn-secondary">
+          Learn More
+        </a>
+      </div>
+
+      <!-- Terminal Preview -->
+      <div class="terminal-preview animate animate-delay-4">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title">openorbit &mdash; cli</span>
+          <div style="width: 36px;"></div>
+        </div>
+        <div class="terminal-body">
+          <div><span class="prompt">$</span> <span class="cmd">openorbit search --platform linkedin --role "Senior Engineer"</span></div>
+          <div><span class="info">&#9656;</span> Scanning 847 listings across 3 platforms...</div>
+          <div><span class="info">&#9656;</span> AI scoring matches against your profile...</div>
+          <div>&nbsp;</div>
+          <div><span class="success">&#10003;</span> Found <span class="cmd">23 strong matches</span> (score &gt; 80)</div>
+          <div><span class="success">&#10003;</span> Found <span class="cmd">54 good matches</span> (score 60-80)</div>
+          <div><span class="warn">&#9888;</span> Flagged 12 listings with red flags</div>
+          <div>&nbsp;</div>
+          <div><span class="prompt">$</span> <span class="cmd">openorbit apply --auto --top 10</span></div>
+          <div><span class="success">&#10003;</span> Applied to 10 positions in 4m 32s</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Stats ───────────────────────────────────────────── -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div>
+          <div class="stat-number gradient-text">3</div>
+          <div class="stat-label">Platforms Supported</div>
+        </div>
+        <div>
+          <div class="stat-number gradient-text">48</div>
+          <div class="stat-label">IPC Channels</div>
+        </div>
+        <div>
+          <div class="stat-number gradient-text">502</div>
+          <div class="stat-label">Tests Passing</div>
+        </div>
+        <div>
+          <div class="stat-number gradient-text">4</div>
+          <div class="stat-label">Device Ecosystem</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ────────────────────────────────────────── -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything You Need to<br/><span class="gradient-text">Land Your Next Role</span></h2>
+        <p>An intelligent automation engine that handles the tedious parts of job searching so you can focus on what matters.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F916;</div>
+          <h3>AI-Powered Scoring</h3>
+          <p>Claude AI analyzes every job posting, scores match quality 0-100, identifies red flags, and highlights strong fits based on your profile.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x26A1;</div>
+          <h3>Easy Apply Engine</h3>
+          <p>Full LinkedIn Easy Apply automation with multi-step form detection, answer templates, and intelligent question handling.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F6E1;</div>
+          <h3>Stealth Mode</h3>
+          <p>Human behavior simulation with random delays, typing variation, idle pauses, and anti-detection measures built into every action.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F9E0;</div>
+          <h3>Memory System</h3>
+          <p>SQLite with full-text search and vector similarity. Learns from your history, reuses answers, and gets smarter over time.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4CB;</div>
+          <h3>Answer Templates</h3>
+          <p>Generate and store answers to common application questions. Pauses for your approval on new custom questions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F50C;</div>
+          <h3>Extensible Adapters</h3>
+          <p>Pluggable platform adapter system. Add new job sites without touching core logic through a standardized interface.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How It Works ────────────────────────────────────── -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>How <span class="gradient-text">OpenOrbit</span> Works</h2>
+        <p>From search to application in three simple steps.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Configure Your Profile</h3>
+          <p>Set up your skills, preferences, target roles, and salary expectations. OpenOrbit builds your candidate profile.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>AI Scans & Scores</h3>
+          <p>The engine continuously discovers opportunities across platforms and uses Claude AI to rank every match.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Auto-Apply</h3>
+          <p>Top matches get applied to automatically. You review, approve, and track everything from any device.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Platforms ────────────────────────────────────────── -->
+  <section class="platforms" id="platforms">
+    <div class="container">
+      <div class="section-header">
+        <h2>One Engine,<br/><span class="gradient-text">Multiple Platforms</span></h2>
+        <p>Search and apply across all major job platforms from a single interface.</p>
+      </div>
+      <div class="platform-grid">
+        <div class="platform-card linkedin">
+          <div class="platform-logo">in</div>
+          <div>
+            <h3>LinkedIn</h3>
+            <p>Full Easy Apply automation, job extraction, and profile-aware scoring with stealth browsing.</p>
+          </div>
+        </div>
+        <div class="platform-card indeed">
+          <div class="platform-logo">In</div>
+          <div>
+            <h3>Indeed</h3>
+            <p>Automated job discovery and application with intelligent form filling across listings.</p>
+          </div>
+        </div>
+        <div class="platform-card upwork">
+          <div class="platform-logo">Up</div>
+          <div>
+            <h3>Upwork</h3>
+            <p>Freelance opportunity monitoring with proposal generation and bid management.</p>
+          </div>
+        </div>
+        <div class="platform-card more">
+          <div class="platform-logo">+</div>
+          <div>
+            <h3>More Coming</h3>
+            <p>Extensible adapter system makes adding Glassdoor, Dice, AngelList, and others straightforward.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Ecosystem ───────────────────────────────────────── -->
+  <section class="ecosystem" id="ecosystem">
+    <div class="container">
+      <div class="section-header">
+        <h2>A Complete<br/><span class="gradient-text">Cross-Device Ecosystem</span></h2>
+        <p>Control your job search from anywhere &mdash; desktop, terminal, browser, or phone.</p>
+      </div>
+      <div class="eco-grid">
+        <div class="eco-card">
+          <div class="eco-icon">&#x1F5A5;</div>
+          <h3>Desktop App</h3>
+          <p>Full-featured Electron app with 3-panel UI, real-time automation dashboard, and Claude chat.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon">&#x2328;</div>
+          <h3>CLI</h3>
+          <p>10+ commands for power users. Search, analyze, apply, manage skills and adapters from your terminal.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon">&#x1F310;</div>
+          <h3>Chrome Extension</h3>
+          <p>Relay automation through your real Chrome browser via DevTools Protocol for maximum stealth.</p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon">&#x1F4F1;</div>
+          <h3>iOS Companion</h3>
+          <p>SwiftUI app with QR pairing, push notifications, and swipe-based approval for jobs on the go.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Works With ─────────────────────────────────────── -->
+  <section class="works-with" id="integrations">
+    <div class="container">
+      <div class="section-header">
+        <h2>&#x276F; <em>Works With Everything</em></h2>
+      </div>
+      <div class="works-pills">
+        <span class="works-pill"><span class="works-pill-icon" style="color:#0a66c2;">&#x1F517;</span> LinkedIn</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#2164f3;">&#x1F50D;</span> Indeed</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#14a800;">&#x1F4BC;</span> Upwork</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#d4a274;">&#x2728;</span> Anthropic</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#ea4335;">&#x1F310;</span> Chrome</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#ccc;">&#x2318;</span> macOS</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#0078d4;">&#x229E;</span> Windows</span>
+      </div>
+      <div class="works-pills">
+        <span class="works-pill"><span class="works-pill-icon" style="color:#e95500;">&#x1F427;</span> Linux</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#007aff;">&#x1F4F1;</span> iOS</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#44a8e0;">&#x1F4BE;</span> SQLite</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#47848f;">&#x26A1;</span> Electron</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#f0db4f;">&#x007B; &#x007D;</span> JSON-RPC</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#ff6347;">&#x1F511;</span> JWT Auth</span>
+        <span class="works-pill"><span class="works-pill-icon" style="color:#2d8c3e;">&#x1F3AD;</span> Patchright</span>
+      </div>
+      <div class="works-links">
+        <a href="integrations.html" class="works-link">
+          View all 15+ integrations &nbsp;&rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ─────────────────────────────────────────────── -->
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to Put Your<br/><span class="gradient-text">Job Search on Autopilot?</span></h2>
+      <p>Download OpenOrbit and start applying to your next opportunity in minutes.</p>
+      <div class="hero-buttons">
+        <a href="https://github.com/openorbit" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Get Started Free
+        </a>
+        <a href="https://github.com/openorbit" class="btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="cta-code">
+        <span>$</span> git clone https://github.com/openorbit/openorbit.git
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-left">&copy; 2026 OpenOrbit. Built with purpose.</div>
+      <div class="footer-links">
+        <a href="https://github.com/openorbit">GitHub</a>
+        <a href="#features">Features</a>
+        <a href="#ecosystem">Ecosystem</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card, .step, .platform-card, .eco-card, .stat-number, .works-pill').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>

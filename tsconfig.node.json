@@ -1,0 +1,27 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "include": [
+    "electron.vite.config.*",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "packages/core/src/**/*",
+    "packages/extensions/*/src/*.ts",
+    "packages/extensions/*/src/main/**/*",
+    "packages/extensions/*/src/platforms/**/*",
+    "packages/extensions/*/src/automation/**/*"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "types": ["electron-vite/node"],
+    "baseUrl": ".",
+    "paths": {
+      "@openorbit/core/*": ["packages/core/src/*"],
+      "@openorbit/ext-ai-claude-sdk/*": ["packages/extensions/ext-ai-claude-sdk/src/*"],
+      "@openorbit/ext-ai-claude/*": ["packages/extensions/ext-ai-claude/src/*"],
+      "@openorbit/ext-ai-openai/*": ["packages/extensions/ext-ai-openai/src/*"],
+      "@openorbit/ext-ai-ollama/*": ["packages/extensions/ext-ai-ollama/src/*"],
+      "@openorbit/ext-jobs/*": ["packages/extensions/ext-jobs/src/*"],
+      "@openorbit/ext-telegram/*": ["packages/extensions/ext-telegram/src/*"]
+    }
+  }
+}

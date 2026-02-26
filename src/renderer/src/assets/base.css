@@ -1,0 +1,17 @@
+:root {
+  --cos-bg-primary: #0f1117;
+  --cos-bg-secondary: #161920;
+  --cos-bg-tertiary: #1c1f2b;
+  --cos-bg-hover: #252836;
+  --cos-border: #2a2d3a;
+  --cos-border-light: #353849;
+  --cos-text-primary: rgba(255, 255, 245, 0.9);
+  --cos-text-secondary: rgba(235, 235, 245, 0.6);
+  --cos-text-muted: rgba(235, 235, 245, 0.38);
+  --cos-accent: #6366f1;
+  --cos-accent-hover: #818cf8;
+  --cos-success: #22c55e;
+  --cos-warning: #f59e0b;
+  --cos-error: #ef4444;
+  --cos-info: #3b82f6;
+}

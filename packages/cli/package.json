@@ -1,0 +1,23 @@
+{
+  "name": "@openorbit/cli",
+  "version": "1.0.0",
+  "description": "OpenOrbit command-line interface",
+  "type": "module",
+  "bin": {
+    "openorbit": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "commander": "^12.0.0",
+    "ws": "*"
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "@types/ws": "*",
+    "typescript": "*"
+  }
+}

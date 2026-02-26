@@ -1,0 +1,21 @@
+node_modules
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
+
+# User data
+data/
+*.db
+
+# Session storage
+session/
+browser-state.json
+
+# Environment
+.env
+.env.*
+
+# OS files
+Thumbs.db

@@ -1,0 +1,20 @@
+{
+  "name": "@openorbit/ext-ai-claude-sdk",
+  "version": "1.0.0",
+  "description": "Claude AI provider via Agent SDK (Max plan subscription)",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-ai-claude-sdk",
+    "displayName": "Claude (Max Plan)",
+    "icon": "message-circle",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {}
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

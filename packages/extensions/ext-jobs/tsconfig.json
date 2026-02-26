@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.node.json",
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "composite": false,
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@openorbit/core/*": ["../../core/src/*"]
+    }
+  }
+}

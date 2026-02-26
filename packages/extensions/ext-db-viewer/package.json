@@ -1,0 +1,30 @@
+{
+  "name": "@openorbit/ext-db-viewer",
+  "version": "1.0.0",
+  "description": "Database viewer and editor extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-db-viewer",
+    "displayName": "Database",
+    "icon": "database",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "db-viewer-sidebar", "label": "Database", "icon": "database", "priority": 50 }
+      ],
+      "workspace": [
+        { "id": "db-viewer-workspace", "label": "Data Viewer", "default": false }
+      ],
+      "panel": [
+        { "id": "db-viewer-sql", "label": "SQL Console", "icon": "terminal" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

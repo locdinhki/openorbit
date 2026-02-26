@@ -1,0 +1,20 @@
+{
+  "name": "@openorbit/ext-ai-ollama",
+  "version": "1.0.0",
+  "description": "Ollama local LLM AI provider extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-ai-ollama",
+    "displayName": "Ollama (Local)",
+    "icon": "hard-drive",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {}
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "@openorbit/ext-jobs",
+  "version": "1.0.0",
+  "description": "Job search and application automation extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-jobs",
+    "displayName": "Job Search",
+    "icon": "briefcase",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "jobs-sidebar", "label": "Job Search", "icon": "briefcase", "priority": 100 }
+      ],
+      "workspace": [
+        { "id": "job-workspace", "label": "Job Board", "default": true }
+      ],
+      "panel": [
+        { "id": "jobs-chat", "label": "Claude Chat", "icon": "message-circle" },
+        { "id": "action-log", "label": "Action Log", "icon": "list" }
+      ],
+      "statusBar": [
+        { "id": "automation-status", "alignment": "left", "priority": 100 }
+      ],
+      "toolbar": [
+        { "id": "browser-controls", "priority": 100 }
+      ],
+      "commands": [
+        { "id": "ext-jobs:start-extraction", "label": "Start Extraction" },
+        { "id": "ext-jobs:stop-extraction", "label": "Stop Extraction" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

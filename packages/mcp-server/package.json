@@ -1,0 +1,13 @@
+{
+  "name": "@openorbit/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server exposing OpenOrbit capabilities as Claude tools",
+  "type": "module",
+  "main": "./src/index.ts",
+  "bin": {
+    "openorbit-mcp": "./src/index.ts"
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

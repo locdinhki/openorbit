@@ -1,0 +1,329 @@
+{
+  "site": "linkedin.com/jobs",
+  "lastFullScan": "",
+  "lastVerified": "",
+  "actions": {
+    "search_jobs": {
+      "steps": [
+        {
+          "intent": "navigate_to_search",
+          "hint": {
+            "selectors": [],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": "url",
+            "elementType": "navigation"
+          },
+          "fallbackDescription": "Navigate to LinkedIn job search URL with query parameters",
+          "lastVerified": "",
+          "confidence": 0.95,
+          "failureCount": 0
+        },
+        {
+          "intent": "wait_for_results",
+          "hint": {
+            "selectors": [
+              ".jobs-search-results-list",
+              ".scaffold-layout__list",
+              "[class*='jobs-search-results']",
+              ".jobs-search__results-list"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": "main",
+            "elementType": "container"
+          },
+          "fallbackDescription": "Wait for job search results container to appear",
+          "lastVerified": "",
+          "confidence": 0.85,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_job_cards": {
+      "steps": [
+        {
+          "intent": "find_job_cards",
+          "hint": {
+            "selectors": [
+              ".job-card-container",
+              ".jobs-search-results__list-item",
+              "li.ember-view.occludable-update",
+              "[data-occludable-job-id]",
+              ".scaffold-layout__list-item"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".jobs-search-results-list, .scaffold-layout__list",
+            "elementType": "li"
+          },
+          "fallbackDescription": "Find all job card list items in search results",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_card_title": {
+      "steps": [
+        {
+          "intent": "get_job_title",
+          "hint": {
+            "selectors": [
+              ".job-card-list__title",
+              ".job-card-container__link",
+              "a[class*='job-card-list__title']",
+              ".artdeco-entity-lockup__title a",
+              "a.job-card-container__link"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".job-card-container",
+            "elementType": "a"
+          },
+          "fallbackDescription": "Extract job title text from card link",
+          "lastVerified": "",
+          "confidence": 0.85,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_card_company": {
+      "steps": [
+        {
+          "intent": "get_company_name",
+          "hint": {
+            "selectors": [
+              ".job-card-container__primary-description",
+              ".artdeco-entity-lockup__subtitle",
+              ".job-card-container__company-name",
+              "span.job-card-container__primary-description"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".job-card-container",
+            "elementType": "span"
+          },
+          "fallbackDescription": "Extract company name from card",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_card_location": {
+      "steps": [
+        {
+          "intent": "get_job_location",
+          "hint": {
+            "selectors": [
+              ".job-card-container__metadata-item",
+              ".artdeco-entity-lockup__caption",
+              ".job-card-container__metadata-wrapper li",
+              "span.job-card-container__metadata-item"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".job-card-container",
+            "elementType": "span"
+          },
+          "fallbackDescription": "Extract location from card metadata",
+          "lastVerified": "",
+          "confidence": 0.75,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_card_easy_apply": {
+      "steps": [
+        {
+          "intent": "check_easy_apply",
+          "hint": {
+            "selectors": [
+              ".job-card-container__apply-method",
+              "[class*='easy-apply']",
+              ".job-card-container__footer-item"
+            ],
+            "textMatches": ["Easy Apply", "easy apply"],
+            "ariaLabels": [],
+            "location": ".job-card-container",
+            "elementType": "span"
+          },
+          "fallbackDescription": "Check if job card has Easy Apply badge",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        }
+      ]
+    },
+    "click_job_card": {
+      "steps": [
+        {
+          "intent": "click_to_view_details",
+          "hint": {
+            "selectors": [
+              ".job-card-list__title",
+              ".job-card-container__link",
+              "a[class*='job-card-list__title']",
+              "a.job-card-container__link"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".job-card-container",
+            "elementType": "a"
+          },
+          "fallbackDescription": "Click on job card title link to load details",
+          "lastVerified": "",
+          "confidence": 0.85,
+          "failureCount": 0
+        }
+      ]
+    },
+    "extract_job_details": {
+      "steps": [
+        {
+          "intent": "get_job_description",
+          "hint": {
+            "selectors": [
+              ".jobs-description__content",
+              ".jobs-description-content__text",
+              "#job-details",
+              ".jobs-box__html-content",
+              "[class*='jobs-description']"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".jobs-search__job-details, .scaffold-layout__detail",
+            "elementType": "div"
+          },
+          "fallbackDescription": "Extract full job description from detail panel",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        },
+        {
+          "intent": "get_detail_title",
+          "hint": {
+            "selectors": [
+              ".job-details-jobs-unified-top-card__job-title",
+              ".jobs-unified-top-card__job-title",
+              ".t-24.t-bold",
+              "h1 a",
+              "h2.job-details-jobs-unified-top-card__job-title"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".jobs-search__job-details, .scaffold-layout__detail",
+            "elementType": "h1, h2, a"
+          },
+          "fallbackDescription": "Extract job title from detail panel header",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        },
+        {
+          "intent": "get_detail_company",
+          "hint": {
+            "selectors": [
+              ".job-details-jobs-unified-top-card__company-name",
+              ".jobs-unified-top-card__company-name",
+              ".job-details-jobs-unified-top-card__primary-description-container a"
+            ],
+            "textMatches": [],
+            "ariaLabels": [],
+            "location": ".jobs-search__job-details, .scaffold-layout__detail",
+            "elementType": "a, span"
+          },
+          "fallbackDescription": "Extract company name from detail panel",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        },
+        {
+          "intent": "get_detail_salary",
+          "hint": {
+            "selectors": [
+              ".job-details-jobs-unified-top-card__job-insight span",
+              "[class*='salary']",
+              ".compensation__salary"
+            ],
+            "textMatches": ["$", "/yr", "/hr", "per hour", "per year", "annually"],
+            "ariaLabels": [],
+            "location": ".jobs-search__job-details, .scaffold-layout__detail",
+            "elementType": "span"
+          },
+          "fallbackDescription": "Extract salary info from detail panel",
+          "lastVerified": "",
+          "confidence": 0.6,
+          "failureCount": 0
+        },
+        {
+          "intent": "get_detail_posted_date",
+          "hint": {
+            "selectors": [
+              ".job-details-jobs-unified-top-card__primary-description-container span",
+              "time",
+              "[class*='posted-date']",
+              ".jobs-unified-top-card__posted-date"
+            ],
+            "textMatches": ["ago", "hour", "day", "week", "month", "Reposted"],
+            "ariaLabels": [],
+            "location": ".jobs-search__job-details, .scaffold-layout__detail",
+            "elementType": "span, time"
+          },
+          "fallbackDescription": "Extract posted date from detail panel",
+          "lastVerified": "",
+          "confidence": 0.7,
+          "failureCount": 0
+        }
+      ]
+    },
+    "next_page": {
+      "steps": [
+        {
+          "intent": "click_next_page",
+          "hint": {
+            "selectors": [
+              "button[aria-label='Page {next}']",
+              ".artdeco-pagination__button--next",
+              "li.artdeco-pagination__indicator--number button",
+              "[class*='pagination'] button[aria-label*='Next']"
+            ],
+            "textMatches": [],
+            "ariaLabels": ["Next", "Page {next}"],
+            "location": ".artdeco-pagination, .jobs-search-pagination",
+            "elementType": "button"
+          },
+          "fallbackDescription": "Click next page button in pagination",
+          "lastVerified": "",
+          "confidence": 0.8,
+          "failureCount": 0
+        }
+      ]
+    },
+    "check_authentication": {
+      "steps": [
+        {
+          "intent": "verify_logged_in",
+          "hint": {
+            "selectors": [
+              ".global-nav__me-photo",
+              ".feed-identity-module__actor-meta",
+              "img.global-nav__me-photo",
+              ".global-nav__primary-link-me-menu-trigger"
+            ],
+            "textMatches": [],
+            "ariaLabels": ["Profile", "Me"],
+            "location": "nav, .global-nav",
+            "elementType": "img, button"
+          },
+          "fallbackDescription": "Check if user profile photo/nav exists (indicates logged in)",
+          "lastVerified": "",
+          "confidence": 0.9,
+          "failureCount": 0
+        }
+      ]
+    }
+  },
+  "changeLog": []
+}

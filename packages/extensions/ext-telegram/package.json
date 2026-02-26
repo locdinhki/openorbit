@@ -1,0 +1,20 @@
+{
+  "name": "@openorbit/ext-telegram",
+  "version": "1.0.0",
+  "description": "Telegram bot gateway for remote AI-powered job search control",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-telegram",
+    "displayName": "Telegram Bot",
+    "icon": "send",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {}
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

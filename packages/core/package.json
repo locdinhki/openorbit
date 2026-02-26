@@ -1,0 +1,33 @@
+{
+  "name": "@openorbit/core",
+  "version": "1.0.0",
+  "description": "OpenOrbit core business logic",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "*",
+    "better-sqlite3": "*",
+    "js-yaml": "*",
+    "node-cron": "*",
+    "patchright": "*",
+    "sqlite-vec": "*",
+    "uuid": "*",
+    "zod": "*"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "*",
+    "@types/js-yaml": "*",
+    "@types/node": "*",
+    "@types/node-cron": "*",
+    "@types/uuid": "*",
+    "vitest": "*"
+  }
+}

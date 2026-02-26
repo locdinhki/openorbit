@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Integrations — OpenOrbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #06060a;
+      --bg-card: #0d0d14;
+      --bg-card-hover: #131320;
+      --border: #1a1a2e;
+      --border-glow: #7c3aed33;
+      --text: #e4e4ef;
+      --text-muted: #8888a4;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --accent-glow: #7c3aed40;
+      --gradient-1: #7c3aed;
+      --gradient-2: #2563eb;
+      --gradient-3: #06b6d4;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Back link ────────────────────────────────────────── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding-top: 100px;
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--accent-light);
+      transition: gap 0.2s;
+    }
+    .back-link:hover { gap: 10px; }
+
+    /* ── Page Header ─────────────────────────────────────── */
+    .page-header {
+      padding: 24px 0 64px;
+      text-align: center;
+    }
+    .page-header h1 {
+      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .page-header p {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Category ────────────────────────────────────────── */
+    .category {
+      margin-bottom: 64px;
+    }
+    .category-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .category-title .chevron {
+      color: var(--accent-light);
+      margin-right: 4px;
+    }
+    .category-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* ── Card Grid ────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .int-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 28px 16px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+    .int-card:hover {
+      border-color: #ffffff20;
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+    }
+    .int-icon {
+      font-size: 2rem;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .int-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .int-card p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── CTA Section ─────────────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      padding: 80px 0 100px;
+    }
+    .cta-section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .cta-section p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+      font-size: 0.95rem; font-weight: 600; color: #fff;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    footer nav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    footer nav a {
+      font-size: 0.85rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    footer nav a:hover { color: var(--text); }
+    footer nav .dot { color: var(--text-muted); font-size: 0.85rem; }
+    footer p {
+      font-size: 0.8rem; color: var(--text-muted);
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .card-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Animations ───────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate { opacity: 0; animation: fadeUp 0.5s ease-out forwards; }
+    .animate-d1 { animation-delay: 0.1s; }
+    .animate-d2 { animation-delay: 0.15s; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <a href="index.html" class="back-link animate">&larr; Back to home</a>
+
+    <section class="page-header">
+      <h1 class="animate"><span class="gradient-text">Integrations</span></h1>
+      <p class="animate animate-d1">
+        15+ integrations with the platforms, AI, and tools you already use.<br/>
+        Search from your desktop, apply from your phone, automate everything.
+      </p>
+    </section>
+
+    <!-- ── Job Platforms ──────────────────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Job Platforms</h2>
+      <p class="category-desc">Search, extract, and apply across multiple job boards from one engine.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#0a66c2;">&#x1F517;</div>
+          <h3>LinkedIn</h3>
+          <p>Easy Apply engine, extraction &amp; AI scoring</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#2164f3;">&#x1F50D;</div>
+          <h3>Indeed</h3>
+          <p>Job discovery &amp; multi-step form filling</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#14a800;">&#x1F4BC;</div>
+          <h3>Upwork</h3>
+          <p>Opportunity monitoring &amp; proposal drafts</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AI Models ─────────────────────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> AI Models</h2>
+      <p class="category-desc">Multi-model failover powered by Anthropic &mdash; fast analysis and deep reasoning.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#d4a274;">&#x2728;</div>
+          <h3>Anthropic</h3>
+          <p>Claude Sonnet + Opus for scoring, analysis &amp; cover letters</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Platforms & Devices ────────────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Platforms &amp; Devices</h2>
+      <p class="category-desc">Run the desktop app anywhere. Control from your phone with the companion app.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#ccc;">&#x2318;</div>
+          <h3>macOS</h3>
+          <p>System tray, auto-updater, notarized DMG</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#0078d4;">&#x229E;</div>
+          <h3>Windows</h3>
+          <p>NSIS installer, tray, background automation</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#e95500;">&#x1F427;</div>
+          <h3>Linux</h3>
+          <p>AppImage &amp; DEB with full parity</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#007aff;">&#x1F4F1;</div>
+          <h3>iOS</h3>
+          <p>SwiftUI, QR pairing, push notifications</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Browser & Automation ──────────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Browser &amp; Automation</h2>
+      <p class="category-desc">Stealth-first browser automation through your real Chrome or a patched engine.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#ea4335;">&#x1F310;</div>
+          <h3>Chrome Extension</h3>
+          <p>Manifest V3 relay via DevTools Protocol</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#2d8c3e;">&#x1F3AD;</div>
+          <h3>Patchright</h3>
+          <p>Stealth Playwright fork, persistent profiles</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Protocols & Infrastructure ────────────────────── -->
+    <section class="category">
+      <h2 class="category-title"><span class="chevron">&#x276F;</span> Protocols &amp; Infrastructure</h2>
+      <p class="category-desc">Type-safe IPC, remote RPC, and a durable database layer.</p>
+      <div class="card-grid">
+        <div class="int-card">
+          <div class="int-icon" style="color:#f0db4f;">&#x007B; &#x007D;</div>
+          <h3>JSON-RPC 2.0</h3>
+          <p>WebSocket server on :18790 for remote control</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#47848f;">&#x26A1;</div>
+          <h3>Electron IPC</h3>
+          <p>48 Zod-validated channels, type-safe</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#44a8e0;">&#x1F4BE;</div>
+          <h3>SQLite</h3>
+          <p>WAL mode, FTS5, sqlite-vec, migrations</p>
+        </div>
+        <div class="int-card">
+          <div class="int-icon" style="color:#ff6347;">&#x1F511;</div>
+          <h3>JWT Auth</h3>
+          <p>Token-based auth for RPC connections</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CTA ────────────────────────────────────────────── -->
+    <section class="cta-section">
+      <h2>Ready to get started?</h2>
+      <p>Install OpenOrbit and start automating your job search in minutes.</p>
+      <a href="index.html" class="cta-btn">Get Started</a>
+    </section>
+  </div>
+
+  <!-- ── Footer ──────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <nav>
+        <a href="index.html">Home</a>
+        <span class="dot">&middot;</span>
+        <a href="index.html#features">Features</a>
+        <span class="dot">&middot;</span>
+        <a href="index.html#ecosystem">Ecosystem</a>
+        <span class="dot">&middot;</span>
+        <a href="https://github.com/openorbit">GitHub</a>
+      </nav>
+      <p>&copy; 2026 OpenOrbit. Built with purpose.</p>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.int-card, .category-title').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
