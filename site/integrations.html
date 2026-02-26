@@ -11,19 +11,23 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #06060a;
-      --bg-card: #0d0d14;
-      --bg-card-hover: #131320;
-      --border: #1a1a2e;
-      --border-glow: #7c3aed33;
-      --text: #e4e4ef;
-      --text-muted: #8888a4;
-      --accent: #7c3aed;
-      --accent-light: #a78bfa;
-      --accent-glow: #7c3aed40;
-      --gradient-1: #7c3aed;
-      --gradient-2: #2563eb;
-      --gradient-3: #06b6d4;
+      --bg: #0C0A09;
+      --bg-card: #141210;
+      --bg-card-hover: #1C1916;
+      --border: #2A2420;
+      --border-glow: #C2620733;
+      --text: #EDE8E3;
+      --text-muted: #857B72;
+      --accent: #C26207;
+      --accent-light: #F08030;
+      --accent-glow: #C2620720;
+      --gradient-1: #C26207;
+      --gradient-2: #059669;
+      --gradient-3: #34D399;
+      --success: #34D399;
+      --emerald: #059669;
+      --emerald-light: #34D399;
+      --emerald-glow: #05966920;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -87,6 +91,7 @@
       color: var(--accent-light);
       margin-right: 4px;
     }
+    .category:nth-child(even) .category-title .chevron { color: var(--emerald-light); }
     .category-desc {
       font-size: 0.92rem;
       color: var(--text-muted);
@@ -129,6 +134,7 @@
       color: var(--text-muted);
       line-height: 1.5;
     }
+    .int-card:nth-child(even):hover { border-color: #05966933; }
 
     /* ── CTA Section ─────────────────────────────────────── */
     .cta-section {
@@ -368,7 +374,7 @@
       <p class="category-desc">MCP server, CLI, database viewer, and extension SDK for building on top of OpenOrbit.</p>
       <div class="card-grid">
         <div class="int-card">
-          <div class="int-icon" style="color:#a78bfa;"><i data-lucide="cpu" width="28" height="28"></i></div>
+          <div class="int-icon" style="color:#F08030;"><i data-lucide="cpu" width="28" height="28"></i></div>
           <h3>MCP Server</h3>
           <p>10 tools bridging OpenOrbit to Claude Code &amp; MCP clients</p>
         </div>
@@ -378,7 +384,7 @@
           <p>11 commands &mdash; search, apply, schedule, manage adapters</p>
         </div>
         <div class="int-card">
-          <div class="int-icon" style="color:#06b6d4;"><i data-lucide="table" width="28" height="28"></i></div>
+          <div class="int-icon" style="color:#D97706;"><i data-lucide="table" width="28" height="28"></i></div>
           <h3>DB Viewer</h3>
           <p>Schema browser, data grid, SQL console, export/import</p>
         </div>
