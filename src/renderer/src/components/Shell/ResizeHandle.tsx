@@ -7,9 +7,14 @@ import { useRef, useCallback } from 'react'
 interface ResizeHandleProps {
   /** Called continuously during drag with the horizontal pixel delta since last frame. */
   onResize: (delta: number) => void
+  /** Called once when drag ends (pointer up). */
+  onResizeEnd?: () => void
 }
 
-export default function ResizeHandle({ onResize }: ResizeHandleProps): React.JSX.Element {
+export default function ResizeHandle({
+  onResize,
+  onResizeEnd
+}: ResizeHandleProps): React.JSX.Element {
   const lastX = useRef(0)
 
   const handlePointerDown = useCallback(
@@ -36,12 +41,13 @@ export default function ResizeHandle({ onResize }: ResizeHandleProps): React.JSX
         delete target.dataset.dragging
         target.removeEventListener('pointermove', onMove)
         target.removeEventListener('pointerup', onUp)
+        onResizeEnd?.()
       }
 
       target.addEventListener('pointermove', onMove)
       target.addEventListener('pointerup', onUp)
     },
-    [onResize]
+    [onResize, onResizeEnd]
   )
 
   return (

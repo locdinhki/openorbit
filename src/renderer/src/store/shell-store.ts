@@ -19,6 +19,8 @@ export interface ShellState {
   activePanelId: string | null
   /** Whether the browser session is initialized */
   sessionInitialized: boolean
+  /** Per-extension layout sizes: sidebarId → { sidebar?, panel?, ... } */
+  layoutSizes: Record<string, Record<string, number>>
 
   /** Schedules state */
   schedules: Schedule[]
@@ -34,6 +36,8 @@ export interface ShellState {
   setActiveWorkspace: (id: string | null) => void
   setActivePanel: (id: string | null) => void
   setSessionInitialized: (initialized: boolean) => void
+  setLayoutSize: (sidebarId: string, slot: string, width: number) => void
+  loadLayoutSizes: (sizes: Record<string, Record<string, number>>) => void
 
   // Schedule actions
   setSchedules: (schedules: Schedule[]) => void
@@ -54,6 +58,7 @@ export const useShellStore = create<ShellState>()((set) => ({
   activeWorkspaceId: null,
   activePanelId: null,
   sessionInitialized: false,
+  layoutSizes: {},
 
   schedules: [],
   tools: [],
@@ -110,6 +115,14 @@ export const useShellStore = create<ShellState>()((set) => ({
   setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
   setActivePanel: (id) => set({ activePanelId: id }),
   setSessionInitialized: (initialized) => set({ sessionInitialized: initialized }),
+  setLayoutSize: (sidebarId, slot, width) =>
+    set((state) => ({
+      layoutSizes: {
+        ...state.layoutSizes,
+        [sidebarId]: { ...state.layoutSizes[sidebarId], [slot]: width }
+      }
+    })),
+  loadLayoutSizes: (sizes) => set({ layoutSizes: sizes }),
 
   // Schedule actions
   setSchedules: (schedules) => set({ schedules }),

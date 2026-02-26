@@ -24,6 +24,7 @@ const rendererModules = new Map<string, ExtensionRendererAPI>([
 
 function App(): React.JSX.Element {
   const setExtensions = useShellStore((s) => s.setExtensions)
+  const loadLayoutSizes = useShellStore((s) => s.loadLayoutSizes)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -43,13 +44,23 @@ function App(): React.JSX.Element {
         }
       }
 
+      // Hydrate persisted layout sizes before setting extensions
+      try {
+        const sizesResult = await window.api.invoke(IPC.SETTINGS_GET, { key: 'ui.layout-sizes' })
+        if (sizesResult?.success && sizesResult.data) {
+          loadLayoutSizes(JSON.parse(sizesResult.data as string))
+        }
+      } catch {
+        // Ignore — use defaults
+      }
+
       // Push manifests into shell store (sets default active views)
       setExtensions(manifests)
       setReady(true)
     }
 
     bootstrap()
-  }, [setExtensions])
+  }, [setExtensions, loadLayoutSizes])
 
   if (!ready) {
     return (
