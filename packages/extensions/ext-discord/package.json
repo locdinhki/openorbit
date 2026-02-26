@@ -1,0 +1,22 @@
+{
+  "name": "@openorbit/ext-discord",
+  "version": "1.0.0",
+  "description": "Discord bot gateway for remote AI-powered job search control via discord.js",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-discord",
+    "displayName": "Discord Bot",
+    "icon": "message-circle",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {}
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "@openorbit/ext-jobs": "*",
+    "discord.js": "^14.18.0"
+  }
+}

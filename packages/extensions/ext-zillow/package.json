@@ -1,0 +1,27 @@
+{
+  "name": "@openorbit/ext-zillow",
+  "version": "1.0.0",
+  "description": "Zillow property data and ARV scraper extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-zillow",
+    "displayName": "Zillow",
+    "icon": "home",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "zillow-sidebar", "label": "Zillow", "icon": "home", "priority": 40 }
+      ],
+      "workspace": [
+        { "id": "zillow-workspace", "label": "Property Viewer", "default": false }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

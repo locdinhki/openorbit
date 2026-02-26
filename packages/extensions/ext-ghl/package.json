@@ -1,0 +1,31 @@
+{
+  "name": "@openorbit/ext-ghl",
+  "version": "1.0.0",
+  "description": "GoHighLevel CRM extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-ghl",
+    "displayName": "GoHighLevel",
+    "icon": "building",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "ghl-sidebar", "label": "GoHighLevel", "icon": "building", "priority": 35 }
+      ],
+      "workspace": [
+        { "id": "ghl-workspace", "label": "CRM", "default": false }
+      ],
+      "panel": [
+        { "id": "ghl-chat", "label": "GHL Chat", "icon": "message-circle" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "@openorbit/ext-zillow": "*"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@openorbit/ext-whatsapp",
+  "version": "1.0.0",
+  "description": "WhatsApp bot gateway for remote AI-powered job search control via Baileys",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-whatsapp",
+    "displayName": "WhatsApp Bot",
+    "icon": "message-circle",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {}
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "@openorbit/ext-jobs": "*",
+    "@whiskeysockets/baileys": "^6.7.18"
+  }
+}
