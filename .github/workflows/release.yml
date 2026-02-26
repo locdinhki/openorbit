@@ -40,7 +40,6 @@ jobs:
             dist/*.zip
             dist/*.AppImage
             dist/*.deb
-            dist/*.snap
             dist/*-setup.exe
           retention-days: 30
 
