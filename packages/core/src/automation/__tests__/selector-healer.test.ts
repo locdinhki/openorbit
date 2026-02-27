@@ -29,6 +29,7 @@ function createMockAIService(): AIService {
         id: 'claude',
         displayName: 'Claude',
         configured: true,
+        isDefault: true,
         capabilities: { streaming: false, toolCalling: false, vision: false, models: [] }
       }
     ],

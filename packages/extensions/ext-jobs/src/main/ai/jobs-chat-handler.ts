@@ -11,7 +11,7 @@ import type {
   AIToolResult,
   AIMessage
 } from '@openorbit/core/ai/provider-types'
-import type { JobListing } from '@openorbit/core/types'
+import type { JobListing, JobStatus } from '@openorbit/core/types'
 import { buildJobContext } from '@openorbit/core/ai/claude-service'
 import { UserProfileRepo } from '@openorbit/core/db/user-profile-repo'
 import { MemoryRepo } from '@openorbit/core/db/memory-repo'
@@ -247,7 +247,7 @@ export class JobsChatHandler {
       case 'list_jobs': {
         const limit = (input.limit as number) ?? 10
         return this.jobsRepo.list({
-          status: input.status as string | undefined,
+          status: input.status as JobStatus | JobStatus[] | undefined,
           platform: input.platform as string | undefined,
           minScore: input.minScore as number | undefined,
           limit
