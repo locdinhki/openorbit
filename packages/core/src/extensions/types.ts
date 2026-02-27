@@ -45,6 +45,19 @@ export interface CommandContribution {
   label: string
 }
 
+export interface SettingContribution {
+  /** Settings key (e.g. "ghl.api-token"). Must be globally unique. */
+  key: string
+  /** Human-readable label */
+  label: string
+  /** Type of the setting value */
+  type: 'string' | 'number' | 'boolean' | 'password'
+  /** Default value (as string, since settings repo stores strings) */
+  default?: string
+  /** Optional description shown below the input */
+  description?: string
+}
+
 export interface ExtensionContributes {
   sidebar?: SidebarContribution[]
   workspace?: WorkspaceContribution[]
@@ -52,6 +65,7 @@ export interface ExtensionContributes {
   statusBar?: StatusBarContribution[]
   toolbar?: ToolbarContribution[]
   commands?: CommandContribution[]
+  settings?: SettingContribution[]
 }
 
 export interface ExtensionManifest {
@@ -59,6 +73,10 @@ export interface ExtensionManifest {
   id: string
   /** Human-readable name, e.g. "Job Search" */
   displayName: string
+  /** Short description of the extension */
+  description?: string
+  /** Semver version string */
+  version?: string
   /** Icon name for ActivityBar (lucide icon name or path to SVG) */
   icon: string
   /** When to activate: ["onStartup"] or ["onView:jobs-sidebar"] */

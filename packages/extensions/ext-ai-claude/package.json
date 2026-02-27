@@ -12,7 +12,11 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "anthropic_api_key", "label": "API Key", "type": "password", "description": "Anthropic API key (sk-ant-...)" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*"

@@ -12,7 +12,11 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "openai_api_key", "label": "API Key", "type": "password", "description": "OpenAI API key (sk-...)" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*"

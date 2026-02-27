@@ -21,6 +21,10 @@
       ],
       "panel": [
         { "id": "ghl-chat", "label": "GHL Chat", "icon": "message-circle" }
+      ],
+      "settings": [
+        { "key": "ghl.api-token", "label": "API Token", "type": "password", "description": "Private Integration Token (pit-xxx)" },
+        { "key": "ghl.location-id", "label": "Location ID", "type": "string", "description": "GHL Location ID for your workspace" }
       ]
     }
   },

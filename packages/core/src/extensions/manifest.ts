@@ -40,13 +40,22 @@ const commandContributionSchema = z.object({
   label: z.string().min(1)
 })
 
+const settingContributionSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  type: z.enum(['string', 'number', 'boolean', 'password']),
+  default: z.string().optional(),
+  description: z.string().optional()
+})
+
 const contributesSchema = z.object({
   sidebar: z.array(sidebarContributionSchema).optional(),
   workspace: z.array(workspaceContributionSchema).optional(),
   panel: z.array(panelContributionSchema).optional(),
   statusBar: z.array(statusBarContributionSchema).optional(),
   toolbar: z.array(toolbarContributionSchema).optional(),
-  commands: z.array(commandContributionSchema).optional()
+  commands: z.array(commandContributionSchema).optional(),
+  settings: z.array(settingContributionSchema).optional()
 })
 
 export const extensionManifestSchema = z.object({
@@ -58,6 +67,8 @@ export const extensionManifestSchema = z.object({
       'Extension ID must start with "ext-" followed by lowercase alphanumeric with hyphens'
     ),
   displayName: z.string().min(1),
+  description: z.string().optional(),
+  version: z.string().optional(),
   icon: z.string().min(1),
   activationEvents: z.array(z.string()).min(1),
   main: z.string().min(1),

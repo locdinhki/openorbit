@@ -239,6 +239,14 @@ export class ExtensionHost {
         const openorbitField = pkgJson['openorbit']
         if (!openorbitField) continue
 
+        // Inject description and version from outer package.json if not in openorbit block
+        if (!openorbitField.description && pkgJson.description) {
+          openorbitField.description = pkgJson.description
+        }
+        if (!openorbitField.version && pkgJson.version) {
+          openorbitField.version = pkgJson.version
+        }
+
         const result = safeParseManifest(openorbitField)
         if (!result.success) {
           log.warn(`Invalid manifest in ${dir}/package.json:`, result.error)

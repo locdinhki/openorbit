@@ -12,7 +12,12 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "telegram.bot-token", "label": "Bot Token", "type": "password", "description": "Token from BotFather" },
+        { "key": "telegram.authorized-chat-ids", "label": "Authorized Chat IDs", "type": "string", "description": "Comma-separated chat IDs allowed to use the bot" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*"
