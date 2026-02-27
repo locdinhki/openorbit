@@ -1,6 +1,6 @@
 # 10.4: Discord
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

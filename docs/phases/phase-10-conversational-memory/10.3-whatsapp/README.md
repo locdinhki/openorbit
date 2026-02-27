@@ -1,6 +1,6 @@
 # 10.3: WhatsApp
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

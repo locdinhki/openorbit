@@ -101,14 +101,17 @@ export function resolvePairingInfo(pairing?: PairingContext): {
   wsUrl: string
   token: string
   tailnetUrl?: string
+  webUrl?: string
 } {
   const tailscaleIp = getTailscaleIp()
+  const localIp = getLocalIp()
   const port = pairing?.wsUrl ? new URL(pairing.wsUrl.replace('ws://', 'http://')).port : '18790'
 
   return {
-    wsUrl: pairing?.wsUrl ?? `ws://${getLocalIp()}:18790`,
+    wsUrl: pairing?.wsUrl ?? `ws://${localIp}:18790`,
     token: pairing?.token ?? '',
-    ...(tailscaleIp ? { tailnetUrl: `ws://${tailscaleIp}:${port}` } : {})
+    ...(tailscaleIp ? { tailnetUrl: `ws://${tailscaleIp}:${port}` } : {}),
+    webUrl: `http://${localIp}:18791`
   }
 }
 

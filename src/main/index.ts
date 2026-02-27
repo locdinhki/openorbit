@@ -26,6 +26,7 @@ import { Notifier } from './utils/notifier'
 import { Updater } from './updater'
 import { RPCServer } from './rpc-server'
 import { registerRPCHandlers } from './rpc-handlers'
+import { WebServer } from './web-server'
 import { setRelaySender } from '@openorbit/core/automation/relay-session'
 import { IPC } from '@openorbit/core/ipc-channels'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
@@ -54,9 +55,11 @@ let cronScheduler: Scheduler | null = null
 let trayManager: TrayManager | null = null
 let updater: Updater | null = null
 let rpcServer: RPCServer | null = null
+let webServer: WebServer | null = null
 let extensionHost: ReturnType<typeof initExtensionHost> | null = null
 let isCleaningUp = false
 let pairingContext: PairingContext | null = null
+let activeAIService: ReturnType<AIProviderRegistry['toService']> | null = null
 
 function getLocalIpAddress(): string {
   const ifaces = networkInterfaces()
@@ -119,6 +122,7 @@ function createWindow(): void {
   // Initialize AI Provider Registry (populated by provider extensions)
   const aiRegistry = new AIProviderRegistry()
   const aiServiceFacade = aiRegistry.toService()
+  activeAIService = aiServiceFacade
   setAIService(aiServiceFacade)
 
   // Create scheduler early so extensions can register task handlers during activation
@@ -260,9 +264,18 @@ app.whenReady().then(() => {
 
   rpcServer = new RPCServer({ token: rpcToken, host: rpcBindHost })
   registerRPCHandlers(rpcServer, {
-    getCoordinator: () => getActiveCoordinator()
+    getCoordinator: () => getActiveCoordinator(),
+    getAIService: () => activeAIService
   })
   rpcServer.start()
+
+  // Start web UI static file server
+  const webUiDir = is.dev
+    ? resolve(__dirname, '../../packages/web-ui/dist')
+    : resolve(app.getAppPath(), '../web-ui')
+  const webBindHost = rpcBindHost === '127.0.0.1' ? '0.0.0.0' : rpcBindHost
+  webServer = new WebServer({ staticDir: webUiDir, host: webBindHost })
+  webServer.start()
 
   // Build pairing context for QR code (local LAN IP + port + token)
   const localIp = getLocalIpAddress()
@@ -295,6 +308,8 @@ app.on('before-quit', (e) => {
     isCleaningUp = true
     e.preventDefault()
 
+    webServer?.destroy()
+    webServer = null
     rpcServer?.destroy()
     rpcServer = null
     updater?.destroy()

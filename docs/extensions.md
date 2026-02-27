@@ -687,6 +687,56 @@ Natural language also works: "any new jobs?", "approve the stripe one", "what's 
 
 ## Standalone Packages
 
+### web-ui (Web Interface)
+
+| Field | Value |
+|-------|-------|
+| **Package** | `@openorbit/web-ui` |
+| **Location** | `packages/web-ui/` |
+| **Port** | 18791 (HTTP) |
+
+**What it does:** Mobile-first web interface served directly by OpenOrbit. Provides chat, job management, and automation control from any browser — phone, tablet, or laptop. Connects to the existing RPC WebSocket server (port 18790) for all data and AI operations.
+
+**Architecture:** Vite + React 19 SPA with Zustand state management. Built to `packages/web-ui/dist/` and served as static files by a Node.js HTTP server in the Electron main process. Uses browser-native WebSocket to connect to the RPC server.
+
+**Views:**
+
+| View | Description |
+|------|-------------|
+| **Chat** (default) | Message input + history, loads via `chat.send` / `chat.history` / `chat.clear` RPC methods |
+| **Jobs** | Filterable job list (All/New/Approved/Applied/Rejected), approve/reject buttons on new jobs |
+| **Status** | Automation running/paused/stopped indicator, start/stop/pause controls, disconnect button |
+
+**Connection:**
+- Login screen with WebSocket URL + token input
+- Auto-detect from URL hash: `http://host:18791#wsUrl=ws://host:18790&token=TOKEN`
+- Credentials persisted in browser localStorage for auto-reconnect
+- Default WS URL derived from current page hostname
+
+**RPC Methods (added for web chat):**
+
+| Method | Description |
+|--------|-------------|
+| `chat.send` | Send message, receive AI response (optionally scoped to a job) |
+| `chat.history` | Get conversation history |
+| `chat.clear` | Clear conversation |
+
+Existing RPC methods (`jobs.list`, `jobs.approve`, `jobs.reject`, `automation.start`, `automation.stop`, `automation.status`) are reused as-is.
+
+**Server-Side Components:**
+- `src/main/web-server.ts` — Node.js `http.createServer` (zero new deps), MIME type handling, SPA fallback
+- Binds to `0.0.0.0` on port 18791 (accessible from other devices on the network)
+- Web URL included in pairing info: `http://<localIp>:18791`
+
+**Prerequisites:**
+- OpenOrbit desktop app running (RPC server on port 18790)
+
+**Setup:** No configuration needed. The web server starts automatically alongside the RPC server. Open `http://localhost:18791` in any browser, enter the RPC token, and connect.
+
+**Mobile Access:** Open `http://<your-ip>:18791` from any device on the same network. With Tailscale, accessible from anywhere on your tailnet.
+
+---
+
 ### openorbit-mcp (MCP Server)
 
 | Field | Value |

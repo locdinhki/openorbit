@@ -1,0 +1,25 @@
+{
+  "name": "@openorbit/web-ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@tailwindcss/vite": "^4.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

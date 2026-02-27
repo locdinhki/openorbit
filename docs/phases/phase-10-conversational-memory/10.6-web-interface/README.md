@@ -1,6 +1,6 @@
 # 10.6: Web Interface
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

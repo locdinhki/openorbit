@@ -1,17 +1,21 @@
 import type { RPCServer } from './rpc-server'
 import type { AutomationCoordinator } from '@openorbit/core/automation/automation-coordinator'
+import type { AIService } from '@openorbit/core/ai/provider-types'
 import { JobsRepo } from '@openorbit/core/db/jobs-repo'
 import { ProfilesRepo } from '@openorbit/core/db/profiles-repo'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import { SchedulesRepo } from '@openorbit/core/db/schedules-repo'
 import { ApplicationsRepo } from '@openorbit/core/db/applications-repo'
 import { ActionLogRepo } from '@openorbit/core/db/action-log-repo'
+import { MemoryRepo } from '@openorbit/core/db/memory-repo'
+import { ChatHandler } from '@openorbit/core/ai/chat-handler'
 import { createLogger } from '@openorbit/core/utils/logger'
 
 const log = createLogger('RPC-Handlers')
 
 export interface RPCHandlerContext {
   getCoordinator: () => AutomationCoordinator
+  getAIService: () => AIService | null
 }
 
 /**
@@ -123,6 +127,38 @@ export function registerRPCHandlers(server: RPCServer, ctx: RPCHandlerContext): 
   server.register('action-log.list', (params) => {
     const limit = typeof params['limit'] === 'number' ? params['limit'] : 50
     return { success: true, data: actionLogRepo.getRecent(limit) }
+  })
+
+  // --- chat (web UI) ---
+
+  const memoryRepo = new MemoryRepo()
+  let chatHandler: ChatHandler | null = null
+
+  function getChatHandler(): ChatHandler {
+    if (!chatHandler) {
+      const ai = ctx.getAIService()
+      if (!ai) throw new Error('AI service not initialized')
+      chatHandler = new ChatHandler(ai, memoryRepo)
+    }
+    return chatHandler
+  }
+
+  server.register('chat.send', async (params) => {
+    const message = String(params['message'] ?? '')
+    if (!message) return { success: false, error: 'Message required' }
+    const jobId = typeof params['jobId'] === 'string' ? params['jobId'] : undefined
+    const selectedJob = jobId ? jobsRepo.getById(jobId) : null
+    const response = await getChatHandler().sendMessage(message, selectedJob)
+    return { success: true, data: response }
+  })
+
+  server.register('chat.history', () => {
+    return { success: true, data: getChatHandler().getHistory() }
+  })
+
+  server.register('chat.clear', () => {
+    getChatHandler().clearHistory()
+    return { success: true }
   })
 
   // --- relay ---

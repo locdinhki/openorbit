@@ -33,6 +33,7 @@ OpenOrbit discovers opportunities, evaluates fit with AI, manages your CRM pipel
 
 ### Remote Control
 
+- **Web Interface** — Mobile-first browser UI with chat, jobs, and automation control (port 18791)
 - **5 Messaging Gateways** — Telegram, Discord, iMessage, WhatsApp, and MCP
 - **Natural Language** — Ask questions in plain English from any messaging app via Claude Agent SDK
 - **Voice Messages** — Send voice notes, get text responses (via OpenAI Whisper transcription)
@@ -59,22 +60,20 @@ OpenOrbit is a cross-device system — control your job search from anywhere.
          │        OpenOrbit Shell       │
          │   Electron + React + SQLite  │
          │    ws://127.0.0.1:18790      │
+         │   http://0.0.0.0:18791       │
          └──────────────┬───────────────┘
                         │
-         ┌──────────────┼──────────────┐
-         │              │              │
-         ▼              ▼              ▼
-    Desktop App     CLI Tool      MCP Server
-    (3-panel UI)   (commands)     (10 tools)
-         │
-         ▼
-    iOS Companion
-     (SwiftUI)
+         ┌──────┬───────┼───────┬──────┐
+         │      │       │       │      │
+         ▼      ▼       ▼       ▼      ▼
+    Desktop  Web UI    CLI    MCP    iOS
+     App    (browser) (cmds) Server  App
 ```
 
 | Surface | Description |
 |---------|-------------|
 | **Desktop App** | Electron 39 + React 19 with 3-panel UI, dashboard, and AI chat |
+| **Web UI** | Mobile-first browser interface with chat, jobs, and automation control (port 18791) |
 | **CLI** | `search`, `analyze`, `apply`, `schedule`, `skills`, `adapters`, `templates`, and more |
 | **MCP Server** | 10 tools for job management and automation via Model Context Protocol |
 | **Telegram Bot** | Inline keyboards, slash commands, natural language, voice |
@@ -157,6 +156,7 @@ openorbit/
 │   ├── core/              # Business logic, AI, automation, DB, scheduler
 │   ├── cli/               # Command-line interface
 │   ├── mcp-server/        # MCP protocol bridge to RPC server
+│   ├── web-ui/            # Browser-based chat, jobs, and automation control
 │   └── extensions/
 │       ├── ext-ai-claude-sdk/   # Claude Agent SDK provider (default)
 │       ├── ext-ai-claude/       # Claude/Anthropic API provider
@@ -188,7 +188,7 @@ openorbit/
 | **IPC** | ~140 validated channels with Zod schemas across shell and 12 extensions |
 | **RPC** | WebSocket JSON-RPC 2.0 on port 18790 with token auth |
 | **MCP** | Model Context Protocol server with 10 tools |
-| **Testing** | Vitest — 79 test files |
+| **Testing** | Vitest — 80 test files |
 | **Extensions** | 12 extensions with discovery, activation ordering, and shared services |
 
 ---

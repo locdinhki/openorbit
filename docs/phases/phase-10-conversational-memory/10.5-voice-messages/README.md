@@ -1,6 +1,6 @@
 # 10.5: Voice Messages
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

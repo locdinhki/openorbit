@@ -1,6 +1,6 @@
 # 10.2: iMessage / BlueBubbles
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

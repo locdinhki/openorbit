@@ -1,6 +1,6 @@
 # 10.1: Inline Memory Extraction
 
-**Effort:** Low | **Status:** Not started
+**Effort:** Low | **Status:** Complete
 
 ## Background
 
