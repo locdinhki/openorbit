@@ -27,8 +27,8 @@ export class Updater {
       error: (msg: string) => log.error(msg),
       debug: (msg: string) => log.debug(msg)
     }
-    autoUpdater.autoDownload = true
-    autoUpdater.autoInstallOnAppQuit = true
+    autoUpdater.autoDownload = false
+    autoUpdater.autoInstallOnAppQuit = false
 
     autoUpdater.on('update-available', (info) => {
       log.info(`Update available: v${info.version}`)
@@ -65,6 +65,13 @@ export class Updater {
 
     autoUpdater.checkForUpdates().catch((err) => {
       log.error('Update check failed', err)
+    })
+  }
+
+  downloadUpdate(): void {
+    log.info('User requested update download')
+    autoUpdater.downloadUpdate().catch((err) => {
+      log.error('Update download failed', err)
     })
   }
 

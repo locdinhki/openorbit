@@ -26,6 +26,7 @@ export const IPC = {
   // Updates
   UPDATE_AVAILABLE: 'update:available',
   UPDATE_READY: 'update:ready',
+  UPDATE_DOWNLOAD: 'update:download',
   UPDATE_INSTALL: 'update:install',
 
   // Notifications (push events)
@@ -60,7 +61,12 @@ export const IPC = {
   SCHEDULE_RUN_START: 'schedule:run-start',
   SCHEDULE_RUN_COMPLETE: 'schedule:run-complete',
   SCHEDULE_RUNS: 'schedule:runs',
-  SCHEDULER_TOOLS: 'scheduler:tools'
+  SCHEDULER_TOOLS: 'scheduler:tools',
+
+  // Skills
+  SKILL_LIST: 'skill:list',
+  SKILL_EXECUTE: 'skill:execute',
+  SKILL_INFO: 'skill:info'
 } as const
 
 export type IPCChannel = (typeof IPC)[keyof typeof IPC]

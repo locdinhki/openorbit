@@ -1,6 +1,6 @@
 {
   "name": "openorbit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Autonomous job search and application platform",
   "license": "SEE LICENSE IN LICENSE",
   "main": "./out/main/index.js",

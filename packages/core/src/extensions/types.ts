@@ -5,6 +5,7 @@
 import type Database from 'better-sqlite3'
 import type { ZodType, z } from 'zod'
 import type { AIService } from '../ai/provider-types'
+import type { SkillService } from '../skills/skill-types'
 
 // ---------------------------------------------------------------------------
 // Extension manifest (lives in package.json under "openorbit" key)
@@ -58,6 +59,15 @@ export interface SettingContribution {
   description?: string
 }
 
+export interface SkillContribution {
+  /** Skill ID that this extension will register */
+  id: string
+  /** Human-readable label */
+  label: string
+  /** Category for grouping */
+  category: 'document' | 'communication' | 'data' | 'media' | 'utility'
+}
+
 export interface ExtensionContributes {
   sidebar?: SidebarContribution[]
   workspace?: WorkspaceContribution[]
@@ -66,6 +76,7 @@ export interface ExtensionContributes {
   toolbar?: ToolbarContribution[]
   commands?: CommandContribution[]
   settings?: SettingContribution[]
+  skills?: SkillContribution[]
 }
 
 export interface ExtensionManifest {
@@ -176,6 +187,8 @@ export interface SharedServices {
   notifications: {
     show(title: string, body: string): void
   }
+  /** Skill registry — register and invoke generic capabilities */
+  skills: SkillService
 }
 
 export interface Logger {

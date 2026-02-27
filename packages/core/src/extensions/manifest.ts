@@ -48,6 +48,12 @@ const settingContributionSchema = z.object({
   description: z.string().optional()
 })
 
+const skillContributionSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  category: z.enum(['document', 'communication', 'data', 'media', 'utility'])
+})
+
 const contributesSchema = z.object({
   sidebar: z.array(sidebarContributionSchema).optional(),
   workspace: z.array(workspaceContributionSchema).optional(),
@@ -55,7 +61,8 @@ const contributesSchema = z.object({
   statusBar: z.array(statusBarContributionSchema).optional(),
   toolbar: z.array(toolbarContributionSchema).optional(),
   commands: z.array(commandContributionSchema).optional(),
-  settings: z.array(settingContributionSchema).optional()
+  settings: z.array(settingContributionSchema).optional(),
+  skills: z.array(skillContributionSchema).optional()
 })
 
 export const extensionManifestSchema = z.object({

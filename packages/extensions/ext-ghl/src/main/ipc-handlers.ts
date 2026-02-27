@@ -57,7 +57,8 @@ export function registerExtGhlHandlers(ctx: ExtensionContext): void {
         oppsRepo,
         pipelinesRepo,
         () => getGhlClient(),
-        () => getLocationId()
+        () => getLocationId(),
+        ctx.services.skills
       )
     }
     return chatHandler

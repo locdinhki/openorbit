@@ -6,9 +6,8 @@ For detailed phase specs, see [docs/phases/](phases/).
 
 ## Current Status
 
-**Phases 1–9, 11:** Complete
+**Phases 1–9, 11–12:** Complete
 **Phase 10:** Not started
-**Phase 12:** In Progress
 
 | # | Phase | Status |
 |---|-------|--------|
@@ -23,9 +22,9 @@ For detailed phase specs, see [docs/phases/](phases/).
 | 9 | [Schedule Runtime](phases/archive/phase-9-schedule-runtime/) | Complete |
 | 10 | [Conversational Memory & Messaging](phases/phase-10-conversational-memory/) | Not started |
 | 11 | [CRM & Real Estate Intelligence](phases/archive/phase-11-crm-real-estate/) | Complete |
-| 12 | [Skill System](phases/phase-12-skill-system/) | In Progress |
+| 12 | [Skill System](phases/phase-12-skill-system/) | Complete |
 
-## What Works (Phase 11 final state)
+## What Works (Phase 12 final state)
 
 - Complete Electron shell with main/preload/renderer separation
 - SQLite database with WAL mode, migrations, full repository layer
@@ -48,4 +47,5 @@ For detailed phase specs, see [docs/phases/](phases/).
 - Database viewer/editor with SQL console and data export/import
 - GoHighLevel CRM integration (contacts, pipelines, conversations, calendars, AI chat, briefing)
 - Zillow property data scraping with ARV enrichment automation
-- 502 tests passing across 5 Vitest projects
+- Skill System: registry, 3 built-in skills (calculator, voice transcribe, data formatter), AI tool integration, IPC channels
+- 51 skill system tests, build: main 675kB, preload 3kB, renderer 1270kB

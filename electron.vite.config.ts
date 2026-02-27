@@ -1,7 +1,10 @@
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
 export default defineConfig({
   main: {
@@ -60,6 +63,9 @@ export default defineConfig({
         '@openorbit/ext-zillow': resolve('packages/extensions/ext-zillow/src'),
         '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src')
       }
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version)
     },
     plugins: [react(), tailwindcss()]
   }

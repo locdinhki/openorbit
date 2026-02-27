@@ -8,6 +8,12 @@ import type {
   AIToolResult,
   AIMessage
 } from '@openorbit/core/ai/provider-types'
+import type { SkillService } from '@openorbit/core/skills/skill-types'
+import {
+  isSkillToolCall,
+  executeSkillTool,
+  getCombinedTools
+} from '@openorbit/core/skills/skill-tool-dispatcher'
 import { GHL_TOOLS, GHL_SYSTEM_PROMPT } from './ghl-tools'
 import type { GhlContactsRepo } from '../db/contacts-repo'
 import type { GhlOpportunitiesRepo } from '../db/opportunities-repo'
@@ -26,7 +32,8 @@ export class GhlChatHandler {
     private oppsRepo: GhlOpportunitiesRepo,
     private pipelinesRepo: GhlPipelinesRepo,
     private ghl: () => GoHighLevel,
-    private locationId: () => string
+    private locationId: () => string,
+    private skills?: SkillService
   ) {}
 
   async sendMessage(message: string): Promise<string> {
@@ -65,10 +72,12 @@ export class GhlChatHandler {
           ? `${message}\n\n[Tool Results]\n${toolResults.map((r) => `${r.toolCallId}: ${r.content}`).join('\n')}`
           : message
 
+      const tools = this.skills ? getCombinedTools(GHL_TOOLS, this.skills) : GHL_TOOLS
+
       const response = await provider.completeWithTools({
         systemPrompt: GHL_SYSTEM_PROMPT,
         userMessage: userMsg,
-        tools: GHL_TOOLS,
+        tools,
         tier: 'standard',
         task: 'ghl-chat'
       })
@@ -125,6 +134,13 @@ export class GhlChatHandler {
   }
 
   private async dispatchTool(name: string, input: Record<string, unknown>): Promise<unknown> {
+    // Delegate skill tool calls to the skill service
+    if (isSkillToolCall(name) && this.skills) {
+      const result = await executeSkillTool({ id: '', name, input }, this.skills)
+      if (result.isError) throw new Error(result.content)
+      return result.content
+    }
+
     switch (name) {
       case 'list_contacts': {
         const limit = (input.limit as number) ?? 10

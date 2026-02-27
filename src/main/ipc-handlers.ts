@@ -13,6 +13,7 @@ import { SessionManager } from '@openorbit/core/automation/session-manager'
 import { AutomationCoordinator } from '@openorbit/core/automation/automation-coordinator'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import type { AIService } from '@openorbit/core/ai/provider-types'
+import type { SkillService } from '@openorbit/core/skills/skill-types'
 import type { Scheduler } from '@openorbit/core/automation/scheduler'
 import type { Updater } from './updater'
 import { validatedHandle } from './ipc-validation'
@@ -27,6 +28,7 @@ let coordinator: AutomationCoordinator | null = null
 let updater: Updater | null = null
 let aiService: AIService | null = null
 let scheduler: Scheduler | null = null
+let skillService: SkillService | null = null
 
 function getSessionManager(): SessionManager {
   if (!sessionManager) {
@@ -121,6 +123,10 @@ export function setAIService(service: AIService): void {
 
 export function setScheduler(s: Scheduler): void {
   scheduler = s
+}
+
+export function setSkillService(s: SkillService): void {
+  skillService = s
 }
 
 export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: PairingContext): void {
@@ -337,6 +343,18 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
 
   // --- Updates ---
 
+  validatedHandle(IPC.UPDATE_DOWNLOAD, ipcSchemas['update:download'], () => {
+    try {
+      if (updater) {
+        updater.downloadUpdate()
+      }
+      return { success: true }
+    } catch (err) {
+      log.error('Failed to start update download', err)
+      return errorToResponse(err)
+    }
+  })
+
   validatedHandle(IPC.UPDATE_INSTALL, ipcSchemas['update:install'], () => {
     try {
       if (updater) {
@@ -539,6 +557,48 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
       }
     }
   )
+
+  // -------------------------------------------------------------------------
+  // Skills
+  // -------------------------------------------------------------------------
+
+  validatedHandle(IPC.SKILL_LIST, ipcSchemas['skill:list'], (_event, { category }) => {
+    try {
+      if (!skillService) return { success: false, error: 'Skill service not initialized' }
+      return { success: true, data: skillService.listSkills(category) }
+    } catch (err) {
+      log.error('Failed to list skills', err)
+      return errorToResponse(err)
+    }
+  })
+
+  validatedHandle(
+    IPC.SKILL_EXECUTE,
+    ipcSchemas['skill:execute'],
+    async (_event, { skillId, input }) => {
+      try {
+        if (!skillService) return { success: false, error: 'Skill service not initialized' }
+        const result = await skillService.execute(skillId, input ?? {})
+        return { success: true, data: result }
+      } catch (err) {
+        log.error('Skill execution failed', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  validatedHandle(IPC.SKILL_INFO, ipcSchemas['skill:info'], (_event, { skillId }) => {
+    try {
+      if (!skillService) return { success: false, error: 'Skill service not initialized' }
+      const skills = skillService.listSkills()
+      const info = skills.find((s) => s.id === skillId)
+      if (!info) return { success: false, error: `Skill "${skillId}" not found` }
+      return { success: true, data: info }
+    } catch (err) {
+      log.error('Failed to get skill info', err)
+      return errorToResponse(err)
+    }
+  })
 
   log.info('Shell IPC handlers registered')
 }

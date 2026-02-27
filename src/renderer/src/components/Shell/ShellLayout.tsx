@@ -96,6 +96,19 @@ export default function ShellLayout(): React.JSX.Element {
     [activeSidebarId, setLayoutSize]
   )
 
+  // Subscribe to auto-update push events from main process
+  useEffect(() => {
+    const unsubs = [
+      ipc.update.onAvailable((data) => {
+        useShellStore.getState().setUpdateAvailable(data.version)
+      }),
+      ipc.update.onReady(() => {
+        useShellStore.getState().setUpdateReady()
+      })
+    ]
+    return () => unsubs.forEach((unsub) => unsub())
+  }, [])
+
   // Global Cmd/Ctrl+K shortcut for command palette
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {

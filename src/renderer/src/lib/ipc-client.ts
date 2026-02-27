@@ -175,6 +175,19 @@ export const ipc = {
     ): (() => void) => api.on(IPC.SCHEDULE_RUN_COMPLETE, callback as (...args: unknown[]) => void)
   },
 
+  update: {
+    download: (): Promise<IPCResult> => api.invoke(IPC.UPDATE_DOWNLOAD) as Promise<IPCResult>,
+
+    install: (): Promise<IPCResult> => api.invoke(IPC.UPDATE_INSTALL) as Promise<IPCResult>,
+
+    onAvailable: (
+      callback: (data: { version: string; releaseNotes?: string }) => void
+    ): (() => void) => api.on(IPC.UPDATE_AVAILABLE, callback as (...args: unknown[]) => void),
+
+    onReady: (callback: (data: { version: string }) => void): (() => void) =>
+      api.on(IPC.UPDATE_READY, callback as (...args: unknown[]) => void)
+  },
+
   shell: {
     enableExtension: (id: string): Promise<IPCResult> =>
       api.invoke(IPC.SHELL_EXT_ENABLE, { id }) as Promise<IPCResult>,

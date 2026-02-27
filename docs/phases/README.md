@@ -17,7 +17,7 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 9 | [Schedule Runtime](archive/phase-9-schedule-runtime/) | Manual triggers, run history, animation system, browser cleanup | Moderate | **Complete** |
 | 10 | [Conversational Memory & Messaging](phase-10-conversational-memory/) | Memory extraction, iMessage, WhatsApp, Discord, voice messages, web UI | High | Not started |
 | 11 | [CRM & Real Estate Intelligence](archive/phase-11-crm-real-estate/) | GoHighLevel CRM, Zillow property data, AI-powered CRM chat, ARV enrichment | Very High | **Complete** |
-| 12 | [Skill System](phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **In Progress** |
+| 12 | [Skill System](phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **Complete** |
 
 ## After Each Phase
 

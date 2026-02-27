@@ -45,6 +45,7 @@ export const ipcSchemas = {
   'update:ready': z.object({
     version: z.string()
   }),
+  'update:download': z.object({}),
   'update:install': z.object({}),
 
   // Notification push event
@@ -150,7 +151,19 @@ export const ipcSchemas = {
     limit: z.number().optional(),
     offset: z.number().optional()
   }),
-  'scheduler:tools': z.object({})
+  'scheduler:tools': z.object({}),
+
+  // Skills
+  'skill:list': z.object({
+    category: z.enum(['document', 'communication', 'data', 'media', 'utility']).optional()
+  }),
+  'skill:execute': z.object({
+    skillId: z.string().min(1),
+    input: z.record(z.string(), z.unknown()).optional()
+  }),
+  'skill:info': z.object({
+    skillId: z.string().min(1)
+  })
 } as const
 
 export type IPCSchemas = typeof ipcSchemas
