@@ -7,7 +7,7 @@ For detailed phase specs, see [docs/phases/](phases/).
 ## Current Status
 
 **Phases 1–9, 11–12:** Complete
-**Phase 10:** Not started
+**Phases 10, 13–14:** Not started
 
 | # | Phase | Status |
 |---|-------|--------|
@@ -23,6 +23,8 @@ For detailed phase specs, see [docs/phases/](phases/).
 | 10 | [Conversational Memory & Messaging](phases/phase-10-conversational-memory/) | Not started |
 | 11 | [CRM & Real Estate Intelligence](phases/archive/phase-11-crm-real-estate/) | Complete |
 | 12 | [Skill System](phases/phase-12-skill-system/) | Complete |
+| 13 | [Skills Panel UI](phases/phase-13-skills-panel-ui/) | Not started |
+| 14 | [LM Studio Provider](phases/phase-14-lm-studio-provider/) | Not started |
 
 ## What Works (Phase 12 final state)
 

@@ -12,6 +12,7 @@ export function createCalcSkill(extensionId: string): Skill {
   return {
     id: 'calc-expression',
     displayName: 'Calculator',
+    icon: 'calculator',
     description:
       'Evaluate a mathematical expression and return the numeric result. Supports basic arithmetic (+, -, *, /, %, ^), parentheses, and functions: sqrt, abs, ceil, floor, round, pi.',
     category: 'data',

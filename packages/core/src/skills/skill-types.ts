@@ -99,6 +99,8 @@ export interface Skill {
   readonly category: SkillCategory
   /** Which extension (or 'shell') registered this skill. */
   readonly extensionId: string
+  /** Icon name for the UI (matches SvgIcon names). */
+  readonly icon?: string
   /** Skill capabilities. */
   readonly capabilities: SkillCapabilities
   /** JSON schema describing the input parameters. */
@@ -124,6 +126,7 @@ export interface SkillInfo {
   description: string
   category: SkillCategory
   extensionId: string
+  icon?: string
   capabilities: SkillCapabilities
   inputSchema: SkillInputSchema
   outputSchema: SkillOutputSchema
@@ -147,4 +150,12 @@ export interface SkillService {
   execute(skillId: string, input: Record<string, unknown>): Promise<SkillResult>
   /** Get all AI-eligible skills as AIToolDefinition[] for tool-calling providers. */
   toAITools(): AIToolDefinition[]
+  /** Enable a skill by ID. */
+  enableSkill(id: string): void
+  /** Disable a skill by ID. */
+  disableSkill(id: string): void
+  /** Get the enabled/disabled map for all skills. */
+  getEnabledMap(): Record<string, boolean>
+  /** Bulk-set the enabled map (used for hydration from settings). */
+  setEnabledMap(map: Record<string, boolean>): void
 }

@@ -18,6 +18,8 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 10 | [Conversational Memory & Messaging](phase-10-conversational-memory/) | Memory extraction, iMessage, WhatsApp, Discord, voice messages, web UI | High | Not started |
 | 11 | [CRM & Real Estate Intelligence](archive/phase-11-crm-real-estate/) | GoHighLevel CRM, Zillow property data, AI-powered CRM chat, ARV enrichment | Very High | **Complete** |
 | 12 | [Skill System](phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **Complete** |
+| 13 | [Skills Panel UI](phase-13-skills-panel-ui/) | Browsable skill catalog, install/uninstall, custom skill creation | Moderate | Not started |
+| 14 | [LM Studio Provider](phase-14-lm-studio-provider/) | LM Studio local LLM AI provider extension | Low | Not started |
 
 ## After Each Phase
 
@@ -35,6 +37,8 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 10 | An AI assistant that remembers preferences, understands voice, and is reachable from iMessage, WhatsApp, Discord, or any browser |
 | 11 | A CRM-integrated platform with GoHighLevel contacts, pipelines, conversations, AI chat, and automated Zillow ARV enrichment |
 | 12 | A composable platform with generic skills (calculator, transcription, formatting) any extension or AI chat can invoke |
+| 13 | A platform with a browsable skills marketplace where users can install AI instruction skills and create custom ones |
+| 14 | A platform with 5 AI provider options including LM Studio for local inference alongside Claude, OpenAI, and Ollama |
 
 ## Phase Dependency Map
 
@@ -61,6 +65,11 @@ Phase 7-11: (parallel tracks after Phase 6)
     |
     v
 Phase 12: Skill System
+    |
+    v
+Phase 13: Skills Panel UI
+    |
+Phase 14: LM Studio Provider (independent, parallel track after Phase 6)
 ```
 
 ## Critical Files (touched across multiple phases)

@@ -4,6 +4,7 @@ import { useShellStore } from './store/shell-store'
 import { loadRendererExtension, registerShellView } from './lib/extension-renderer'
 import ExtensionsPanel from './components/Shell/views/ExtensionsPanel'
 import AutomationsPanel from './components/Shell/views/AutomationsPanel'
+import SkillsPanel from './components/Shell/views/SkillsPanel'
 import type { ExtensionManifest, ExtensionRendererAPI } from '@openorbit/core/extensions/types'
 import { IPC } from '@openorbit/core/ipc-channels'
 
@@ -32,6 +33,7 @@ function App(): React.JSX.Element {
       // Register shell-level views before extensions load
       registerShellView('shell-extensions', ExtensionsPanel as never)
       registerShellView('shell-automations', AutomationsPanel as never)
+      registerShellView('shell-skills', SkillsPanel as never)
 
       // Fetch discovered extension manifests and enabled state from the main process
       const { manifests, enabledMap } = (await window.api.invoke(IPC.SHELL_EXTENSIONS)) as {

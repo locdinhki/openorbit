@@ -565,7 +565,22 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
   validatedHandle(IPC.SKILL_LIST, ipcSchemas['skill:list'], (_event, { category }) => {
     try {
       if (!skillService) return { success: false, error: 'Skill service not initialized' }
-      return { success: true, data: skillService.listSkills(category) }
+      // Hydrate enabled map from settings on first list call
+      try {
+        const stored = settingsRepo.get('skill.enabled-map')
+        if (stored) {
+          skillService.setEnabledMap(JSON.parse(stored))
+        }
+      } catch {
+        // Ignore — use defaults
+      }
+      return {
+        success: true,
+        data: {
+          skills: skillService.listSkills(category),
+          enabledMap: skillService.getEnabledMap()
+        }
+      }
     } catch (err) {
       log.error('Failed to list skills', err)
       return errorToResponse(err)
@@ -596,6 +611,30 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
       return { success: true, data: info }
     } catch (err) {
       log.error('Failed to get skill info', err)
+      return errorToResponse(err)
+    }
+  })
+
+  validatedHandle(IPC.SKILL_ENABLE, ipcSchemas['skill:enable'], (_event, { id }) => {
+    try {
+      if (!skillService) return { success: false, error: 'Skill service not initialized' }
+      skillService.enableSkill(id)
+      settingsRepo.set('skill.enabled-map', JSON.stringify(skillService.getEnabledMap()))
+      return { success: true }
+    } catch (err) {
+      log.error('Failed to enable skill', err)
+      return errorToResponse(err)
+    }
+  })
+
+  validatedHandle(IPC.SKILL_DISABLE, ipcSchemas['skill:disable'], (_event, { id }) => {
+    try {
+      if (!skillService) return { success: false, error: 'Skill service not initialized' }
+      skillService.disableSkill(id)
+      settingsRepo.set('skill.enabled-map', JSON.stringify(skillService.getEnabledMap()))
+      return { success: true }
+    } catch (err) {
+      log.error('Failed to disable skill', err)
       return errorToResponse(err)
     }
   })

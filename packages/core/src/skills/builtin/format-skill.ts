@@ -11,6 +11,7 @@ export function createFormatSkill(extensionId: string): Skill {
   return {
     id: 'data-format',
     displayName: 'Data Formatter',
+    icon: 'shuffle',
     description:
       'Convert data between formats: JSON to CSV, CSV to JSON, or pretty-print JSON. Useful for exporting and transforming tabular data.',
     category: 'data',

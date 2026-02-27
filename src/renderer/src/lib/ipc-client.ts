@@ -13,6 +13,7 @@ import type {
 import type { Schedule } from '@openorbit/core/db/schedules-repo'
 import type { ScheduleRun } from '@openorbit/core/db/schedule-runs-repo'
 import type { ToolMeta } from '@openorbit/core/automation/scheduler-types'
+import type { SkillInfo, SkillResult } from '@openorbit/core/skills/skill-types'
 
 interface IPCResult<T = unknown> {
   success: boolean
@@ -199,6 +200,27 @@ export const ipc = {
   scheduler: {
     tools: (): Promise<IPCResult<ToolMeta[]>> =>
       api.invoke(IPC.SCHEDULER_TOOLS) as Promise<IPCResult<ToolMeta[]>>
+  },
+
+  skills: {
+    list: (
+      category?: string
+    ): Promise<IPCResult<{ skills: SkillInfo[]; enabledMap: Record<string, boolean> }>> =>
+      api.invoke(IPC.SKILL_LIST, { category }) as Promise<
+        IPCResult<{ skills: SkillInfo[]; enabledMap: Record<string, boolean> }>
+      >,
+
+    info: (id: string): Promise<IPCResult<SkillInfo>> =>
+      api.invoke(IPC.SKILL_INFO, { id }) as Promise<IPCResult<SkillInfo>>,
+
+    execute: (id: string, input: Record<string, unknown>): Promise<IPCResult<SkillResult>> =>
+      api.invoke(IPC.SKILL_EXECUTE, { id, input }) as Promise<IPCResult<SkillResult>>,
+
+    enable: (id: string): Promise<IPCResult> =>
+      api.invoke(IPC.SKILL_ENABLE, { id }) as Promise<IPCResult>,
+
+    disable: (id: string): Promise<IPCResult> =>
+      api.invoke(IPC.SKILL_DISABLE, { id }) as Promise<IPCResult>
   }
 }
 

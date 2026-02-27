@@ -163,6 +163,12 @@ export const ipcSchemas = {
   }),
   'skill:info': z.object({
     skillId: z.string().min(1)
+  }),
+  'skill:enable': z.object({
+    id: z.string().min(1)
+  }),
+  'skill:disable': z.object({
+    id: z.string().min(1)
   })
 } as const
 

@@ -66,7 +66,9 @@ export const IPC = {
   // Skills
   SKILL_LIST: 'skill:list',
   SKILL_EXECUTE: 'skill:execute',
-  SKILL_INFO: 'skill:info'
+  SKILL_INFO: 'skill:info',
+  SKILL_ENABLE: 'skill:enable',
+  SKILL_DISABLE: 'skill:disable'
 } as const
 
 export type IPCChannel = (typeof IPC)[keyof typeof IPC]

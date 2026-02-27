@@ -12,6 +12,7 @@ export function createVoiceTranscribeSkill(extensionId: string): Skill {
   return {
     id: 'voice-transcribe',
     displayName: 'Voice Transcriber',
+    icon: 'microphone',
     description:
       'Transcribe an audio file to text using local Whisper CLI or OpenAI Whisper API. Accepts a file path and returns the transcript.',
     category: 'media',

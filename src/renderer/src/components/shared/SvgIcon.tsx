@@ -27,7 +27,12 @@ const ICON_MAP: Record<string, string> = {
   'arrow-left': 'M19 12H5M12 19l-7-7 7-7',
   plus: 'M12 5v14M5 12h14',
   trash: 'M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6',
-  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2'
+  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2',
+  calculator:
+    'M4 2h16a2 2 0 012 2v16a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2zM8 6h8M8 10h2M14 10h2M8 14h2M14 14h2M8 18h2M14 18h2',
+  microphone:
+    'M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8',
+  shuffle: 'M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5'
 }
 
 export default function SvgIcon({

@@ -17,6 +17,7 @@ const log = createLogger('SkillRegistry')
 
 export class SkillRegistry {
   private skills = new Map<string, Skill>()
+  private enabledMap = new Map<string, boolean>()
 
   /** Register a new skill. Replaces if already registered. */
   register(skill: Skill): void {
@@ -24,18 +25,52 @@ export class SkillRegistry {
       log.warn(`Skill "${skill.id}" already registered, replacing`)
     }
     this.skills.set(skill.id, skill)
+    // Default to enabled if not explicitly set
+    if (!this.enabledMap.has(skill.id)) {
+      this.enabledMap.set(skill.id, true)
+    }
     log.info(`Registered skill: ${skill.displayName} (${skill.id}) [${skill.extensionId}]`)
   }
 
   /** Unregister a skill by ID. */
   unregister(id: string): void {
     this.skills.delete(id)
+    this.enabledMap.delete(id)
     log.info(`Unregistered skill: ${id}`)
   }
 
   /** Get a skill by ID. */
   get(id: string): Skill | undefined {
     return this.skills.get(id)
+  }
+
+  /** Check whether a skill is enabled. */
+  isEnabled(id: string): boolean {
+    return this.enabledMap.get(id) !== false
+  }
+
+  /** Enable a skill by ID. */
+  enable(id: string): void {
+    this.enabledMap.set(id, true)
+    log.info(`Enabled skill: ${id}`)
+  }
+
+  /** Disable a skill by ID. */
+  disable(id: string): void {
+    this.enabledMap.set(id, false)
+    log.info(`Disabled skill: ${id}`)
+  }
+
+  /** Get the enabled/disabled map for all skills. */
+  getEnabledMap(): Record<string, boolean> {
+    return Object.fromEntries(this.enabledMap)
+  }
+
+  /** Bulk-set the enabled map (used for hydration from settings). */
+  setEnabledMap(map: Record<string, boolean>): void {
+    for (const [id, enabled] of Object.entries(map)) {
+      this.enabledMap.set(id, enabled)
+    }
   }
 
   /** List all registered skills, optionally filtered by category. */
@@ -53,6 +88,7 @@ export class SkillRegistry {
       description: s.description,
       category: s.category,
       extensionId: s.extensionId,
+      icon: s.icon,
       capabilities: s.capabilities,
       inputSchema: s.inputSchema,
       outputSchema: s.outputSchema
@@ -64,6 +100,10 @@ export class SkillRegistry {
     const skill = this.skills.get(skillId)
     if (!skill) {
       return { success: false, error: `Skill "${skillId}" not found` }
+    }
+
+    if (!this.isEnabled(skillId)) {
+      return { success: false, error: `Skill "${skillId}" is disabled` }
     }
 
     // Optional pre-execution validation
@@ -91,7 +131,7 @@ export class SkillRegistry {
   }
 
   /**
-   * Convert all AI-eligible skills to AIToolDefinition[].
+   * Convert all AI-eligible **enabled** skills to AIToolDefinition[].
    *
    * Skill IDs are prefixed with `skill_` and hyphens are replaced with
    * underscores to match AI tool naming conventions:
@@ -99,7 +139,7 @@ export class SkillRegistry {
    */
   toAITools(): AIToolDefinition[] {
     return this.list()
-      .filter((s) => s.capabilities.aiTool !== false)
+      .filter((s) => s.capabilities.aiTool !== false && this.isEnabled(s.id))
       .map((s) => ({
         name: `skill_${s.id.replace(/-/g, '_')}`,
         description: s.description,
@@ -128,7 +168,11 @@ export class SkillRegistry {
       getSkill: (id) => this.get(id),
       listSkills: (category?) => this.listInfo(category),
       execute: (skillId, input) => this.execute(skillId, input),
-      toAITools: () => this.toAITools()
+      toAITools: () => this.toAITools(),
+      enableSkill: (id) => this.enable(id),
+      disableSkill: (id) => this.disable(id),
+      getEnabledMap: () => this.getEnabledMap(),
+      setEnabledMap: (map) => this.setEnabledMap(map)
     }
   }
 }
