@@ -5,6 +5,7 @@
 import type { ExtensionContext } from '@openorbit/core/extensions/types'
 import { errorToResponse } from '@openorbit/core/errors'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
+import { UserSkillsRepo } from '@openorbit/core/skills/user-skills-repo'
 import { EXT_GHL_IPC } from '../ipc-channels'
 import { extGhlSchemas } from '../ipc-schemas'
 import { GoHighLevel } from './sdk/index'
@@ -51,6 +52,8 @@ export function registerExtGhlHandlers(ctx: ExtensionContext): void {
   let chatHandler: GhlChatHandler | null = null
   function getChatHandler(): GhlChatHandler {
     if (!chatHandler) {
+      const settingsRepo = getSettings()
+      const userSkillsRepo = new UserSkillsRepo(db)
       chatHandler = new GhlChatHandler(
         ctx.services.ai,
         contactsRepo,
@@ -58,7 +61,9 @@ export function registerExtGhlHandlers(ctx: ExtensionContext): void {
         pipelinesRepo,
         () => getGhlClient(),
         () => getLocationId(),
-        ctx.services.skills
+        ctx.services.skills,
+        settingsRepo,
+        userSkillsRepo
       )
     }
     return chatHandler

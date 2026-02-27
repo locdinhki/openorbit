@@ -169,6 +169,35 @@ export const ipcSchemas = {
   }),
   'skill:disable': z.object({
     id: z.string().min(1)
+  }),
+
+  // Skill Catalog
+  'skill:catalog-list': z.object({
+    category: z.enum(['document', 'communication', 'data', 'media', 'utility']).optional()
+  }),
+  'skill:catalog-install': z.object({
+    skillId: z.string().min(1)
+  }),
+  'skill:catalog-uninstall': z.object({
+    skillId: z.string().min(1)
+  }),
+  'skill:custom-create': z.object({
+    displayName: z.string().min(1),
+    description: z.string().min(1),
+    category: z.enum(['document', 'communication', 'data', 'media', 'utility']).optional(),
+    icon: z.string().optional(),
+    content: z.string()
+  }),
+  'skill:custom-update': z.object({
+    id: z.string().min(1),
+    displayName: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    category: z.enum(['document', 'communication', 'data', 'media', 'utility']).optional(),
+    icon: z.string().optional(),
+    content: z.string().optional()
+  }),
+  'skill:custom-delete': z.object({
+    skillId: z.string().min(1)
   })
 } as const
 

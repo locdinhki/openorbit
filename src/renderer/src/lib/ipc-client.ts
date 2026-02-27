@@ -13,7 +13,8 @@ import type {
 import type { Schedule } from '@openorbit/core/db/schedules-repo'
 import type { ScheduleRun } from '@openorbit/core/db/schedule-runs-repo'
 import type { ToolMeta } from '@openorbit/core/automation/scheduler-types'
-import type { SkillInfo, SkillResult } from '@openorbit/core/skills/skill-types'
+import type { SkillInfo, SkillResult, SkillCategory } from '@openorbit/core/skills/skill-types'
+import type { CatalogListItem } from '@openorbit/core/skills/skill-catalog'
 
 interface IPCResult<T = unknown> {
   success: boolean
@@ -221,6 +222,37 @@ export const ipc = {
 
     disable: (id: string): Promise<IPCResult> =>
       api.invoke(IPC.SKILL_DISABLE, { id }) as Promise<IPCResult>
+  },
+
+  skillCatalog: {
+    list: (category?: SkillCategory): Promise<IPCResult<CatalogListItem[]>> =>
+      api.invoke(IPC.SKILL_CATALOG_LIST, { category }) as Promise<IPCResult<CatalogListItem[]>>,
+
+    install: (skillId: string): Promise<IPCResult> =>
+      api.invoke(IPC.SKILL_CATALOG_INSTALL, { skillId }) as Promise<IPCResult>,
+
+    uninstall: (skillId: string): Promise<IPCResult> =>
+      api.invoke(IPC.SKILL_CATALOG_UNINSTALL, { skillId }) as Promise<IPCResult>,
+
+    createCustom: (data: {
+      displayName: string
+      description: string
+      category?: SkillCategory
+      icon?: string
+      content: string
+    }): Promise<IPCResult> => api.invoke(IPC.SKILL_CUSTOM_CREATE, data) as Promise<IPCResult>,
+
+    updateCustom: (data: {
+      id: string
+      displayName?: string
+      description?: string
+      category?: SkillCategory
+      icon?: string
+      content?: string
+    }): Promise<IPCResult> => api.invoke(IPC.SKILL_CUSTOM_UPDATE, data) as Promise<IPCResult>,
+
+    deleteCustom: (skillId: string): Promise<IPCResult> =>
+      api.invoke(IPC.SKILL_CUSTOM_DELETE, { skillId }) as Promise<IPCResult>
   }
 }
 

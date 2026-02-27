@@ -1,6 +1,6 @@
 # 13.5: Renderer UI
 
-**Effort:** High | **Status:** Not started
+**Effort:** High | **Status:** Complete
 
 ## Background
 

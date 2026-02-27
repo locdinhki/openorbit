@@ -2,7 +2,7 @@
 
 **Theme:** Browsable skill catalog inspired by OpenAI Codex's Skills screen — users can install/uninstall shipped instruction skills and create custom markdown instruction skills stored in DB. Instruction skills inject context into AI system prompts.
 
-**Effort:** Moderate | **Depends on:** Phase 12 | **Status:** Not started
+**Effort:** Moderate | **Depends on:** Phase 12 | **Status:** Complete
 
 ## Why This Phase
 

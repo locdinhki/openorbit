@@ -1,6 +1,6 @@
 # 13.2: Skill Catalog
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

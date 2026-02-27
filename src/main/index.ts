@@ -45,6 +45,7 @@ import extAiClaudeSdkMain from '@openorbit/ext-ai-claude-sdk/main/index'
 import extAiClaudeMain from '@openorbit/ext-ai-claude/main/index'
 import extAiOpenaiMain from '@openorbit/ext-ai-openai/main/index'
 import extAiOllamaMain from '@openorbit/ext-ai-ollama/main/index'
+import extAiLmStudioMain from '@openorbit/ext-ai-lm-studio/main/index'
 import extJobsMain from '@openorbit/ext-jobs/main/index'
 import extTelegramMain from '@openorbit/ext-telegram/main/index'
 import extImessageMain from '@openorbit/ext-imessage/main/index'
@@ -168,6 +169,7 @@ function createWindow(): void {
     ['ext-ai-claude', extAiClaudeMain],
     ['ext-ai-openai', extAiOpenaiMain],
     ['ext-ai-ollama', extAiOllamaMain],
+    ['ext-ai-lm-studio', extAiLmStudioMain],
     ['ext-jobs', extJobsMain],
     ['ext-telegram', extTelegramMain],
     ['ext-imessage', extImessageMain],

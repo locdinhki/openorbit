@@ -1,6 +1,6 @@
 # 13.3: IPC Channels
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** Complete
 
 ## Background
 

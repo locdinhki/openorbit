@@ -15,11 +15,11 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 7 | [AI Remote Access](archive/phase-7-ai-remote-access/) | Agent SDK, MCP server, Telegram bot, remote access | High | **Complete** |
 | 8 | [Database Tooling](archive/phase-8-database-tooling/) | Built-in DB viewer/editor, SQL console, data export/import | Moderate | **Complete** |
 | 9 | [Schedule Runtime](archive/phase-9-schedule-runtime/) | Manual triggers, run history, animation system, browser cleanup | Moderate | **Complete** |
-| 10 | [Conversational Memory & Messaging](phase-10-conversational-memory/) | Memory extraction, iMessage, WhatsApp, Discord, voice messages, web UI | High | Not started |
+| 10 | [Conversational Memory & Messaging](archive/phase-10-conversational-memory/) | Memory extraction, iMessage, WhatsApp, Discord, voice messages, web UI | High | Not started |
 | 11 | [CRM & Real Estate Intelligence](archive/phase-11-crm-real-estate/) | GoHighLevel CRM, Zillow property data, AI-powered CRM chat, ARV enrichment | Very High | **Complete** |
-| 12 | [Skill System](phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **Complete** |
-| 13 | [Skills Panel UI](phase-13-skills-panel-ui/) | Browsable skill catalog, install/uninstall, custom skill creation | Moderate | Not started |
-| 14 | [LM Studio Provider](phase-14-lm-studio-provider/) | LM Studio local LLM AI provider extension | Low | Not started |
+| 12 | [Skill System](archive/phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **Complete** |
+| 13 | [Skills Panel UI](archive/phase-13-skills-panel-ui/) | Browsable skill catalog, install/uninstall, custom skill creation | Moderate | **Complete** |
+| 14 | [LM Studio Provider](phase-14-lm-studio-provider/) | LM Studio local LLM AI provider extension | Low | **Complete** |
 
 ## After Each Phase
 

@@ -1,6 +1,6 @@
 # 14.3: Shell Integration
 
-**Effort:** Low | **Status:** Not started
+**Effort:** Low | **Status:** **Complete**
 
 ## Background
 
@@ -9,17 +9,17 @@ Like all extensions, `ext-ai-lm-studio` needs Vite path aliases and a preloadedM
 ## Tasks
 
 ### Vite Aliases
-- [ ] Add to `electron.vite.config.ts` in **both** `main` and `renderer` resolve sections:
+- [x] Add to `electron.vite.config.ts` in **both** `main` and `renderer` resolve sections:
   ```typescript
   '@openorbit/ext-ai-lm-studio': resolve('packages/extensions/ext-ai-lm-studio/src')
   ```
 
 ### PreloadedModules Registration
-- [ ] Add static import to `src/main/index.ts`:
+- [x] Add static import to `src/main/index.ts`:
   ```typescript
   import extAiLmStudioMain from '@openorbit/ext-ai-lm-studio/main/index'
   ```
-- [ ] Add to `preloadedModules` map (after ext-ai-ollama):
+- [x] Add to `preloadedModules` map (after ext-ai-ollama):
   ```typescript
   ['ext-ai-lm-studio', extAiLmStudioMain]
   ```

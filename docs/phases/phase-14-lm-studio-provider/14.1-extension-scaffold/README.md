@@ -1,6 +1,6 @@
 # 14.1: Extension Scaffold
 
-**Effort:** Low | **Status:** Not started
+**Effort:** Low | **Status:** **Complete**
 
 ## Background
 
@@ -9,7 +9,7 @@ The LM Studio extension follows the exact same 4-file structure as `ext-ai-ollam
 ## Tasks
 
 ### package.json
-- [ ] Create `packages/extensions/ext-ai-lm-studio/package.json`
+- [x] Create `packages/extensions/ext-ai-lm-studio/package.json`
   - `name`: `@openorbit/ext-ai-lm-studio`
   - `openorbit.id`: `ext-ai-lm-studio`
   - `openorbit.displayName`: `LM Studio (Local)`
@@ -23,7 +23,7 @@ The LM Studio extension follows the exact same 4-file structure as `ext-ai-ollam
     - `lmstudio_model_premium` (default: empty, auto-detect)
 
 ### Main Entry
-- [ ] Create `packages/extensions/ext-ai-lm-studio/src/main/index.ts`
+- [x] Create `packages/extensions/ext-ai-lm-studio/src/main/index.ts`
   ```typescript
   const extension: ExtensionMainAPI = {
     async activate(ctx: ExtensionContext): Promise<void> {
@@ -35,5 +35,5 @@ The LM Studio extension follows the exact same 4-file structure as `ext-ai-ollam
   ```
 
 ### Renderer Stub
-- [ ] Create `packages/extensions/ext-ai-lm-studio/src/renderer/index.ts`
+- [x] Create `packages/extensions/ext-ai-lm-studio/src/renderer/index.ts`
   - Stub with empty `activate()` (no renderer views for AI providers)

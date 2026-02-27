@@ -1,6 +1,6 @@
 # 14.2: Provider Implementation
 
-**Effort:** Medium | **Status:** Not started
+**Effort:** Medium | **Status:** **Complete**
 
 ## Background
 
@@ -9,25 +9,25 @@
 ## Tasks
 
 ### LmStudioProvider Class
-- [ ] Create `packages/extensions/ext-ai-lm-studio/src/main/lm-studio-provider.ts`
+- [x] Create `packages/extensions/ext-ai-lm-studio/src/main/lm-studio-provider.ts`
   - `id`: `'lm-studio'`
   - `displayName`: `'LM Studio (Local)'`
   - `capabilities`: `{ streaming: true, toolCalling: true, vision: false, models: [] }`
 
 ### Model Discovery
-- [ ] `refreshModels()` — `GET {baseUrl}/v1/models` with 3s timeout
+- [x] `refreshModels()` — `GET {baseUrl}/v1/models` with 3s timeout
   - Parse `response.data[].id` → populate `cachedModels` and `capabilities.models`
   - Fire non-blocking in constructor (same as Ollama)
   - Silently catch connection errors (server may not be running)
 
 ### Configuration
-- [ ] `getBaseUrl()` — reads `settingsRepo.get('lmstudio_base_url')`, fallback `'http://localhost:1234'`
-- [ ] `resolveModel(tier)` — reads `lmstudio_model_{tier}` setting, fallback to first discovered model
-- [ ] `isConfigured()` → `cachedModels !== null && cachedModels.length > 0`
-- [ ] `resetClient()` → `cachedModels = null` (force rediscovery)
+- [x] `getBaseUrl()` — reads `settingsRepo.get('lmstudio_base_url')`, fallback `'http://localhost:1234'`
+- [x] `resolveModel(tier)` — reads `lmstudio_model_{tier}` setting, fallback to first discovered model
+- [x] `isConfigured()` → `cachedModels !== null && cachedModels.length > 0`
+- [x] `resetClient()` → `cachedModels = null` (force rediscovery)
 
 ### Completions (OpenAI format)
-- [ ] `complete(request)` — `POST {baseUrl}/v1/chat/completions` with `stream: false`
+- [x] `complete(request)` — `POST {baseUrl}/v1/chat/completions` with `stream: false`
   ```typescript
   body: {
     model: resolvedModel,
@@ -36,25 +36,25 @@
     temperature: 0.7
   }
   ```
-- [ ] `chat(request)` — same endpoint, takes full `messages[]` array
+- [x] `chat(request)` — same endpoint, takes full `messages[]` array
 
 ### Streaming (SSE format from ext-ai-openai)
-- [ ] `stream(request, onChunk)` — `POST` with `stream: true`
+- [x] `stream(request, onChunk)` — `POST` with `stream: true`
   - Read line-by-line, strip `data: ` prefix
   - `[DONE]` sentinel = stream end
   - Parse `choices[0].delta.content` for each chunk
   - Call `onChunk({ delta, done })` for each chunk
 
 ### Tool Calling
-- [ ] `completeWithTools(request)` — `POST` with `tools[]` array
+- [x] `completeWithTools(request)` — `POST` with `tools[]` array
   - Tools use OpenAI format: `{ type: 'function', function: { name, description, parameters } }`
   - Parse `tool_calls` from response: `{ id, type: 'function', function: { name, arguments } }`
 
 ### Usage Tracking
-- [ ] `usageRepo.record(...)` with `apiKeyHash: 'lmstudio-local'`
+- [x] `usageRepo.record(...)` with `apiKeyHash: 'lmstudio-local'`
 
 ### Error Handling
-- [ ] `wrapError()` — detect `ECONNREFUSED`/`fetch failed` for connection errors (same as Ollama)
+- [x] `wrapError()` — detect `ECONNREFUSED`/`fetch failed` for connection errors (same as Ollama)
 
 ## Key Differences from Ollama Provider
 

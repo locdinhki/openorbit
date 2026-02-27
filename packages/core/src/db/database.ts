@@ -210,6 +210,19 @@ export const MIGRATION_V7_SQL = `
   CREATE INDEX IF NOT EXISTS idx_schedule_runs_started  ON schedule_runs(started_at DESC);
 `
 
+export const MIGRATION_V8_SQL = `
+  CREATE TABLE IF NOT EXISTS user_skills (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'utility',
+    icon TEXT NOT NULL DEFAULT 'sparkles',
+    content TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`
+
 const migrations: Migration[] = [
   {
     version: 1,
@@ -259,6 +272,13 @@ const migrations: Migration[] = [
     up: (db) => {
       db.exec(MIGRATION_V7_SQL)
     }
+  },
+  {
+    version: 8,
+    description: 'User-created skills',
+    up: (db) => {
+      db.exec(MIGRATION_V8_SQL)
+    }
   }
 ]
 
@@ -297,6 +317,7 @@ const EXPECTED_TABLES = [
   'memory_facts',
   'schedules',
   'schedule_runs',
+  'user_skills',
   '_migrations',
   '_ext_migrations'
 ]

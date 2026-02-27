@@ -6,8 +6,8 @@ For detailed phase specs, see [docs/phases/](phases/).
 
 ## Current Status
 
-**Phases 1–9, 11–12:** Complete
-**Phases 10, 13–14:** Not started
+**Phases 1–9, 11–14:** Complete
+**Phase 10:** Not started
 
 | # | Phase | Status |
 |---|-------|--------|
@@ -20,19 +20,19 @@ For detailed phase specs, see [docs/phases/](phases/).
 | 7 | [AI Remote Access](phases/archive/phase-7-ai-remote-access/) | Complete |
 | 8 | [Database Tooling](phases/archive/phase-8-database-tooling/) | Complete |
 | 9 | [Schedule Runtime](phases/archive/phase-9-schedule-runtime/) | Complete |
-| 10 | [Conversational Memory & Messaging](phases/phase-10-conversational-memory/) | Not started |
+| 10 | [Conversational Memory & Messaging](phases/archive/phase-10-conversational-memory/) | Not started |
 | 11 | [CRM & Real Estate Intelligence](phases/archive/phase-11-crm-real-estate/) | Complete |
-| 12 | [Skill System](phases/phase-12-skill-system/) | Complete |
-| 13 | [Skills Panel UI](phases/phase-13-skills-panel-ui/) | Not started |
-| 14 | [LM Studio Provider](phases/phase-14-lm-studio-provider/) | Not started |
+| 12 | [Skill System](phases/archive/phase-12-skill-system/) | Complete |
+| 13 | [Skills Panel UI](phases/archive/phase-13-skills-panel-ui/) | Complete |
+| 14 | [LM Studio Provider](phases/phase-14-lm-studio-provider/) | Complete |
 
-## What Works (Phase 12 final state)
+## What Works (Phase 14 final state)
 
 - Complete Electron shell with main/preload/renderer separation
 - SQLite database with WAL mode, migrations, full repository layer
 - Full LinkedIn adapter (search, extraction, Easy Apply engine)
 - Indeed and Upwork adapters
-- AI provider registry with Claude Agent SDK, Claude API, OpenAI, Ollama
+- AI provider registry with Claude Agent SDK, Claude API, OpenAI, Ollama, LM Studio
 - Human behavior simulation (delays, typing, scrolling, idle pauses)
 - Patchright-based session manager with user-data-dir profiles
 - Skills-based action executor (JSON + markdown format)
@@ -40,7 +40,7 @@ For detailed phase specs, see [docs/phases/](phases/).
 - Cron scheduling with node-cron, manual triggers, run history
 - Config hot-reload, system tray, desktop notifications, auto-updater
 - WebSocket JSON-RPC 2.0 server on localhost:18790 with token auth
-- Monorepo: `packages/core`, `packages/cli`, `packages/mcp-server`, 9 extensions
+- Monorepo: `packages/core`, `packages/cli`, `packages/mcp-server`, 13 extensions
 - Chrome Extension Relay (Manifest V3, CDP proxy via user's real Chrome)
 - Community marketplace: skills install/registry, adapter discovery
 - iOS companion app (SwiftUI, QR pairing, push notifications)
@@ -50,4 +50,6 @@ For detailed phase specs, see [docs/phases/](phases/).
 - GoHighLevel CRM integration (contacts, pipelines, conversations, calendars, AI chat, briefing)
 - Zillow property data scraping with ARV enrichment automation
 - Skill System: registry, 3 built-in skills (calculator, voice transcribe, data formatter), AI tool integration, IPC channels
-- 51 skill system tests, build: main 675kB, preload 3kB, renderer 1270kB
+- Skills Panel UI: browsable catalog, install/uninstall, custom skill creation
+- LM Studio local LLM provider: OpenAI-compatible API, SSE streaming, tool calling, dynamic model discovery
+- Build: main 708kB, preload 3kB, renderer 1296kB

@@ -15,6 +15,10 @@ import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import type { AIService } from '@openorbit/core/ai/provider-types'
 import type { SkillService } from '@openorbit/core/skills/skill-types'
 import type { Scheduler } from '@openorbit/core/automation/scheduler'
+import { getDatabase } from '@openorbit/core/db/database'
+import { UserSkillsRepo } from '@openorbit/core/skills/user-skills-repo'
+import { getMergedCatalogList } from '@openorbit/core/skills/skill-catalog'
+import type { SkillCategory } from '@openorbit/core/skills/skill-types'
 import type { Updater } from './updater'
 import { validatedHandle } from './ipc-validation'
 import { createLogger } from '@openorbit/core/utils/logger'
@@ -638,6 +642,96 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
       return errorToResponse(err)
     }
   })
+
+  // -------------------------------------------------------------------------
+  // Skill Catalog (browse, install/uninstall, custom CRUD)
+  // -------------------------------------------------------------------------
+
+  const userSkillsRepo = new UserSkillsRepo(getDatabase())
+
+  validatedHandle(
+    IPC.SKILL_CATALOG_LIST,
+    ipcSchemas['skill:catalog-list'],
+    (_event, { category }) => {
+      try {
+        let items = getMergedCatalogList(settingsRepo, userSkillsRepo)
+        if (category) {
+          items = items.filter((s) => s.category === (category as SkillCategory))
+        }
+        return { success: true, data: items }
+      } catch (err) {
+        log.error('Failed to list skill catalog', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  validatedHandle(
+    IPC.SKILL_CATALOG_INSTALL,
+    ipcSchemas['skill:catalog-install'],
+    (_event, { skillId }) => {
+      try {
+        settingsRepo.set(`skill.${skillId}.installed`, '1')
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to install skill', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  validatedHandle(
+    IPC.SKILL_CATALOG_UNINSTALL,
+    ipcSchemas['skill:catalog-uninstall'],
+    (_event, { skillId }) => {
+      try {
+        settingsRepo.set(`skill.${skillId}.installed`, '0')
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to uninstall skill', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  validatedHandle(IPC.SKILL_CUSTOM_CREATE, ipcSchemas['skill:custom-create'], (_event, input) => {
+    try {
+      const skill = userSkillsRepo.create(input)
+      return { success: true, data: skill }
+    } catch (err) {
+      log.error('Failed to create custom skill', err)
+      return errorToResponse(err)
+    }
+  })
+
+  validatedHandle(
+    IPC.SKILL_CUSTOM_UPDATE,
+    ipcSchemas['skill:custom-update'],
+    (_event, { id, ...updates }) => {
+      try {
+        const skill = userSkillsRepo.update(id, updates)
+        if (!skill) return { success: false, error: `Skill "${id}" not found` }
+        return { success: true, data: skill }
+      } catch (err) {
+        log.error('Failed to update custom skill', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  validatedHandle(
+    IPC.SKILL_CUSTOM_DELETE,
+    ipcSchemas['skill:custom-delete'],
+    (_event, { skillId }) => {
+      try {
+        userSkillsRepo.delete(skillId)
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to delete custom skill', err)
+        return errorToResponse(err)
+      }
+    }
+  )
 
   log.info('Shell IPC handlers registered')
 }

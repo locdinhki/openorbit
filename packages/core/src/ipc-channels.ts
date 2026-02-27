@@ -68,7 +68,15 @@ export const IPC = {
   SKILL_EXECUTE: 'skill:execute',
   SKILL_INFO: 'skill:info',
   SKILL_ENABLE: 'skill:enable',
-  SKILL_DISABLE: 'skill:disable'
+  SKILL_DISABLE: 'skill:disable',
+
+  // Skill Catalog (browse, install, custom)
+  SKILL_CATALOG_LIST: 'skill:catalog-list',
+  SKILL_CATALOG_INSTALL: 'skill:catalog-install',
+  SKILL_CATALOG_UNINSTALL: 'skill:catalog-uninstall',
+  SKILL_CUSTOM_CREATE: 'skill:custom-create',
+  SKILL_CUSTOM_UPDATE: 'skill:custom-update',
+  SKILL_CUSTOM_DELETE: 'skill:custom-delete'
 } as const
 
 export type IPCChannel = (typeof IPC)[keyof typeof IPC]

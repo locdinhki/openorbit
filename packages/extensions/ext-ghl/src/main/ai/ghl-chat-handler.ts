@@ -14,6 +14,9 @@ import {
   executeSkillTool,
   getCombinedTools
 } from '@openorbit/core/skills/skill-tool-dispatcher'
+import { getInstalledInstructionContent } from '@openorbit/core/skills/skill-catalog'
+import type { SettingsRepo } from '@openorbit/core/db/settings-repo'
+import type { UserSkillsRepo } from '@openorbit/core/skills/user-skills-repo'
 import { GHL_TOOLS, GHL_SYSTEM_PROMPT } from './ghl-tools'
 import type { GhlContactsRepo } from '../db/contacts-repo'
 import type { GhlOpportunitiesRepo } from '../db/opportunities-repo'
@@ -33,7 +36,9 @@ export class GhlChatHandler {
     private pipelinesRepo: GhlPipelinesRepo,
     private ghl: () => GoHighLevel,
     private locationId: () => string,
-    private skills?: SkillService
+    private skills?: SkillService,
+    private settingsRepo?: SettingsRepo,
+    private userSkillsRepo?: UserSkillsRepo
   ) {}
 
   async sendMessage(message: string): Promise<string> {
@@ -75,7 +80,7 @@ export class GhlChatHandler {
       const tools = this.skills ? getCombinedTools(GHL_TOOLS, this.skills) : GHL_TOOLS
 
       const response = await provider.completeWithTools({
-        systemPrompt: GHL_SYSTEM_PROMPT,
+        systemPrompt: this.buildSystemPrompt(),
         userMessage: userMsg,
         tools,
         tier: 'standard',
@@ -113,7 +118,7 @@ export class GhlChatHandler {
     ].join('\n')
 
     const response = await this.ai.chat({
-      systemPrompt: `${GHL_SYSTEM_PROMPT}\n\nCurrent CRM data:\n${snapshot}`,
+      systemPrompt: `${this.buildSystemPrompt()}\n\nCurrent CRM data:\n${snapshot}`,
       messages: this.history,
       tier: 'standard',
       task: 'ghl-chat'
@@ -180,6 +185,17 @@ export class GhlChatHandler {
       default:
         throw new Error(`Unknown tool: ${name}`)
     }
+  }
+
+  private buildSystemPrompt(): string {
+    let prompt = GHL_SYSTEM_PROMPT
+    if (this.settingsRepo && this.userSkillsRepo) {
+      const instructions = getInstalledInstructionContent(this.settingsRepo, this.userSkillsRepo)
+      if (instructions) {
+        prompt += '\n\n## Installed Skills\n\n' + instructions
+      }
+    }
+    return prompt
   }
 
   clearHistory(): void {

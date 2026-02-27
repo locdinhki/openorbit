@@ -1,0 +1,28 @@
+{
+  "name": "@openorbit/ext-ai-lm-studio",
+  "version": "1.0.0",
+  "description": "LM Studio local LLM AI provider extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-ai-lm-studio",
+    "displayName": "LM Studio (Local)",
+    "category": "ai",
+    "icon": "hard-drive",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "settings": [
+        { "key": "lmstudio_base_url", "label": "Server URL", "type": "string", "default": "http://localhost:1234", "description": "Base URL of the LM Studio server" },
+        { "key": "lmstudio_model_fast", "label": "Fast Model", "type": "string", "default": "", "description": "Model for fast-tier completions (auto-detect if empty)" },
+        { "key": "lmstudio_model_standard", "label": "Standard Model", "type": "string", "default": "", "description": "Model for standard-tier completions (auto-detect if empty)" },
+        { "key": "lmstudio_model_premium", "label": "Premium Model", "type": "string", "default": "", "description": "Model for premium-tier completions (auto-detect if empty)" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

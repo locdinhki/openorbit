@@ -2,7 +2,7 @@
 
 **Theme:** Add LM Studio as a local LLM provider, giving users another local inference option alongside Ollama. LM Studio exposes an OpenAI-compatible REST API on port 1234.
 
-**Effort:** Low | **Depends on:** Phase 6 (extension system) | **Status:** Not started
+**Effort:** Low | **Depends on:** Phase 6 (extension system) | **Status:** **Complete**
 
 ## Why This Phase
 
@@ -92,11 +92,11 @@ Key difference from Ollama: LM Studio uses **OpenAI-format endpoints** (`/v1/cha
 
 ## Success Criteria
 
-- [ ] `npx vitest run` — all existing tests pass
-- [ ] `npx electron-vite build` — builds without errors
-- [ ] Extension appears in Extensions panel under "AI" category
-- [ ] With LM Studio running: provider shows in AI provider dropdown, models auto-discovered
-- [ ] Set as default → AI chat completions route through LM Studio
-- [ ] Streaming works (SSE format parsed correctly)
-- [ ] Tool calling works for models that support it
-- [ ] Without LM Studio running: `isConfigured()` returns false, provider gracefully unavailable
+- [x] `npx vitest run` — all existing tests pass
+- [x] `npx electron-vite build` — builds without errors (main 708kB, preload 3kB, renderer 1296kB)
+- [x] Extension appears in Extensions panel under "AI" category
+- [x] With LM Studio running: provider shows in AI provider dropdown, models auto-discovered
+- [x] Set as default → AI chat completions route through LM Studio
+- [x] Streaming works (SSE format parsed correctly)
+- [x] Tool calling works for models that support it
+- [x] Without LM Studio running: `isConfigured()` returns false, provider gracefully unavailable

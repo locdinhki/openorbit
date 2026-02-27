@@ -1,6 +1,6 @@
 # 13.1: DB Schema & Repo
 
-**Effort:** Low | **Status:** Not started
+**Effort:** Low | **Status:** Complete
 
 ## Background
 
