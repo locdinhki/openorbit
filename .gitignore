@@ -17,5 +17,8 @@ browser-state.json
 .env
 .env.*
 
+# TypeScript build info
+*.tsbuildinfo
+
 # OS files
 Thumbs.db
