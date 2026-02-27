@@ -68,6 +68,8 @@ export const ipcSchemas = {
 
   // Shell (extension system)
   'shell:extensions': z.object({}),
+  'shell:ext-enable': z.object({ id: z.string() }),
+  'shell:ext-disable': z.object({ id: z.string() }),
 
   // AI Provider Registry
   'ai:complete': z.object({

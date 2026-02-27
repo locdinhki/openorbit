@@ -42,7 +42,7 @@ export default function AIProvidersPanel(): React.JSX.Element {
           </div>
         ) : (
           <div className="space-y-2">
-            {providers.map((provider, index) => (
+            {providers.map((provider) => (
               <div
                 key={provider.id}
                 className="p-3 rounded-md bg-[var(--cos-bg-tertiary)] border border-[var(--cos-border)]"
@@ -73,7 +73,7 @@ export default function AIProvidersPanel(): React.JSX.Element {
                         Not configured
                       </span>
                     )}
-                    {index === 0 ? (
+                    {provider.isDefault ? (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30">
                         Default
                       </span>

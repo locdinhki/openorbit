@@ -187,13 +187,38 @@ function createWindow(): void {
 
   // Discover and activate extensions, then register the shell IPC handler.
   // The renderer bootstrap waits on SHELL_EXTENSIONS, so this must complete first.
-  const extensionsReady = extensionHost.discoverAndLoadAll().catch((err) => {
-    console.error('Failed to load extensions:', err)
-  })
+  const extensionsReady = extensionHost
+    .discoverAndLoadAll()
+    .then(() => {
+      // Restore persisted default AI provider after all providers have registered
+      const savedDefault = new SettingsRepo().get('ai.default-provider')
+      if (savedDefault) aiServiceFacade.setDefault(savedDefault)
+    })
+    .catch((err) => {
+      console.error('Failed to load extensions:', err)
+    })
 
   ipcMain.handle(IPC.SHELL_EXTENSIONS, async () => {
     await extensionsReady
-    return extensionHost!.listExtensions()
+    return {
+      manifests: extensionHost!.listExtensions(),
+      enabledMap: extensionHost!.getEnabledMap()
+    }
+  })
+
+  ipcMain.handle(IPC.SHELL_EXT_ENABLE, async (_event, { id }: { id: string }) => {
+    await extensionsReady
+    const result = await extensionHost!.enableExtension(id)
+    if (result.error) {
+      return { success: false, error: result.error }
+    }
+    return { success: true, data: { activated: result.activated } }
+  })
+
+  ipcMain.handle(IPC.SHELL_EXT_DISABLE, async (_event, { id }: { id: string }) => {
+    await extensionsReady
+    extensionHost!.disableExtension(id)
+    return { success: true }
   })
 
   // Watch config directories for hot-reload

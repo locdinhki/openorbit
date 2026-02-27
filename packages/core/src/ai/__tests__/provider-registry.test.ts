@@ -197,6 +197,7 @@ describe('AIProviderRegistry', () => {
         id: 'claude',
         displayName: 'Claude',
         configured: true,
+        isDefault: true,
         capabilities: { streaming: true, toolCalling: true, vision: true, models: ['sonnet'] }
       })
     })

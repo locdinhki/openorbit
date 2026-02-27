@@ -22,6 +22,9 @@ import type Database from 'better-sqlite3'
 
 const log = createLogger('ExtensionHost')
 
+/** Extensions that are enabled by default (no explicit user opt-in needed). */
+const CORE_EXTENSION_IDS = new Set(['ext-db-viewer'])
+
 export interface ExtensionHostDeps {
   /** Electron ipcMain module */
   ipcMain: {
@@ -75,10 +78,14 @@ export class ExtensionHost {
       })
     }
 
-    // Activate extensions with "onStartup" event
+    // Activate extensions with "onStartup" event (skip disabled ones)
     for (const [id, ext] of this.extensions) {
-      if (ext.manifest.activationEvents.includes('onStartup')) {
-        await this.activateExtension(id)
+      if (ext.manifest.activationEvents.includes('onStartup') && this.isExtensionEnabled(id)) {
+        try {
+          await this.activateExtension(id)
+        } catch (err) {
+          log.error(`Failed to activate extension "${id}" on startup`, err)
+        }
       }
     }
   }
@@ -99,36 +106,32 @@ export class ExtensionHost {
 
     log.info(`Activating extension: ${ext.manifest.displayName} (${id})`)
 
-    try {
-      // Use pre-loaded module if available (built-in extensions bundled by Vite),
-      // otherwise fall back to dynamic import (for future runtime plugins).
-      let mainModule: ExtensionMainAPI
-      const preloaded = this.deps.preloadedModules?.get(id)
-      if (preloaded) {
-        mainModule = preloaded
-      } else {
-        const mainEntryPath = resolve(ext.packagePath, ext.manifest.main)
-        const mod = (await import(mainEntryPath)) as { default: ExtensionMainAPI }
-        mainModule = mod.default
-      }
-
-      // Run extension migrations before activation
-      if (mainModule.migrations && mainModule.migrations.length > 0) {
-        runExtensionMigrations(this.deps.db, id, mainModule.migrations)
-      }
-
-      // Create scoped context for this extension
-      const ctx = this.createContext(ext)
-
-      // Activate
-      await mainModule.activate(ctx)
-
-      ext.mainModule = mainModule
-      ext.activated = true
-      log.info(`Extension "${id}" activated successfully`)
-    } catch (err) {
-      log.error(`Failed to activate extension "${id}"`, err)
+    // Use pre-loaded module if available (built-in extensions bundled by Vite),
+    // otherwise fall back to dynamic import (for future runtime plugins).
+    let mainModule: ExtensionMainAPI
+    const preloaded = this.deps.preloadedModules?.get(id)
+    if (preloaded) {
+      mainModule = preloaded
+    } else {
+      const mainEntryPath = resolve(ext.packagePath, ext.manifest.main)
+      const mod = (await import(mainEntryPath)) as { default: ExtensionMainAPI }
+      mainModule = mod.default
     }
+
+    // Run extension migrations before activation
+    if (mainModule.migrations && mainModule.migrations.length > 0) {
+      runExtensionMigrations(this.deps.db, id, mainModule.migrations)
+    }
+
+    // Create scoped context for this extension
+    const ctx = this.createContext(ext)
+
+    // Activate — let errors propagate so callers can handle them
+    await mainModule.activate(ctx)
+
+    ext.mainModule = mainModule
+    ext.activated = true
+    log.info(`Extension "${id}" activated successfully`)
   }
 
   /**
@@ -204,10 +207,77 @@ export class ExtensionHost {
       if (allViewIds.includes(viewId)) {
         const activationEvent = `onView:${viewId}`
         if (ext.manifest.activationEvents.includes(activationEvent)) {
-          await this.activateExtension(id)
+          try {
+            await this.activateExtension(id)
+          } catch (err) {
+            log.error(`Failed to activate extension "${id}" for view "${viewId}"`, err)
+          }
         }
       }
     }
+  }
+
+  /**
+   * Check if an extension is enabled.
+   * Core extensions (AI providers, db-viewer) default to enabled.
+   * All other extensions default to disabled until explicitly enabled.
+   */
+  isExtensionEnabled(id: string): boolean {
+    const row = this.deps.db
+      .prepare('SELECT value FROM settings WHERE key = ?')
+      .get(`ext.${id}.enabled`) as { value: string } | undefined
+    if (row) return row.value !== '0'
+    // No explicit setting — core extensions default on, others default off
+    return CORE_EXTENSION_IDS.has(id)
+  }
+
+  /**
+   * Enable an extension and activate it if it has onStartup.
+   * Returns `{ activated }` on success, or `{ error }` on failure.
+   */
+  async enableExtension(id: string): Promise<{ activated: boolean; error?: string }> {
+    this.deps.db
+      .prepare(
+        `INSERT INTO settings (key, value) VALUES (?, '1') ON CONFLICT(key) DO UPDATE SET value = '1'`
+      )
+      .run(`ext.${id}.enabled`)
+    log.info(`Extension "${id}" enabled`)
+
+    const ext = this.extensions.get(id)
+    if (ext && !ext.activated && ext.manifest.activationEvents.includes('onStartup')) {
+      try {
+        await this.activateExtension(id)
+        return { activated: ext.activated }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Activation failed'
+        log.error(`Failed to activate extension "${id}"`, err)
+        return { activated: false, error: message }
+      }
+    }
+    return { activated: ext?.activated ?? false }
+  }
+
+  /**
+   * Disable an extension (takes effect on next restart for currently active ones).
+   */
+  disableExtension(id: string): void {
+    this.deps.db
+      .prepare(
+        `INSERT INTO settings (key, value) VALUES (?, '0') ON CONFLICT(key) DO UPDATE SET value = '0'`
+      )
+      .run(`ext.${id}.enabled`)
+    log.info(`Extension "${id}" disabled (takes effect on restart)`)
+  }
+
+  /**
+   * Get enabled status for all discovered extensions.
+   */
+  getEnabledMap(): Record<string, boolean> {
+    const result: Record<string, boolean> = {}
+    for (const id of this.extensions.keys()) {
+      result[id] = this.isExtensionEnabled(id)
+    }
+    return result
   }
 
   // ---------------------------------------------------------------------------

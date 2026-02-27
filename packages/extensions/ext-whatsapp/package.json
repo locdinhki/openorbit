@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-whatsapp",
     "displayName": "WhatsApp Bot",
+    "category": "messaging",
     "icon": "message-circle",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

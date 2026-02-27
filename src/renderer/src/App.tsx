@@ -33,11 +33,15 @@ function App(): React.JSX.Element {
       registerShellView('shell-extensions', ExtensionsPanel as never)
       registerShellView('shell-automations', AutomationsPanel as never)
 
-      // Fetch discovered extension manifests from the main process
-      const manifests = (await window.api.invoke(IPC.SHELL_EXTENSIONS)) as ExtensionManifest[]
+      // Fetch discovered extension manifests and enabled state from the main process
+      const { manifests, enabledMap } = (await window.api.invoke(IPC.SHELL_EXTENSIONS)) as {
+        manifests: ExtensionManifest[]
+        enabledMap: Record<string, boolean>
+      }
 
-      // Activate renderer-side extensions
+      // Activate renderer-side extensions (only enabled ones)
       for (const manifest of manifests) {
+        if (enabledMap[manifest.id] === false) continue
         const mod = rendererModules.get(manifest.id)
         if (mod) {
           await loadRendererExtension(manifest, mod)
@@ -57,7 +61,7 @@ function App(): React.JSX.Element {
       }
 
       // Push manifests into shell store (sets default active views)
-      setExtensions(manifests)
+      setExtensions(manifests, enabledMap)
       setReady(true)
     }
 

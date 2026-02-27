@@ -20,8 +20,8 @@ describe('IPC Channels', () => {
 
   it('has expected number of channels', () => {
     const values = Object.values(IPC)
-    // 5 session + 2 browser + 3 screencast + 3 settings + 3 update + 1 notification + 1 config + 1 rpc + 1 shell + 6 ai + 10 schedule = 36
-    expect(values).toHaveLength(36)
+    // 5 session + 2 browser + 3 screencast + 3 settings + 3 update + 1 notification + 1 config + 1 rpc + 3 shell + 6 ai + 10 schedule = 38
+    expect(values).toHaveLength(38)
   })
 
   it('all channels follow namespace:action format', () => {

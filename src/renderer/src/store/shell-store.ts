@@ -11,6 +11,8 @@ import { SHELL_SIDEBAR_ITEMS } from '../components/Shell/shell-sidebar-items'
 export interface ShellState {
   /** All discovered extension manifests */
   extensions: ExtensionManifest[]
+  /** Extension enabled state: extensionId → boolean */
+  extensionEnabledMap: Record<string, boolean>
   /** ID of the active sidebar view */
   activeSidebarId: string | null
   /** ID of the active workspace view */
@@ -31,7 +33,8 @@ export interface ShellState {
   executingScheduleIds: Set<string>
 
   // Actions
-  setExtensions: (extensions: ExtensionManifest[]) => void
+  setExtensions: (extensions: ExtensionManifest[], enabledMap?: Record<string, boolean>) => void
+  setExtensionEnabled: (id: string, enabled: boolean) => void
   setActiveSidebar: (id: string | null) => void
   setActiveWorkspace: (id: string | null) => void
   setActivePanel: (id: string | null) => void
@@ -54,6 +57,7 @@ export interface ShellState {
 
 export const useShellStore = create<ShellState>()((set) => ({
   extensions: [],
+  extensionEnabledMap: {},
   activeSidebarId: null,
   activeWorkspaceId: null,
   activePanelId: null,
@@ -67,23 +71,28 @@ export const useShellStore = create<ShellState>()((set) => ({
   editingScheduleId: null,
   executingScheduleIds: new Set<string>(),
 
-  setExtensions: (extensions) => {
+  setExtensions: (extensions, enabledMap) => {
     set((state) => {
+      const extensionEnabledMap = enabledMap ?? state.extensionEnabledMap
+
+      // Only consider enabled extensions for default view selection
+      const enabledExts = extensions.filter((ext) => extensionEnabledMap[ext.id] !== false)
+
       // If no active views yet, set defaults from contributions
       let activeSidebarId = state.activeSidebarId
       let activeWorkspaceId = state.activeWorkspaceId
       let activePanelId = state.activePanelId
 
       if (!activeSidebarId) {
-        // Pick highest priority sidebar
-        const sidebars = extensions
+        // Pick highest priority sidebar from enabled extensions
+        const sidebars = enabledExts
           .flatMap((ext) => ext.contributes.sidebar ?? [])
           .sort((a, b) => b.priority - a.priority)
         activeSidebarId = sidebars[0]?.id ?? null
       }
 
       // Bind workspace + panel to the extension that owns the active sidebar
-      const ownerExt = extensions.find((ext) =>
+      const ownerExt = enabledExts.find((ext) =>
         ext.contributes.sidebar?.some((s) => s.id === activeSidebarId)
       )
 
@@ -95,9 +104,20 @@ export const useShellStore = create<ShellState>()((set) => ({
         activePanelId = ownerExt?.contributes.panel?.[0]?.id ?? null
       }
 
-      return { extensions, activeSidebarId, activeWorkspaceId, activePanelId }
+      return {
+        extensions,
+        extensionEnabledMap,
+        activeSidebarId,
+        activeWorkspaceId,
+        activePanelId
+      }
     })
   },
+
+  setExtensionEnabled: (id, enabled) =>
+    set((state) => ({
+      extensionEnabledMap: { ...state.extensionEnabledMap, [id]: enabled }
+    })),
 
   setActiveSidebar: (id) =>
     set((state) => {
@@ -160,8 +180,12 @@ export const useShellStore = create<ShellState>()((set) => ({
  */
 const shellSidebarIds = new Set(SHELL_SIDEBAR_ITEMS.map((s) => s.id))
 
-export function getAllSidebarContributions(extensions: ExtensionManifest[]): SidebarContribution[] {
+export function getAllSidebarContributions(
+  extensions: ExtensionManifest[],
+  enabledMap?: Record<string, boolean>
+): SidebarContribution[] {
   return extensions
+    .filter((ext) => !enabledMap || enabledMap[ext.id] !== false)
     .flatMap((ext) => ext.contributes.sidebar ?? [])
     .filter((s) => !shellSidebarIds.has(s.id))
     .sort((a, b) => b.priority - a.priority)

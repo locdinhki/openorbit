@@ -100,6 +100,7 @@ export class AIProviderRegistry {
       id: p.id,
       displayName: p.displayName,
       configured: p.isConfigured(),
+      isDefault: p.id === this.defaultProviderId,
       capabilities: p.capabilities
     }))
   }

@@ -34,6 +34,7 @@ function persistLayoutSizes(): void {
 export default function ShellLayout(): React.JSX.Element {
   const {
     extensions,
+    extensionEnabledMap,
     activeSidebarId,
     activeWorkspaceId,
     activePanelId,
@@ -46,9 +47,10 @@ export default function ShellLayout(): React.JSX.Element {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  const extensionSidebarItems = getAllSidebarContributions(extensions)
-  const statusBarItems = extensions.flatMap((ext) => ext.contributes.statusBar ?? [])
-  const toolbarItems = extensions.flatMap((ext) => ext.contributes.toolbar ?? [])
+  const enabledExts = extensions.filter((ext) => extensionEnabledMap[ext.id] !== false)
+  const extensionSidebarItems = getAllSidebarContributions(extensions, extensionEnabledMap)
+  const statusBarItems = enabledExts.flatMap((ext) => ext.contributes.statusBar ?? [])
+  const toolbarItems = enabledExts.flatMap((ext) => ext.contributes.toolbar ?? [])
   // Scope panels to the extension that owns the active sidebar
   const activeExt = extensions.find((ext) =>
     ext.contributes.sidebar?.some((s) => s.id === activeSidebarId)

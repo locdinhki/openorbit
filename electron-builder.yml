@@ -38,7 +38,7 @@ linux:
   target:
     - AppImage
     - deb
-  maintainer: electronjs.org
+  maintainer: openorbit.ai
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

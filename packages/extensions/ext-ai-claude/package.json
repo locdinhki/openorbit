@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-ai-claude",
     "displayName": "Claude (Anthropic)",
+    "category": "ai",
     "icon": "message-circle",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

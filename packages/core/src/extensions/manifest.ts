@@ -69,6 +69,7 @@ export const extensionManifestSchema = z.object({
   displayName: z.string().min(1),
   description: z.string().optional(),
   version: z.string().optional(),
+  category: z.enum(['core', 'ai', 'integrations', 'messaging']).optional(),
   icon: z.string().min(1),
   activationEvents: z.array(z.string()).min(1),
   main: z.string().min(1),

@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-ghl",
     "displayName": "GoHighLevel",
+    "category": "integrations",
     "icon": "building",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

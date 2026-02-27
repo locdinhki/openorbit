@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-telegram",
     "displayName": "Telegram Bot",
+    "category": "messaging",
     "icon": "send",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

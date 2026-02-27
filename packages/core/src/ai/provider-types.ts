@@ -182,6 +182,7 @@ export interface AIProviderInfo {
   id: string
   displayName: string
   configured: boolean
+  isDefault: boolean
   capabilities: AIProviderCapabilities
 }
 

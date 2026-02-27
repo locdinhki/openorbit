@@ -77,6 +77,8 @@ export interface ExtensionManifest {
   description?: string
   /** Semver version string */
   version?: string
+  /** Category for grouping in the Extensions Panel */
+  category?: 'core' | 'ai' | 'integrations' | 'messaging'
   /** Icon name for ActivityBar (lucide icon name or path to SVG) */
   icon: string
   /** When to activate: ["onStartup"] or ["onView:jobs-sidebar"] */

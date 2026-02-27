@@ -379,6 +379,7 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
       if (!aiService)
         return { success: false, error: 'AI service not initialized', code: 'AI_NOT_READY' }
       aiService.setDefault(providerId)
+      settingsRepo.set('ai.default-provider', providerId)
       return { success: true }
     } catch (err) {
       log.error('Failed to set default AI provider', err)

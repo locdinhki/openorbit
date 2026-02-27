@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-zillow",
     "displayName": "Zillow",
+    "category": "integrations",
     "icon": "home",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

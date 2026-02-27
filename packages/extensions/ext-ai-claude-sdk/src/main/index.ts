@@ -12,15 +12,19 @@ const extension: ExtensionMainAPI = {
   async activate(ctx: ExtensionContext): Promise<void> {
     const provider = new ClaudeSdkProvider(ctx.log)
 
-    if (provider.isConfigured()) {
-      ctx.services.ai.registerProvider(provider)
-      ctx.log.info('Claude Agent SDK provider registered (Max plan)')
-    } else {
-      ctx.log.warn(
-        'Claude Agent SDK provider not available — claude CLI not found or not authenticated. ' +
-          'Falling back to other providers.'
+    if (!provider.isConfigured()) {
+      throw new Error(
+        'Claude CLI not found or not authenticated. Install the claude CLI and run "claude login" first.'
       )
     }
+
+    // Verify the subscription actually works with a real API call
+    ctx.log.info('Testing Claude Max Plan connection...')
+    const model = await provider.testConnection()
+    ctx.log.info(`Connection verified — model: ${model}`)
+
+    ctx.services.ai.registerProvider(provider)
+    ctx.log.info('Claude Agent SDK provider registered (Max plan)')
   }
 }
 

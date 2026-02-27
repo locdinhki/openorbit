@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-ai-openai",
     "displayName": "OpenAI (GPT)",
+    "category": "ai",
     "icon": "sparkles",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

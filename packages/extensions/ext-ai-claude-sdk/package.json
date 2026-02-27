@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-ai-claude-sdk",
     "displayName": "Claude (Max Plan)",
+    "category": "ai",
     "icon": "message-circle",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

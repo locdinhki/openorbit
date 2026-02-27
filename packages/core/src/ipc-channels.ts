@@ -39,6 +39,8 @@ export const IPC = {
 
   // Shell (extension system)
   SHELL_EXTENSIONS: 'shell:extensions',
+  SHELL_EXT_ENABLE: 'shell:ext-enable',
+  SHELL_EXT_DISABLE: 'shell:ext-disable',
 
   // AI Provider Registry
   AI_COMPLETE: 'ai:complete',

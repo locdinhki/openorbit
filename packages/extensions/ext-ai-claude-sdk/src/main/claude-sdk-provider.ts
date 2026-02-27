@@ -122,6 +122,37 @@ export class ClaudeSdkProvider implements AIProvider {
     this.configuredCache = null
   }
 
+  /**
+   * Make a minimal test query to verify the subscription actually works.
+   * Returns the model ID used on success, or throws on failure.
+   */
+  async testConnection(): Promise<string> {
+    const q = query({
+      prompt: 'Reply with exactly: ok',
+      options: {
+        model: 'haiku',
+        maxTurns: 1,
+        permissionMode: 'plan' as const,
+        env: cleanEnv()
+      }
+    })
+
+    for await (const msg of q) {
+      if (msg.type === 'result') {
+        if (msg.subtype === 'success') {
+          const success = msg as SDKResultSuccess
+          const model = this.extractModel(success) || 'haiku'
+          return model
+        } else {
+          const error = msg as SDKResultError
+          throw new Error(error.errors?.join('; ') || 'Connection test failed')
+        }
+      }
+    }
+
+    throw new Error('No response from Claude SDK')
+  }
+
   // -------------------------------------------------------------------------
   // complete — single-turn completion
   // -------------------------------------------------------------------------

@@ -17,10 +17,12 @@ import Toggle from '../../shared/Toggle'
 function ExtensionListItem({
   ext,
   isSelected,
+  isEnabled,
   onSelect
 }: {
   ext: ExtensionManifest
   isSelected: boolean
+  isEnabled: boolean
   onSelect: () => void
 }): React.JSX.Element {
   return (
@@ -32,11 +34,24 @@ function ExtensionListItem({
           : 'hover:bg-[var(--cos-bg-hover)] border-l-2 border-transparent'
       }`}
     >
-      <div className="flex-shrink-0 text-[var(--cos-text-secondary)]">
-        <SvgIcon name={ext.icon} size={18} />
+      <div className="relative flex-shrink-0">
+        <div
+          className={
+            isEnabled
+              ? 'text-[var(--cos-text-secondary)]'
+              : 'text-[var(--cos-text-muted)] opacity-50'
+          }
+        >
+          <SvgIcon name={ext.icon} size={18} />
+        </div>
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--cos-bg-secondary)] ${isEnabled ? 'bg-green-400' : 'bg-gray-500'}`}
+        />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[var(--cos-text-primary)] truncate">
+        <p
+          className={`text-sm font-medium truncate ${isEnabled ? 'text-[var(--cos-text-primary)]' : 'text-[var(--cos-text-muted)]'}`}
+        >
           {ext.displayName}
         </p>
         <p className="text-[11px] text-[var(--cos-text-muted)] truncate">{ext.id}</p>
@@ -151,13 +166,67 @@ function ExtensionSettingsForm({
 // Detail panel
 // ---------------------------------------------------------------------------
 
-function ExtensionDetail({ ext }: { ext: ExtensionManifest }): React.JSX.Element {
+type ToggleStatus = 'idle' | 'activating' | 'success' | 'error'
+
+function ExtensionDetail({
+  ext,
+  isEnabled,
+  onToggle
+}: {
+  ext: ExtensionManifest
+  isEnabled: boolean
+  onToggle: (enabled: boolean) => Promise<{ activated?: boolean; error?: string }>
+}): React.JSX.Element {
   const settings = ext.contributes.settings ?? []
   const sidebarCount = ext.contributes.sidebar?.length ?? 0
   const workspaceCount = ext.contributes.workspace?.length ?? 0
   const panelCount = ext.contributes.panel?.length ?? 0
   const commandCount = ext.contributes.commands?.length ?? 0
   const hasContributions = sidebarCount + workspaceCount + panelCount + commandCount > 0
+
+  const [toggleStatus, setToggleStatus] = useState<ToggleStatus>('idle')
+  const [statusMessage, setStatusMessage] = useState('')
+  const [wasDisabledByUser, setWasDisabledByUser] = useState(false)
+
+  // Reset status when switching extensions
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setToggleStatus('idle')
+    setStatusMessage('')
+    setWasDisabledByUser(false)
+  }, [ext.id])
+
+  const handleToggle = async (enabled: boolean): Promise<void> => {
+    if (enabled) {
+      setToggleStatus('activating')
+      setStatusMessage('Activating...')
+    }
+    const result = await onToggle(enabled)
+    if (!enabled) {
+      setToggleStatus('idle')
+      setStatusMessage('')
+      setWasDisabledByUser(true)
+      return
+    }
+    if (result.error) {
+      setToggleStatus('error')
+      setStatusMessage(`Failed: ${result.error}`)
+    } else if (result.activated) {
+      setToggleStatus('success')
+      setStatusMessage('Activated successfully')
+      setTimeout(() => {
+        setToggleStatus('idle')
+        setStatusMessage('')
+      }, 3000)
+    } else {
+      setToggleStatus('success')
+      setStatusMessage('Enabled — restart to activate')
+    }
+  }
+
+  const badgeVariant = toggleStatus === 'activating' ? 'info' : isEnabled ? 'success' : 'default'
+  const badgeLabel =
+    toggleStatus === 'activating' ? 'Activating...' : isEnabled ? 'Active' : 'Disabled'
 
   return (
     <div className="p-5 space-y-6">
@@ -174,10 +243,33 @@ function ExtensionDetail({ ext }: { ext: ExtensionManifest }): React.JSX.Element
             {ext.version && (
               <span className="text-xs text-[var(--cos-text-muted)]">v{ext.version}</span>
             )}
-            <Badge variant="success">Active</Badge>
+            <Badge variant={badgeVariant}>{badgeLabel}</Badge>
           </div>
         </div>
+        <div className="flex-shrink-0 pt-1">
+          <Toggle checked={isEnabled} onChange={handleToggle} size="sm" />
+        </div>
       </div>
+
+      {/* Status message */}
+      {statusMessage && (
+        <p
+          className={`text-xs ${
+            toggleStatus === 'error'
+              ? 'text-red-400'
+              : toggleStatus === 'success'
+                ? 'text-green-400'
+                : 'text-blue-400 animate-pulse'
+          }`}
+        >
+          {statusMessage}
+        </p>
+      )}
+
+      {/* Restart hint — only when user explicitly disabled in this session */}
+      {wasDisabledByUser && !isEnabled && toggleStatus === 'idle' && (
+        <p className="text-xs text-amber-400/80">Restart the app to fully apply this change.</p>
+      )}
 
       {/* Description */}
       {ext.description && (
@@ -235,12 +327,47 @@ function ExtensionDetail({ ext }: { ext: ExtensionManifest }): React.JSX.Element
 }
 
 // ---------------------------------------------------------------------------
+// Category grouping
+// ---------------------------------------------------------------------------
+
+const EXTENSION_CATEGORIES = [
+  { key: 'core', label: 'Core' },
+  { key: 'ai', label: 'AI Providers' },
+  { key: 'integrations', label: 'Integrations' },
+  { key: 'messaging', label: 'Messaging' }
+] as const
+
+function CategoryHeader({ label }: { label: string }): React.JSX.Element {
+  return (
+    <div className="px-3 pt-3 pb-1 first:pt-2">
+      <p className="text-[10px] font-semibold text-[var(--cos-text-muted)] uppercase tracking-wider">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main panel
 // ---------------------------------------------------------------------------
 
 export default function ExtensionsPanel(): React.JSX.Element {
   const extensions = useShellStore((s) => s.extensions)
+  const extensionEnabledMap = useShellStore((s) => s.extensionEnabledMap)
+  const setExtensionEnabled = useShellStore((s) => s.setExtensionEnabled)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const groupedExtensions = useMemo(() => {
+    const groups = new Map<string, ExtensionManifest[]>()
+    for (const cat of EXTENSION_CATEGORIES) groups.set(cat.key, [])
+    groups.set('other', [])
+    for (const ext of extensions) {
+      const key = ext.category ?? 'other'
+      const bucket = groups.get(key) ?? groups.get('other')!
+      bucket.push(ext)
+    }
+    return groups
+  }, [extensions])
 
   // Resolve effective selection: use selectedId if it matches a real extension, else fall back to first
   const effectiveId = useMemo(() => {
@@ -249,6 +376,22 @@ export default function ExtensionsPanel(): React.JSX.Element {
   }, [extensions, selectedId])
 
   const selected = extensions.find((ext) => ext.id === effectiveId) ?? null
+
+  const handleToggle = useCallback(
+    async (id: string, enabled: boolean): Promise<{ activated?: boolean; error?: string }> => {
+      setExtensionEnabled(id, enabled)
+      if (enabled) {
+        const res = await ipc.shell.enableExtension(id)
+        if (!res.success) return { error: res.error ?? 'Activation failed' }
+        const data = res.data as { activated?: boolean } | undefined
+        return { activated: data?.activated ?? false }
+      } else {
+        await ipc.shell.disableExtension(id)
+        return {}
+      }
+    },
+    [setExtensionEnabled]
+  )
 
   return (
     <div className="flex flex-col h-full">
@@ -266,21 +409,55 @@ export default function ExtensionsPanel(): React.JSX.Element {
       ) : (
         <div className="flex flex-1 min-h-0">
           {/* Left: Extension list */}
-          <div className="w-56 flex-shrink-0 border-r border-[var(--cos-border)] overflow-y-auto">
-            {extensions.map((ext) => (
-              <ExtensionListItem
-                key={ext.id}
-                ext={ext}
-                isSelected={ext.id === effectiveId}
-                onSelect={() => setSelectedId(ext.id)}
-              />
-            ))}
+          <div className="w-64 flex-shrink-0 border-r border-[var(--cos-border)] overflow-y-auto">
+            {EXTENSION_CATEGORIES.map((cat) => {
+              const exts = groupedExtensions.get(cat.key) ?? []
+              if (exts.length === 0) return null
+              return (
+                <div key={cat.key}>
+                  <CategoryHeader label={cat.label} />
+                  {exts.map((ext) => (
+                    <ExtensionListItem
+                      key={ext.id}
+                      ext={ext}
+                      isSelected={ext.id === effectiveId}
+                      isEnabled={extensionEnabledMap[ext.id] !== false}
+                      onSelect={() => setSelectedId(ext.id)}
+                    />
+                  ))}
+                </div>
+              )
+            })}
+            {(groupedExtensions.get('other')?.length ?? 0) > 0 && (
+              <div>
+                <CategoryHeader label="Other" />
+                {groupedExtensions.get('other')!.map((ext) => (
+                  <ExtensionListItem
+                    key={ext.id}
+                    ext={ext}
+                    isSelected={ext.id === effectiveId}
+                    isEnabled={extensionEnabledMap[ext.id] !== false}
+                    onSelect={() => setSelectedId(ext.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right: Detail panel */}
           <div className="flex-1 overflow-y-auto">
             {selected ? (
-              <ExtensionDetail key={selected.id} ext={selected} />
+              <ExtensionDetail
+                key={selected.id}
+                ext={selected}
+                isEnabled={extensionEnabledMap[selected.id] !== false}
+                onToggle={(enabled) =>
+                  handleToggle(selected.id, enabled) as Promise<{
+                    activated?: boolean
+                    error?: string
+                  }>
+                }
+              />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-sm text-[var(--cos-text-muted)]">

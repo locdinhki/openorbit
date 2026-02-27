@@ -45,7 +45,7 @@ export default function StatusBar(): React.JSX.Element {
       : null
 
   return (
-    <div className="flex items-center justify-between px-4 py-1.5 border-t border-[var(--cos-border)] bg-[var(--cos-bg-secondary)] text-xs">
+    <div className="flex items-center justify-between px-4 py-1.5 text-xs">
       {/* Left: Session Status + Start/Stop */}
       <div className="flex items-center gap-4 min-w-0">
         <StatusIndicator

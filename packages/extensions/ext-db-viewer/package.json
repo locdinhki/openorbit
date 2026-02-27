@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-db-viewer",
     "displayName": "Database",
+    "category": "core",
     "icon": "database",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

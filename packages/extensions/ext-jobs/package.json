@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-jobs",
     "displayName": "Job Search",
+    "category": "core",
     "icon": "briefcase",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

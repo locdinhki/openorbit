@@ -175,6 +175,14 @@ export const ipc = {
     ): (() => void) => api.on(IPC.SCHEDULE_RUN_COMPLETE, callback as (...args: unknown[]) => void)
   },
 
+  shell: {
+    enableExtension: (id: string): Promise<IPCResult> =>
+      api.invoke(IPC.SHELL_EXT_ENABLE, { id }) as Promise<IPCResult>,
+
+    disableExtension: (id: string): Promise<IPCResult> =>
+      api.invoke(IPC.SHELL_EXT_DISABLE, { id }) as Promise<IPCResult>
+  },
+
   scheduler: {
     tools: (): Promise<IPCResult<ToolMeta[]>> =>
       api.invoke(IPC.SCHEDULER_TOOLS) as Promise<IPCResult<ToolMeta[]>>

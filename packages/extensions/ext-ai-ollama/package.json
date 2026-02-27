@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-ai-ollama",
     "displayName": "Ollama (Local)",
+    "category": "ai",
     "icon": "hard-drive",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",

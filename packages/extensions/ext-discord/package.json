@@ -8,6 +8,7 @@
   "openorbit": {
     "id": "ext-discord",
     "displayName": "Discord Bot",
+    "category": "messaging",
     "icon": "message-circle",
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
