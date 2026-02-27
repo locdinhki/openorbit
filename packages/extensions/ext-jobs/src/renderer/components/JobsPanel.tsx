@@ -1,19 +1,126 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../hooks/useChat'
+import { useSessions } from '../hooks/useSessions'
 import { useAIProviders } from '@renderer/lib/use-ai'
 import SvgIcon from '@renderer/components/shared/SvgIcon'
+import MarkdownRenderer from '@renderer/components/shared/MarkdownRenderer'
+import type { ChatSession } from '../../chat-types'
 
-/**
- * ChatPanel — registered for the "jobs-chat" panel contribution.
- * The shell's PanelContainer handles tab switching; this component
- * only renders the chat content.
- *
- * Input area inspired by VS Code's chat: bordered box with textarea
- * on top and a toolbar row (provider pill + send) on the bottom.
- */
-export function ChatPanel(): React.JSX.Element {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function relativeTime(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diff = now - then
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}
+
+// ---------------------------------------------------------------------------
+// SessionsListView
+// ---------------------------------------------------------------------------
+
+function SessionsListView({
+  sessions,
+  loading,
+  onOpen,
+  onDelete
+}: {
+  sessions: ChatSession[]
+  loading: boolean
+  onOpen: (id: string) => void
+  onDelete: (id: string) => void
+}): React.JSX.Element {
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+
+  if (loading && sessions.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-sm text-[var(--cos-text-muted)]">Loading...</p>
+      </div>
+    )
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-12 space-y-3">
+        <div className="w-10 h-10 rounded-lg bg-[var(--cos-bg-tertiary)] flex items-center justify-center text-[var(--cos-text-muted)]">
+          <SvgIcon name="message-circle" size={20} />
+        </div>
+        <p className="text-sm text-[var(--cos-text-muted)]">No conversations yet</p>
+        <p className="text-xs text-[var(--cos-text-muted)]">Start a new chat to begin</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {sessions.map((session) => (
+        <button
+          key={session.id}
+          onClick={() => onOpen(session.id)}
+          onMouseEnter={() => setHoveredId(session.id)}
+          onMouseLeave={() => setHoveredId(null)}
+          className="w-full text-left flex items-start gap-2.5 px-3 py-2.5 hover:bg-[var(--cos-bg-hover)] transition-colors border-b border-[var(--cos-border-light)]"
+        >
+          <div className="flex-shrink-0 mt-0.5 text-[var(--cos-text-muted)]">
+            <SvgIcon name="message-circle" size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-[var(--cos-text-primary)] truncate">
+                {session.title}
+              </p>
+              <span className="text-[10px] text-[var(--cos-text-muted)] flex-shrink-0">
+                {relativeTime(session.updatedAt)}
+              </span>
+            </div>
+            {session.lastMessage && (
+              <p className="text-xs text-[var(--cos-text-muted)] truncate mt-0.5">
+                {session.lastMessage.slice(0, 100)}
+              </p>
+            )}
+          </div>
+          {hoveredId === session.id && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(session.id)
+              }}
+              className="flex-shrink-0 p-1 rounded hover:bg-[var(--cos-bg-tertiary)] text-[var(--cos-text-muted)] hover:text-red-400 transition-colors"
+            >
+              <SvgIcon name="trash" size={14} />
+            </button>
+          )}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ConversationView
+// ---------------------------------------------------------------------------
+
+function ConversationView({
+  hasAI,
+  providersLoading,
+  activeProviderName
+}: {
+  hasAI: boolean
+  providersLoading: boolean
+  activeProviderName: string
+}): React.JSX.Element {
   const { messages, chatLoading, sendMessage } = useChat()
-  const { providers, loading: providersLoading, setDefault } = useAIProviders()
+  const { providers, setDefault } = useAIProviders()
   const [input, setInput] = useState('')
   const [providerMenuOpen, setProviderMenuOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -21,22 +128,18 @@ export function ChatPanel(): React.JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const configuredProviders = providers.filter((p) => p.configured)
-  const activeProvider =
-    configuredProviders.find((p) => p.isDefault) ?? configuredProviders[0] ?? null
-  const hasAI = activeProvider !== null
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length, chatLoading])
 
-  // Auto-resize textarea to fit content (up to ~6 lines)
+  // Auto-resize textarea
   useEffect(() => {
     const ta = textareaRef.current
     if (!ta) return
     ta.style.height = '0'
-    const scrollH = ta.scrollHeight
-    ta.style.height = `${Math.min(scrollH, 150)}px`
+    ta.style.height = `${Math.min(ta.scrollHeight, 150)}px`
   }, [input])
 
   // Close provider menu on outside click
@@ -70,7 +173,7 @@ export function ChatPanel(): React.JSX.Element {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <>
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 ? (
@@ -105,17 +208,19 @@ export function ChatPanel(): React.JSX.Element {
               }`}
             >
               <p className="text-xs text-[var(--cos-text-muted)] mb-1">
-                {msg.role === 'user' ? 'You' : (activeProvider?.displayName ?? 'AI')}
+                {msg.role === 'user' ? 'You' : activeProviderName}
               </p>
-              <p className="text-[var(--cos-text-primary)] whitespace-pre-wrap">{msg.content}</p>
+              {msg.role === 'assistant' ? (
+                <MarkdownRenderer content={msg.content} />
+              ) : (
+                <p className="text-[var(--cos-text-primary)] whitespace-pre-wrap">{msg.content}</p>
+              )}
             </div>
           ))
         )}
         {chatLoading && (
           <div className="bg-[var(--cos-bg-tertiary)] mr-6 p-2.5 rounded-md">
-            <p className="text-xs text-[var(--cos-text-muted)] mb-1">
-              {activeProvider?.displayName ?? 'AI'}
-            </p>
+            <p className="text-xs text-[var(--cos-text-muted)] mb-1">{activeProviderName}</p>
             <div className="flex gap-1">
               <span className="w-1.5 h-1.5 bg-[var(--cos-text-muted)] rounded-full animate-bounce" />
               <span className="w-1.5 h-1.5 bg-[var(--cos-text-muted)] rounded-full animate-bounce [animation-delay:0.1s]" />
@@ -128,7 +233,6 @@ export function ChatPanel(): React.JSX.Element {
 
       {/* Input — VS Code-style bordered box */}
       <div className="relative p-3" ref={menuRef}>
-        {/* Provider dropdown — positioned above the input box */}
         {providerMenuOpen && (
           <div className="absolute bottom-full left-3 mb-1 min-w-[200px] py-1 rounded-md bg-[var(--cos-bg-secondary)] border border-[var(--cos-border)] shadow-lg z-20">
             {configuredProviders.map((p, i) => (
@@ -164,7 +268,6 @@ export function ChatPanel(): React.JSX.Element {
               : 'border-[var(--cos-border)] opacity-60'
           } bg-[var(--cos-bg-tertiary)]`}
         >
-          {/* Textarea */}
           <textarea
             ref={textareaRef}
             value={input}
@@ -177,9 +280,7 @@ export function ChatPanel(): React.JSX.Element {
             className="w-full px-3 pt-3 pb-2 text-sm bg-transparent text-[var(--cos-text-primary)] placeholder-[var(--cos-text-muted)] focus:outline-none disabled:cursor-not-allowed"
           />
 
-          {/* Bottom toolbar */}
           <div className="flex items-center justify-between px-3 pb-2.5">
-            {/* Provider pill (left) */}
             {hasAI ? (
               <button
                 onClick={() => {
@@ -192,7 +293,7 @@ export function ChatPanel(): React.JSX.Element {
                 }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                <span className="whitespace-nowrap">{activeProvider!.displayName}</span>
+                <span className="whitespace-nowrap">{activeProviderName}</span>
                 {configuredProviders.length > 1 && (
                   <svg
                     width="10"
@@ -210,7 +311,6 @@ export function ChatPanel(): React.JSX.Element {
               </span>
             )}
 
-            {/* Send button (right) */}
             <button
               onClick={handleSend}
               disabled={chatLoading || !input.trim() || !hasAI}
@@ -221,6 +321,87 @@ export function ChatPanel(): React.JSX.Element {
           </div>
         </div>
       </div>
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ChatPanel — two-view container
+// ---------------------------------------------------------------------------
+
+/**
+ * ChatPanel — registered for the "jobs-chat" panel contribution.
+ * Two-view pattern: sessions list ↔ conversation detail.
+ */
+export function ChatPanel(): React.JSX.Element {
+  const { providers, loading: providersLoading } = useAIProviders()
+  const {
+    sessions,
+    sessionsLoading,
+    activeSessionId,
+    chatView,
+    openSession,
+    newChat,
+    showSessionsList,
+    deleteSession
+  } = useSessions()
+
+  const configuredProviders = providers.filter((p) => p.configured)
+  const activeProvider =
+    configuredProviders.find((p) => p.isDefault) ?? configuredProviders[0] ?? null
+  const hasAI = activeProvider !== null
+  const activeProviderName = activeProvider?.displayName ?? 'AI'
+
+  // Determine header title
+  const sessionTitle =
+    chatView === 'list'
+      ? 'Chat History'
+      : (sessions.find((s) => s.id === activeSessionId)?.title ?? 'New Chat')
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header bar */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--cos-border-light)]">
+        {/* Back arrow (conversation view only) */}
+        {chatView === 'conversation' && (
+          <button
+            onClick={showSessionsList}
+            className="p-1 rounded hover:bg-[var(--cos-bg-hover)] text-[var(--cos-text-muted)] hover:text-[var(--cos-text-primary)] transition-colors"
+          >
+            <SvgIcon name="arrow-left" size={16} />
+          </button>
+        )}
+
+        {/* Title */}
+        <span className="flex-1 text-sm font-medium text-[var(--cos-text-primary)] truncate">
+          {sessionTitle}
+        </span>
+
+        {/* New chat button */}
+        <button
+          onClick={newChat}
+          className="p-1 rounded hover:bg-[var(--cos-bg-hover)] text-[var(--cos-text-muted)] hover:text-[var(--cos-text-primary)] transition-colors"
+          title="New chat"
+        >
+          <SvgIcon name="plus" size={16} />
+        </button>
+      </div>
+
+      {/* Body: switch between views */}
+      {chatView === 'list' ? (
+        <SessionsListView
+          sessions={sessions}
+          loading={sessionsLoading}
+          onOpen={openSession}
+          onDelete={deleteSession}
+        />
+      ) : (
+        <ConversationView
+          hasAI={hasAI}
+          providersLoading={providersLoading}
+          activeProviderName={activeProviderName}
+        />
+      )}
     </div>
   )
 }

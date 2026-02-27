@@ -87,5 +87,30 @@ export const extJobsMigrations: ExtensionMigration[] = [
         CREATE INDEX IF NOT EXISTS idx_answer_templates_pattern ON answer_templates(question_pattern);
       `)
     }
+  },
+  {
+    version: 2,
+    description: 'Add chat sessions and messages tables',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS chat_sessions (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS chat_messages (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+          role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
+          content TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);
+        CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated ON chat_sessions(updated_at DESC);
+      `)
+    }
   }
 ]

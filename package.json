@@ -1,6 +1,6 @@
 {
   "name": "openorbit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Autonomous job search and application platform",
   "license": "SEE LICENSE IN LICENSE",
   "main": "./out/main/index.js",
@@ -45,6 +45,8 @@
     "js-yaml": "^4.1.1",
     "node-cron": "^4.2.1",
     "patchright": "^1.57.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "sqlite-vec": "^0.1.7-alpha.2",
     "tailwindcss": "^4.2.0",
     "uuid": "^13.0.0",

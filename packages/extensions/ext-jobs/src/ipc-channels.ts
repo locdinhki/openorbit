@@ -42,6 +42,14 @@ export const EXT_JOBS_IPC = {
   MEMORY_DELETE: 'ext-jobs:memory-delete',
   MEMORY_LIST: 'ext-jobs:memory-list',
 
+  // Sessions
+  SESSIONS_LIST: 'ext-jobs:sessions-list',
+  SESSIONS_CREATE: 'ext-jobs:sessions-create',
+  SESSIONS_LOAD: 'ext-jobs:sessions-load',
+  SESSIONS_DELETE: 'ext-jobs:sessions-delete',
+  SESSIONS_RENAME: 'ext-jobs:sessions-rename',
+  CHAT_CLEAR: 'ext-jobs:chat-clear',
+
   // Push events (main → renderer)
   AUTOMATION_STATUS_PUSH: 'ext-jobs:automation-status-push',
   JOBS_NEW: 'ext-jobs:jobs-new',

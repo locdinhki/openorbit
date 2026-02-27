@@ -129,5 +129,13 @@ export const extJobsSchemas = {
   'ext-jobs:memory-list': z.object({
     category: z.enum(['preference', 'company', 'pattern', 'answer']).optional(),
     limit: z.number().optional()
-  })
+  }),
+
+  // Sessions
+  'ext-jobs:sessions-list': z.object({ limit: z.number().optional() }),
+  'ext-jobs:sessions-create': z.object({ title: z.string().optional() }),
+  'ext-jobs:sessions-load': z.object({ sessionId: z.string() }),
+  'ext-jobs:sessions-delete': z.object({ sessionId: z.string() }),
+  'ext-jobs:sessions-rename': z.object({ sessionId: z.string(), title: z.string().min(1) }),
+  'ext-jobs:chat-clear': z.object({})
 } as const

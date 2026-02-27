@@ -8,6 +8,7 @@
 
 import { EXT_JOBS_IPC } from '../../ipc-channels'
 import type { SearchProfile, JobListing, JobStatus, AutomationStatus } from '@openorbit/core/types'
+import type { ChatSession, ChatSessionMessage } from '../../chat-types'
 
 interface IPCResult<T = unknown> {
   success: boolean
@@ -88,7 +89,28 @@ export const ipc = {
       api.invoke(EXT_JOBS_IPC.CHAT_SEND, { message, selectedJobId }) as Promise<IPCResult<string>>,
 
     analyzeJob: (jobId: string): Promise<IPCResult<JobListing>> =>
-      api.invoke(EXT_JOBS_IPC.CHAT_ANALYZE_JOB, { jobId }) as Promise<IPCResult<JobListing>>
+      api.invoke(EXT_JOBS_IPC.CHAT_ANALYZE_JOB, { jobId }) as Promise<IPCResult<JobListing>>,
+
+    clear: (): Promise<IPCResult> => api.invoke(EXT_JOBS_IPC.CHAT_CLEAR, {}) as Promise<IPCResult>
+  },
+
+  sessions: {
+    list: (limit?: number): Promise<IPCResult<ChatSession[]>> =>
+      api.invoke(EXT_JOBS_IPC.SESSIONS_LIST, { limit }) as Promise<IPCResult<ChatSession[]>>,
+
+    create: (title?: string): Promise<IPCResult<ChatSession>> =>
+      api.invoke(EXT_JOBS_IPC.SESSIONS_CREATE, { title }) as Promise<IPCResult<ChatSession>>,
+
+    load: (sessionId: string): Promise<IPCResult<ChatSessionMessage[]>> =>
+      api.invoke(EXT_JOBS_IPC.SESSIONS_LOAD, { sessionId }) as Promise<
+        IPCResult<ChatSessionMessage[]>
+      >,
+
+    delete: (sessionId: string): Promise<IPCResult> =>
+      api.invoke(EXT_JOBS_IPC.SESSIONS_DELETE, { sessionId }) as Promise<IPCResult>,
+
+    rename: (sessionId: string, title: string): Promise<IPCResult> =>
+      api.invoke(EXT_JOBS_IPC.SESSIONS_RENAME, { sessionId, title }) as Promise<IPCResult>
   },
 
   application: {

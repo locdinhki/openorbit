@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useExtGhlStore } from '../store/index'
 import Button from '@renderer/components/shared/Button'
+import MarkdownRenderer from '@renderer/components/shared/MarkdownRenderer'
 
 export default function GhlChatPanel(): React.JSX.Element {
   const messages = useExtGhlStore((s) => s.chatMessages)
@@ -35,13 +36,13 @@ export default function GhlChatPanel(): React.JSX.Element {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`max-w-[85%] px-3 py-2 rounded-lg text-xs whitespace-pre-wrap ${
+            className={`max-w-[85%] px-3 py-2 rounded-lg text-xs ${
               msg.role === 'user'
-                ? 'ml-auto bg-indigo-600/20 text-indigo-200'
+                ? 'ml-auto bg-indigo-600/20 text-indigo-200 whitespace-pre-wrap'
                 : 'mr-auto bg-[var(--cos-bg-secondary)] text-[var(--cos-text-primary)]'
             }`}
           >
-            {msg.content}
+            {msg.role === 'assistant' ? <MarkdownRenderer content={msg.content} /> : msg.content}
           </div>
         ))}
         {chatLoading && (

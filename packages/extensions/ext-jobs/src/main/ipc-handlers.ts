@@ -11,11 +11,13 @@ import { getCoreEventBus } from '@openorbit/core/automation/core-events'
 import { MemoryRepo } from '@openorbit/core/db/memory-repo'
 import type { MemoryCategory } from '@openorbit/core/db/memory-repo'
 import { JobAnalyzer } from '@openorbit/core/ai/job-analyzer'
-import { ChatHandler } from '@openorbit/core/ai/chat-handler'
+import { JobsChatHandler } from './ai/jobs-chat-handler'
 import { AutomationCoordinator } from './automation/automation-coordinator'
 import { ProfilesRepo } from './db/profiles-repo'
 import { JobsRepo } from './db/jobs-repo'
 import { ActionLogRepo } from './db/action-log-repo'
+import { AnswersRepo } from './db/answers-repo'
+import { ChatSessionsRepo } from './db/chat-sessions-repo'
 import { EXT_JOBS_IPC } from '../ipc-channels'
 import { extJobsSchemas } from '../ipc-schemas'
 
@@ -133,6 +135,7 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
   // --- Jobs ---
 
   const jobsRepo = new JobsRepo(db)
+  const actionLogRepo = new ActionLogRepo(db)
 
   ipc.handle(EXT_JOBS_IPC.LIST, extJobsSchemas['ext-jobs:list'], (_event, { filters }) => {
     try {
@@ -274,7 +277,17 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
   // --- Chat ---
 
   const memoryRepo = new MemoryRepo()
-  const chatHandler = new ChatHandler(ctx.services.ai, memoryRepo)
+  const answersRepo = new AnswersRepo(db)
+  const sessionsRepo = new ChatSessionsRepo(db)
+  const chatHandler = new JobsChatHandler(
+    ctx.services.ai,
+    jobsRepo,
+    profilesRepo,
+    actionLogRepo,
+    answersRepo,
+    memoryRepo
+  )
+  chatHandler.setSessionsRepo(sessionsRepo)
   const jobAnalyzer = new JobAnalyzer(ctx.services.ai)
 
   ipc.handle(
@@ -321,6 +334,93 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
       }
     }
   )
+
+  // --- Sessions ---
+
+  ipc.handle(
+    EXT_JOBS_IPC.SESSIONS_LIST,
+    extJobsSchemas['ext-jobs:sessions-list'],
+    (_event, { limit }) => {
+      try {
+        return { success: true, data: sessionsRepo.list(limit) }
+      } catch (err) {
+        log.error('Failed to list sessions', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.SESSIONS_CREATE,
+    extJobsSchemas['ext-jobs:sessions-create'],
+    (_event, { title }) => {
+      try {
+        const session = sessionsRepo.create(title)
+        chatHandler.clearHistory()
+        chatHandler.setActiveSessionId(session.id)
+        return { success: true, data: session }
+      } catch (err) {
+        log.error('Failed to create session', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.SESSIONS_LOAD,
+    extJobsSchemas['ext-jobs:sessions-load'],
+    (_event, { sessionId }) => {
+      try {
+        chatHandler.loadSession(sessionId)
+        const messages = sessionsRepo.getMessages(sessionId)
+        return { success: true, data: messages }
+      } catch (err) {
+        log.error('Failed to load session', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.SESSIONS_DELETE,
+    extJobsSchemas['ext-jobs:sessions-delete'],
+    (_event, { sessionId }) => {
+      try {
+        if (chatHandler.getActiveSessionId() === sessionId) {
+          chatHandler.clearHistory()
+        }
+        sessionsRepo.delete(sessionId)
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to delete session', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.SESSIONS_RENAME,
+    extJobsSchemas['ext-jobs:sessions-rename'],
+    (_event, { sessionId, title }) => {
+      try {
+        sessionsRepo.rename(sessionId, title)
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to rename session', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(EXT_JOBS_IPC.CHAT_CLEAR, extJobsSchemas['ext-jobs:chat-clear'], () => {
+    try {
+      chatHandler.clearHistory()
+      return { success: true }
+    } catch (err) {
+      log.error('Failed to clear chat', err)
+      return errorToResponse(err)
+    }
+  })
 
   // --- Application ---
 
@@ -376,8 +476,6 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
   )
 
   // --- Action Log ---
-
-  const actionLogRepo = new ActionLogRepo(db)
 
   ipc.handle(
     EXT_JOBS_IPC.ACTION_LOG_LIST,

@@ -5,7 +5,16 @@ import { ipc } from '../lib/ipc-client'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function useChat() {
-  const { messages, chatLoading, addMessage, setChatLoading, clearMessages } = useStore()
+  const {
+    messages,
+    chatLoading,
+    addMessage,
+    setChatLoading,
+    clearMessages,
+    activeSessionId,
+    setActiveSessionId,
+    addSession
+  } = useStore()
   const { selectedJobId, jobs, updateJob } = useStore()
 
   const selectedJob = selectedJobId ? (jobs.find((j) => j.id === selectedJobId) ?? null) : null
@@ -13,6 +22,19 @@ export function useChat() {
   const sendMessage = useCallback(
     async (content: string) => {
       if (!content.trim() || chatLoading) return
+
+      // Auto-create session if none active
+      if (!activeSessionId) {
+        try {
+          const result = await ipc.sessions.create()
+          if (result.success && result.data) {
+            setActiveSessionId(result.data.id)
+            addSession(result.data)
+          }
+        } catch {
+          // Continue without session persistence
+        }
+      }
 
       // Add user message to store
       addMessage({
@@ -52,7 +74,15 @@ export function useChat() {
         setChatLoading(false)
       }
     },
-    [chatLoading, selectedJobId, addMessage, setChatLoading]
+    [
+      chatLoading,
+      selectedJobId,
+      activeSessionId,
+      addMessage,
+      setChatLoading,
+      setActiveSessionId,
+      addSession
+    ]
   )
 
   const analyzeJob = useCallback(

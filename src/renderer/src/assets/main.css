@@ -60,3 +60,119 @@ body {
     animation: shimmer 1.5s ease-in-out infinite;
   }
 }
+
+/* Chat Markdown Prose Styles */
+.chat-markdown {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--cos-text-primary);
+}
+
+.chat-markdown p {
+  margin: 0.5em 0;
+}
+.chat-markdown p:first-child {
+  margin-top: 0;
+}
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown strong {
+  font-weight: 600;
+  color: var(--cos-text-primary);
+}
+
+.chat-markdown em {
+  font-style: italic;
+}
+
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3,
+.chat-markdown h4, .chat-markdown h5, .chat-markdown h6 {
+  font-weight: 600;
+  color: var(--cos-text-primary);
+  margin: 0.75em 0 0.25em;
+  line-height: 1.3;
+}
+.chat-markdown h1 { font-size: 1.25em; }
+.chat-markdown h2 { font-size: 1.125em; }
+.chat-markdown h3 { font-size: 1em; }
+
+.chat-markdown ul, .chat-markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+.chat-markdown ul { list-style-type: disc; }
+.chat-markdown ol { list-style-type: decimal; }
+.chat-markdown li {
+  margin: 0.2em 0;
+}
+.chat-markdown li > ul, .chat-markdown li > ol {
+  margin: 0.15em 0;
+}
+
+.chat-markdown code {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--cos-bg-hover);
+  color: var(--cos-accent-hover);
+}
+
+.chat-markdown pre {
+  margin: 0.5em 0;
+  padding: 0.75em 1em;
+  border-radius: 6px;
+  background: var(--cos-bg-secondary);
+  border: 1px solid var(--cos-border);
+  overflow-x: auto;
+}
+.chat-markdown pre code {
+  padding: 0;
+  background: none;
+  color: var(--cos-text-primary);
+  font-size: 0.8125em;
+}
+
+.chat-markdown a {
+  color: var(--cos-accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chat-markdown a:hover {
+  color: var(--cos-accent);
+}
+
+.chat-markdown blockquote {
+  margin: 0.5em 0;
+  padding: 0.25em 0.75em;
+  border-left: 3px solid var(--cos-border-light);
+  color: var(--cos-text-secondary);
+}
+
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.875em;
+}
+.chat-markdown th, .chat-markdown td {
+  padding: 0.35em 0.75em;
+  border: 1px solid var(--cos-border);
+  text-align: left;
+}
+.chat-markdown th {
+  background: var(--cos-bg-secondary);
+  font-weight: 600;
+}
+
+.chat-markdown hr {
+  border: none;
+  border-top: 1px solid var(--cos-border);
+  margin: 0.75em 0;
+}
+
+.chat-markdown input[type="checkbox"] {
+  margin-right: 0.4em;
+}
