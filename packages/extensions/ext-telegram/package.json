@@ -16,7 +16,8 @@
     "contributes": {
       "settings": [
         { "key": "telegram.bot-token", "label": "Bot Token", "type": "password", "description": "Token from BotFather" },
-        { "key": "telegram.authorized-chat-ids", "label": "Authorized Chat IDs", "type": "string", "description": "Comma-separated chat IDs allowed to use the bot" }
+        { "key": "telegram.authorized-chat-ids", "label": "Authorized Chat IDs", "type": "string", "description": "Comma-separated chat IDs allowed to use the bot" },
+        { "key": "voice.openai-api-key", "label": "Voice API Key (OpenAI)", "type": "password", "description": "Optional fallback — not needed if Whisper CLI is installed locally (pip install openai-whisper)" }
       ]
     }
   },

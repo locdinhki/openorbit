@@ -14,6 +14,8 @@ import WorkspaceContainer from './WorkspaceContainer'
 import PanelContainer from './PanelContainer'
 import StatusBarContainer from './StatusBarContainer'
 import ToolbarContainer from './ToolbarContainer'
+import TitleBar from './TitleBar'
+import CommandPalette from './CommandPalette'
 import ResizeHandle from './ResizeHandle'
 import { SHELL_SIDEBAR_ITEMS } from './shell-sidebar-items'
 import { ipc } from '../../lib/ipc-client'
@@ -39,9 +41,12 @@ export default function ShellLayout(): React.JSX.Element {
     activeWorkspaceId,
     activePanelId,
     layoutSizes,
+    commandPaletteOpen,
     setActiveSidebar,
     setActivePanel,
-    setLayoutSize
+    setLayoutSize,
+    openCommandPalette,
+    closeCommandPalette
   } = useShellStore()
 
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -91,11 +96,26 @@ export default function ShellLayout(): React.JSX.Element {
     [activeSidebarId, setLayoutSize]
   )
 
+  // Global Cmd/Ctrl+K shortcut for command palette
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        useShellStore.getState().toggleCommandPalette()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
   // Shell sidebar items take the full content area (no workspace/panel)
   const isShellSidebar = activeSidebarId?.startsWith('shell-') ?? false
 
   return (
     <div className="flex flex-col h-screen bg-[var(--cos-bg-primary)]">
+      {/* Custom Title Bar */}
+      <TitleBar onCommandPaletteOpen={openCommandPalette} />
+
       {/* Main Content */}
       <div className="flex flex-1 min-h-0">
         {/* Activity Bar (leftmost icon strip) */}
@@ -155,6 +175,9 @@ export default function ShellLayout(): React.JSX.Element {
 
       {/* Status Bar */}
       <StatusBarContainer items={statusBarItems} />
+
+      {/* Command Palette Overlay — conditionally mounted for fresh state each open */}
+      {commandPaletteOpen && <CommandPalette onClose={closeCommandPalette} />}
     </div>
   )
 }

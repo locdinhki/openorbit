@@ -13,7 +13,15 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "imessage.server-url", "label": "BlueBubbles Server URL", "type": "string", "description": "URL of your BlueBubbles macOS server" },
+        { "key": "imessage.password", "label": "BlueBubbles Password", "type": "password", "description": "Authentication password for BlueBubbles" },
+        { "key": "imessage.authorized-handles", "label": "Authorized Handles", "type": "string", "description": "Comma-separated iMessage handles allowed (empty = all)" },
+        { "key": "imessage.webhook-port", "label": "Webhook Port", "type": "string", "default": "18792", "description": "Local port for BlueBubbles webhooks" },
+        { "key": "voice.openai-api-key", "label": "Voice API Key (OpenAI)", "type": "password", "description": "Optional fallback — not needed if Whisper CLI is installed locally (pip install openai-whisper)" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*"

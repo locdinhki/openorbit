@@ -24,6 +24,14 @@ export interface ShellState {
   /** Per-extension layout sizes: sidebarId → { sidebar?, panel?, ... } */
   layoutSizes: Record<string, Record<string, number>>
 
+  /** Command palette */
+  commandPaletteOpen: boolean
+
+  /** Update state */
+  updateVersion: string | null
+  updateReady: boolean
+  updateDownloading: boolean
+
   /** Schedules state */
   schedules: Schedule[]
   tools: ToolMeta[]
@@ -41,6 +49,17 @@ export interface ShellState {
   setSessionInitialized: (initialized: boolean) => void
   setLayoutSize: (sidebarId: string, slot: string, width: number) => void
   loadLayoutSizes: (sizes: Record<string, Record<string, number>>) => void
+
+  // Command palette actions
+  openCommandPalette: () => void
+  closeCommandPalette: () => void
+  toggleCommandPalette: () => void
+
+  // Update actions
+  setUpdateAvailable: (version: string) => void
+  setUpdateReady: () => void
+  setUpdateDownloading: (downloading: boolean) => void
+  clearUpdate: () => void
 
   // Schedule actions
   setSchedules: (schedules: Schedule[]) => void
@@ -63,6 +82,12 @@ export const useShellStore = create<ShellState>()((set) => ({
   activePanelId: null,
   sessionInitialized: false,
   layoutSizes: {},
+
+  commandPaletteOpen: false,
+
+  updateVersion: null,
+  updateReady: false,
+  updateDownloading: false,
 
   schedules: [],
   tools: [],
@@ -143,6 +168,17 @@ export const useShellStore = create<ShellState>()((set) => ({
       }
     })),
   loadLayoutSizes: (sizes) => set({ layoutSizes: sizes }),
+
+  // Command palette actions
+  openCommandPalette: () => set({ commandPaletteOpen: true }),
+  closeCommandPalette: () => set({ commandPaletteOpen: false }),
+  toggleCommandPalette: () => set((s) => ({ commandPaletteOpen: !s.commandPaletteOpen })),
+
+  // Update actions
+  setUpdateAvailable: (version) => set({ updateVersion: version, updateReady: false }),
+  setUpdateReady: () => set({ updateReady: true, updateDownloading: false }),
+  setUpdateDownloading: (downloading) => set({ updateDownloading: downloading }),
+  clearUpdate: () => set({ updateVersion: null, updateReady: false, updateDownloading: false }),
 
   // Schedule actions
   setSchedules: (schedules) => set({ schedules }),

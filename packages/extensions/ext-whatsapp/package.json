@@ -13,7 +13,13 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "whatsapp.authorized-numbers", "label": "Authorized Numbers", "type": "string", "description": "Comma-separated phone numbers allowed (empty = all)" },
+        { "key": "whatsapp.data-dir", "label": "Auth Data Directory", "type": "string", "description": "Directory for WhatsApp session/auth files" },
+        { "key": "voice.openai-api-key", "label": "Voice API Key (OpenAI)", "type": "password", "description": "Optional fallback — not needed if Whisper CLI is installed locally (pip install openai-whisper)" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*",

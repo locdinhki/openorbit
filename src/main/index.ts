@@ -13,6 +13,7 @@ import {
   setUpdater,
   setAIService,
   setScheduler,
+  setSkillService,
   getActiveCoordinator,
   getActiveSessionManager,
   getOrCreateSessionManager,
@@ -33,6 +34,10 @@ import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import { initExtensionHost } from '@openorbit/core/extensions/extension-host'
 import { getDatabase } from '@openorbit/core/db/database'
 import { AIProviderRegistry } from '@openorbit/core/ai/provider-registry'
+import { SkillRegistry } from '@openorbit/core/skills/skill-registry'
+import { createVoiceTranscribeSkill } from '@openorbit/core/skills/builtin/voice-transcribe-skill'
+import { createCalcSkill } from '@openorbit/core/skills/builtin/calc-skill'
+import { createFormatSkill } from '@openorbit/core/skills/builtin/format-skill'
 import type { ExtensionMainAPI } from '@openorbit/core/extensions/types'
 
 // Built-in extensions (statically imported so electron-vite bundles them)
@@ -93,6 +98,9 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     title: 'OpenOrbit',
+    // Custom title bar: macOS keeps traffic lights, Windows/Linux we render our own controls
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 12, y: 10 } } : {}),
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -119,11 +127,29 @@ function createWindow(): void {
 
   registerIPCHandlers(mainWindow, pairingContext ?? undefined)
 
+  // Window control IPC (custom title bar on Windows/Linux)
+  ipcMain.on('window:minimize', () => mainWindow?.minimize())
+  ipcMain.on('window:maximize', () => {
+    if (mainWindow?.isMaximized()) mainWindow.unmaximize()
+    else mainWindow?.maximize()
+  })
+  ipcMain.on('window:close', () => mainWindow?.close())
+
   // Initialize AI Provider Registry (populated by provider extensions)
   const aiRegistry = new AIProviderRegistry()
   const aiServiceFacade = aiRegistry.toService()
   activeAIService = aiServiceFacade
   setAIService(aiServiceFacade)
+
+  // Initialize Skill Registry (populated by extensions and built-in skills)
+  const skillRegistry = new SkillRegistry()
+  const skillServiceFacade = skillRegistry.toService()
+  setSkillService(skillServiceFacade)
+
+  // Register built-in skills
+  skillRegistry.register(createVoiceTranscribeSkill('shell'))
+  skillRegistry.register(createCalcSkill('shell'))
+  skillRegistry.register(createFormatSkill('shell'))
 
   // Create scheduler early so extensions can register task handlers during activation
   cronScheduler = new Scheduler({
@@ -178,7 +204,8 @@ function createWindow(): void {
           cronScheduler?.registerTaskType(taskType, handler, meta)
         }
       },
-      notifications: { show: () => {} }
+      notifications: { show: () => {} },
+      skills: skillServiceFacade
     },
     projectRoot,
     extensionDataRoot: join(app.getPath('userData'), 'extensions'),

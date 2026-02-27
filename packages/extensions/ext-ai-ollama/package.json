@@ -13,7 +13,14 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "ollama_base_url", "label": "Server URL", "type": "string", "default": "http://localhost:11434", "description": "Base URL of the Ollama server" },
+        { "key": "ollama_model_fast", "label": "Fast Model", "type": "string", "default": "llama3.2:3b", "description": "Model for fast-tier completions" },
+        { "key": "ollama_model_standard", "label": "Standard Model", "type": "string", "default": "llama3.1:8b", "description": "Model for standard-tier completions" },
+        { "key": "ollama_model_premium", "label": "Premium Model", "type": "string", "default": "llama3.1:70b", "description": "Model for premium-tier completions" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*"

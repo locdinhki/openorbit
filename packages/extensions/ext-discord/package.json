@@ -13,7 +13,13 @@
     "activationEvents": ["onStartup"],
     "main": "./src/main/index.ts",
     "renderer": "./src/renderer/index.ts",
-    "contributes": {}
+    "contributes": {
+      "settings": [
+        { "key": "discord.bot-token", "label": "Bot Token", "type": "password", "description": "Discord bot token for authentication" },
+        { "key": "discord.authorized-user-ids", "label": "Authorized User IDs", "type": "string", "description": "Comma-separated Discord user IDs allowed to interact" },
+        { "key": "voice.openai-api-key", "label": "Voice API Key (OpenAI)", "type": "password", "description": "Optional fallback — not needed if Whisper CLI is installed locally (pip install openai-whisper)" }
+      ]
+    }
   },
   "dependencies": {
     "@openorbit/core": "*",

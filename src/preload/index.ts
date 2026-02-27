@@ -6,7 +6,7 @@ const shellChannels = new Set<string>(Object.values(IPC))
 
 /** Extension channels use the `ext-` prefix (e.g. `ext-jobs:list`). */
 function isValidChannel(channel: string): boolean {
-  return shellChannels.has(channel) || channel.startsWith('ext-')
+  return shellChannels.has(channel) || channel.startsWith('ext-') || channel.startsWith('window:')
 }
 
 const api = {

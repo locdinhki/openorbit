@@ -32,6 +32,14 @@ body {
   background: var(--cos-text-muted);
 }
 
+/* Title bar drag regions */
+.title-bar-drag {
+  -webkit-app-region: drag;
+}
+.title-bar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Animation keyframes */
 @keyframes fade-in {
   from { opacity: 0; }
