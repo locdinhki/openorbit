@@ -33,6 +33,12 @@
       ],
       "@openorbit/ext-ghl/*": [
         "packages/extensions/ext-ghl/src/*"
+      ],
+      "@openorbit/ext-docs/*": [
+        "packages/extensions/ext-docs/src/*"
+      ],
+      "@openorbit/ext-deal-analyzer/*": [
+        "packages/extensions/ext-deal-analyzer/src/*"
       ]
     }
   }

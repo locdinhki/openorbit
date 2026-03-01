@@ -1,0 +1,33 @@
+{
+  "name": "@openorbit/ext-bookkeeping",
+  "version": "1.0.0",
+  "description": "Expense and income tracking with AI categorization",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-bookkeeping",
+    "displayName": "Bookkeeping",
+    "category": "finance",
+    "icon": "book-open",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "bookkeeping-sidebar", "label": "Bookkeeping", "icon": "book-open", "priority": 48 }
+      ],
+      "workspace": [
+        { "id": "bookkeeping-workspace", "label": "Financials", "default": false }
+      ],
+      "settings": [
+        { "key": "bookkeeping.fiscal-year-start", "label": "Fiscal Year Start", "type": "string", "description": "Month fiscal year starts (1-12)" },
+        { "key": "bookkeeping.default-currency", "label": "Default Currency", "type": "string", "description": "Default currency code (USD, EUR, etc.)" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "@openorbit/ext-plaid": "*"
+  }
+}

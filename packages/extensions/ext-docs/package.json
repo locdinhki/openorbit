@@ -1,0 +1,51 @@
+{
+  "name": "@openorbit/ext-docs",
+  "version": "1.0.0",
+  "description": "Document & Contract Management extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-docs",
+    "displayName": "Documents",
+    "category": "core",
+    "icon": "file-text",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "docs-sidebar", "label": "Documents", "icon": "file-text", "priority": 40 }
+      ],
+      "workspace": [
+        { "id": "docs-workspace", "label": "Documents", "default": false }
+      ],
+      "panel": [
+        { "id": "docs-viewer", "label": "Document Viewer", "icon": "eye" }
+      ],
+      "settings": [
+        {
+          "key": "docs.storage-path",
+          "label": "Storage Path",
+          "type": "string",
+          "description": "Custom document storage location"
+        },
+        {
+          "key": "docs.docusign-key",
+          "label": "DocuSign API Key",
+          "type": "password",
+          "description": "API key for DocuSign e-signature integration"
+        },
+        {
+          "key": "docs.hellosign-key",
+          "label": "HelloSign API Key",
+          "type": "password",
+          "description": "API key for HelloSign e-signature integration"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

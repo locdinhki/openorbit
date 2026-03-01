@@ -120,12 +120,24 @@ describe('SkillRegistry', () => {
     it('executes a skill and returns result', async () => {
       const registry = new SkillRegistry()
       registry.register(createMockSkill())
+      registry.enable('test-skill') // Skills are disabled by default
 
       const result = await registry.execute('test-skill', { input: 'hello' })
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual({ output: 'result' })
       expect(result.durationMs).toBeGreaterThanOrEqual(0)
+    })
+
+    it('returns error for disabled skill', async () => {
+      const registry = new SkillRegistry()
+      registry.register(createMockSkill())
+      // Don't enable — skill is disabled by default
+
+      const result = await registry.execute('test-skill', { input: 'hello' })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('disabled')
     })
 
     it('returns error for unknown skill', async () => {
@@ -144,6 +156,7 @@ describe('SkillRegistry', () => {
           execute: vi.fn().mockRejectedValue(new Error('boom'))
         })
       )
+      registry.enable('test-skill')
 
       const result = await registry.execute('test-skill', {})
 
@@ -159,6 +172,7 @@ describe('SkillRegistry', () => {
           validate: () => ({ valid: false, errors: ['bad input'] })
         })
       )
+      registry.enable('test-skill')
 
       const result = await registry.execute('test-skill', {})
 
@@ -168,9 +182,10 @@ describe('SkillRegistry', () => {
   })
 
   describe('toAITools', () => {
-    it('converts skills to AIToolDefinition[]', () => {
+    it('converts enabled skills to AIToolDefinition[]', () => {
       const registry = new SkillRegistry()
       registry.register(createMockSkill({ id: 'calc-expression' }))
+      registry.enable('calc-expression')
 
       const tools = registry.toAITools()
 
@@ -184,6 +199,21 @@ describe('SkillRegistry', () => {
       const registry = new SkillRegistry()
       registry.register(createMockSkill({ id: 'a', capabilities: { aiTool: true } }))
       registry.register(createMockSkill({ id: 'b', capabilities: { aiTool: false } }))
+      registry.enable('a')
+      registry.enable('b')
+
+      const tools = registry.toAITools()
+
+      expect(tools).toHaveLength(1)
+      expect(tools[0].name).toBe('skill_a')
+    })
+
+    it('filters out disabled skills', () => {
+      const registry = new SkillRegistry()
+      registry.register(createMockSkill({ id: 'a', capabilities: { aiTool: true } }))
+      registry.register(createMockSkill({ id: 'b', capabilities: { aiTool: true } }))
+      registry.enable('a')
+      // 'b' remains disabled
 
       const tools = registry.toAITools()
 
@@ -197,6 +227,7 @@ describe('SkillRegistry', () => {
       const registry = new SkillRegistry()
       const skill = createMockSkill()
       registry.register(skill)
+      registry.enable('test-skill')
 
       const service = registry.toService()
 
@@ -206,6 +237,22 @@ describe('SkillRegistry', () => {
 
       const result = await service.execute('test-skill', { input: 'x' })
       expect(result.success).toBe(true)
+    })
+
+    it('exposes enableSkill and disableSkill methods', () => {
+      const registry = new SkillRegistry()
+      registry.register(createMockSkill())
+
+      const service = registry.toService()
+
+      // Initially disabled
+      expect(service.getEnabledMap()['test-skill']).toBe(false)
+
+      service.enableSkill('test-skill')
+      expect(service.getEnabledMap()['test-skill']).toBe(true)
+
+      service.disableSkill('test-skill')
+      expect(service.getEnabledMap()['test-skill']).toBe(false)
     })
   })
 })

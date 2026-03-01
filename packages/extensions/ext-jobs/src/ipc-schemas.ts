@@ -104,6 +104,7 @@ export const extJobsSchemas = {
     selectedJobId: z.string().optional()
   }),
   'ext-jobs:chat-analyze': z.object({ jobId: z.string() }),
+  'ext-jobs:chat-analyze-all': z.object({}),
 
   // Application
   'ext-jobs:application-start': z.object({ jobId: z.string() }),

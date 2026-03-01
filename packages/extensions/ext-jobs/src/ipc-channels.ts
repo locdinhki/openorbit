@@ -28,6 +28,7 @@ export const EXT_JOBS_IPC = {
   // Chat
   CHAT_SEND: 'ext-jobs:chat-send',
   CHAT_ANALYZE_JOB: 'ext-jobs:chat-analyze',
+  CHAT_ANALYZE_ALL: 'ext-jobs:chat-analyze-all',
 
   // Application
   APPLICATION_START: 'ext-jobs:application-start',

@@ -52,7 +52,7 @@ export interface SettingContribution {
   /** Human-readable label */
   label: string
   /** Type of the setting value */
-  type: 'string' | 'number' | 'boolean' | 'password'
+  type: 'string' | 'number' | 'boolean' | 'password' | 'password-list'
   /** Default value (as string, since settings repo stores strings) */
   default?: string
   /** Optional description shown below the input */
@@ -89,7 +89,7 @@ export interface ExtensionManifest {
   /** Semver version string */
   version?: string
   /** Category for grouping in the Extensions Panel */
-  category?: 'core' | 'ai' | 'integrations' | 'messaging'
+  category?: 'core' | 'ai' | 'integrations' | 'messaging' | 'finance'
   /** Icon name for ActivityBar (lucide icon name or path to SVG) */
   icon: string
   /** When to activate: ["onStartup"] or ["onView:jobs-sidebar"] */

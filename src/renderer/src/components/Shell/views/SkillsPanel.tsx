@@ -10,6 +10,8 @@ import SvgIcon from '../../shared/SvgIcon'
 import SkillCard from './SkillCard'
 import CreateSkillModal from './CreateSkillModal'
 import type { SkillFormData } from './CreateSkillModal'
+import SkillConfigModal from './SkillConfigModal'
+import type { ConfigField } from '@openorbit/core/skills/skill-catalog'
 
 // ---------------------------------------------------------------------------
 // Category tabs
@@ -32,26 +34,32 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export default function SkillsPanel(): React.JSX.Element {
   const [skills, setSkills] = useState<CatalogListItem[]>([])
+  const [enabledMap, setEnabledMap] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabKey>('all')
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editData, setEditData] = useState<SkillFormData | null>(null)
+  const [configModal, setConfigModal] = useState<{
+    skillName: string
+    fields: ConfigField[]
+  } | null>(null)
 
   const loadSkills = useCallback(async () => {
-    const res = await ipc.skillCatalog.list()
-    if (res.success && res.data) {
-      setSkills(res.data)
+    const [catalogRes, skillsRes] = await Promise.all([ipc.skillCatalog.list(), ipc.skills.list()])
+    if (catalogRes.success && catalogRes.data) {
+      setSkills(catalogRes.data)
+    }
+    if (skillsRes.success && skillsRes.data) {
+      setEnabledMap(skillsRes.data.enabledMap)
     }
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    ipc.skillCatalog.list().then((res) => {
-      if (res.success && res.data) setSkills(res.data)
-      setLoading(false)
-    })
-  }, [])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSkills()
+  }, [loadSkills])
 
   const handleInstall = useCallback(async (id: string) => {
     // Optimistic update
@@ -62,6 +70,18 @@ export default function SkillsPanel(): React.JSX.Element {
   const handleUninstall = useCallback(async (id: string) => {
     setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, isInstalled: false } : s)))
     await ipc.skillCatalog.uninstall(id)
+  }, [])
+
+  const handleEnable = useCallback(async (id: string) => {
+    // Optimistic update
+    setEnabledMap((prev) => ({ ...prev, [id]: true }))
+    await ipc.skills.enable(id)
+  }, [])
+
+  const handleDisable = useCallback(async (id: string) => {
+    // Optimistic update
+    setEnabledMap((prev) => ({ ...prev, [id]: false }))
+    await ipc.skills.disable(id)
   }, [])
 
   const handleCreate = useCallback(
@@ -112,6 +132,15 @@ export default function SkillsPanel(): React.JSX.Element {
       await loadSkills()
     },
     [loadSkills]
+  )
+
+  const handleConfigure = useCallback(
+    (id: string) => {
+      const skill = skills.find((s) => s.id === id)
+      if (!skill?.configFields?.length) return
+      setConfigModal({ skillName: skill.displayName, fields: skill.configFields })
+    },
+    [skills]
   )
 
   // Filter skills by tab + search
@@ -203,10 +232,14 @@ export default function SkillsPanel(): React.JSX.Element {
               <SkillCard
                 key={skill.id}
                 skill={skill}
+                isEnabled={enabledMap[skill.id] ?? false}
                 onInstall={handleInstall}
                 onUninstall={handleUninstall}
+                onEnable={handleEnable}
+                onDisable={handleDisable}
                 onEdit={skill.isCustom ? handleEdit : undefined}
                 onDelete={skill.isCustom ? handleDelete : undefined}
+                onConfigure={skill.configFields?.length ? handleConfigure : undefined}
               />
             ))}
           </div>
@@ -222,6 +255,14 @@ export default function SkillsPanel(): React.JSX.Element {
           setModalOpen(false)
           setEditData(null)
         }}
+      />
+
+      {/* Skill Config Modal */}
+      <SkillConfigModal
+        open={!!configModal}
+        skillName={configModal?.skillName ?? ''}
+        fields={configModal?.fields ?? []}
+        onClose={() => setConfigModal(null)}
       />
     </div>
   )

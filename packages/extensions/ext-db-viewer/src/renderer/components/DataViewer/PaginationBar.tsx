@@ -19,7 +19,7 @@ export default function PaginationBar({
   const end = Math.min(page * pageSize, totalCount)
 
   return (
-    <div className="flex items-center justify-between px-3 py-1.5 border-t border-[var(--cos-border)] text-[10px] text-[var(--cos-text-muted)]">
+    <div className="shrink-0 flex items-center justify-between px-3 py-1.5 border-t border-[var(--cos-border)] bg-[var(--cos-bg-primary)] text-[10px] text-[var(--cos-text-muted)]">
       <span>
         {totalCount > 0 ? `${start}-${end} of ${totalCount.toLocaleString()}` : 'No rows'}
       </span>

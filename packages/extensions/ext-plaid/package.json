@@ -1,0 +1,34 @@
+{
+  "name": "@openorbit/ext-plaid",
+  "version": "1.0.0",
+  "description": "Plaid bank account connections extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-plaid",
+    "displayName": "Bank Accounts",
+    "category": "integrations",
+    "icon": "landmark",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "plaid-sidebar", "label": "Bank Accounts", "icon": "landmark", "priority": 42 }
+      ],
+      "workspace": [
+        { "id": "plaid-workspace", "label": "Transactions", "default": false }
+      ],
+      "settings": [
+        { "key": "plaid.client-id", "label": "Client ID", "type": "string", "description": "Plaid Client ID" },
+        { "key": "plaid.secret", "label": "Secret", "type": "password", "description": "Plaid Secret (sandbox/development/production)" },
+        { "key": "plaid.environment", "label": "Environment", "type": "string", "description": "sandbox, development, or production" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "plaid": "^23.0.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@openorbit/ext-invoicing",
+  "version": "1.0.0",
+  "description": "Invoicing and payments extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-invoicing",
+    "displayName": "Invoicing",
+    "category": "finance",
+    "icon": "file-text",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "invoicing-sidebar", "label": "Invoices", "icon": "file-text", "priority": 45 }
+      ],
+      "workspace": [
+        { "id": "invoicing-workspace", "label": "Invoice", "default": false }
+      ],
+      "settings": [
+        { "key": "invoicing.company-name", "label": "Company Name", "type": "string", "description": "Your business name" },
+        { "key": "invoicing.company-email", "label": "Email", "type": "string", "description": "Contact email for invoices" },
+        { "key": "invoicing.company-address", "label": "Address", "type": "string", "description": "Business address" },
+        { "key": "invoicing.default-tax-rate", "label": "Default Tax Rate (%)", "type": "string", "description": "Default tax percentage" },
+        { "key": "invoicing.payment-terms", "label": "Payment Terms (days)", "type": "string", "description": "Days until due" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "@openorbit/ext-stripe": "*"
+  }
+}

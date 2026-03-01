@@ -86,19 +86,22 @@ export default function DbViewerWorkspace(): React.JSX.Element {
         columns={schema.columns.map((c) => c.name)}
       />
 
-      <div className="flex-1 overflow-auto">
-        <DataTable
-          rows={data.rows}
-          columns={schema.columns}
-          primaryKey={schema.primaryKey}
-          sortColumn={data.sortColumn}
-          sortDirection={data.sortDirection}
-          onToggleSort={data.toggleSort}
-          onCellEdit={isReadOnly ? undefined : handleCellEdit}
-          onDelete={!isReadOnly && devMode.enabled ? handleDelete : undefined}
-          onRowClick={isReadOnly ? undefined : setEditRecord}
-          loading={data.loading}
-        />
+      {/* relative/absolute pattern guarantees bounded scroll area */}
+      <div className="relative flex-1">
+        <div className="absolute inset-0 overflow-auto">
+          <DataTable
+            rows={data.rows}
+            columns={schema.columns}
+            primaryKey={schema.primaryKey}
+            sortColumn={data.sortColumn}
+            sortDirection={data.sortDirection}
+            onToggleSort={data.toggleSort}
+            onCellEdit={isReadOnly ? undefined : handleCellEdit}
+            onDelete={!isReadOnly && devMode.enabled ? handleDelete : undefined}
+            onRowClick={isReadOnly ? undefined : setEditRecord}
+            loading={data.loading}
+          />
+        </div>
       </div>
 
       <PaginationBar

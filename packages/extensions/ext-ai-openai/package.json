@@ -15,7 +15,7 @@
     "renderer": "./src/renderer/index.ts",
     "contributes": {
       "settings": [
-        { "key": "openai_api_key", "label": "API Key", "type": "password", "description": "OpenAI API key (sk-...)" }
+        { "key": "openai_api_keys", "label": "API Keys", "type": "password-list", "description": "OpenAI API keys (sk-...). Add multiple keys for round-robin rotation." }
       ]
     }
   },

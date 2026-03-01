@@ -61,6 +61,7 @@ export interface JobListing {
   summary?: string
   redFlags?: string[]
   highlights?: string[]
+  skills?: string[]
 
   // User actions
   status: JobStatus
@@ -265,6 +266,7 @@ export interface ClaudeAnalysis {
   summary: string
   redFlags: string[]
   highlights: string[]
+  skills: string[]
   recommendedResume: string
 }
 

@@ -38,6 +38,17 @@ import { SkillRegistry } from '@openorbit/core/skills/skill-registry'
 import { createVoiceTranscribeSkill } from '@openorbit/core/skills/builtin/voice-transcribe-skill'
 import { createCalcSkill } from '@openorbit/core/skills/builtin/calc-skill'
 import { createFormatSkill } from '@openorbit/core/skills/builtin/format-skill'
+import { createEmailSmtpSkill } from '@openorbit/core/skills/builtin/email-smtp-skill'
+import { createSmsMmsSkill } from '@openorbit/core/skills/builtin/sms-mms-skill'
+import { createPdfGenerateSkill } from '@openorbit/core/skills/builtin/pdf-generate-skill'
+import { createSpreadsheetSkill } from '@openorbit/core/skills/builtin/spreadsheet-skill'
+import {
+  createDocGenerateSkill,
+  setDocGenerateSkillService
+} from '@openorbit/core/skills/builtin/doc-generate-skill'
+import { createOcrSkill } from '@openorbit/core/skills/builtin/ocr-skill'
+import { createFinancialCalcSkill } from '@openorbit/core/skills/builtin/financial-calc-skill'
+import { createChartRenderSkill } from '@openorbit/core/skills/builtin/chart-render-skill'
 import type { ExtensionMainAPI } from '@openorbit/core/extensions/types'
 
 // Built-in extensions (statically imported so electron-vite bundles them)
@@ -54,6 +65,9 @@ import extDiscordMain from '@openorbit/ext-discord/main/index'
 import extDbViewerMain from '@openorbit/ext-db-viewer/main/index'
 import extZillowMain from '@openorbit/ext-zillow/main/index'
 import extGhlMain from '@openorbit/ext-ghl/main/index'
+import extVoipMain from '@openorbit/ext-voip/main/index'
+import extDocsMain from '@openorbit/ext-docs/main/index'
+import extDealAnalyzerMain from '@openorbit/ext-deal-analyzer/main/index'
 
 let mainWindow: BrowserWindow | null = null
 let configWatcher: ConfigWatcher | null = null
@@ -151,6 +165,17 @@ function createWindow(): void {
   skillRegistry.register(createVoiceTranscribeSkill('shell'))
   skillRegistry.register(createCalcSkill('shell'))
   skillRegistry.register(createFormatSkill('shell'))
+  skillRegistry.register(createEmailSmtpSkill('shell'))
+  skillRegistry.register(createSmsMmsSkill('shell'))
+  skillRegistry.register(createPdfGenerateSkill('shell'))
+  skillRegistry.register(createSpreadsheetSkill('shell'))
+  skillRegistry.register(createDocGenerateSkill('shell'))
+  skillRegistry.register(createOcrSkill('shell'))
+  skillRegistry.register(createFinancialCalcSkill('shell'))
+  skillRegistry.register(createChartRenderSkill('shell'))
+
+  // Wire up doc-generate skill to use skill service for PDF generation
+  setDocGenerateSkillService(skillServiceFacade)
 
   // Create scheduler early so extensions can register task handlers during activation
   cronScheduler = new Scheduler({
@@ -177,7 +202,10 @@ function createWindow(): void {
     ['ext-discord', extDiscordMain],
     ['ext-db-viewer', extDbViewerMain],
     ['ext-zillow', extZillowMain],
-    ['ext-ghl', extGhlMain]
+    ['ext-ghl', extGhlMain],
+    ['ext-voip', extVoipMain],
+    ['ext-docs', extDocsMain],
+    ['ext-deal-analyzer', extDealAnalyzerMain]
   ])
 
   const projectRoot = is.dev ? resolve(__dirname, '../..') : resolve(app.getAppPath(), '../..')

@@ -150,14 +150,16 @@ describe('JobsRepo', () => {
         matchReasoning: '',
         summary: '',
         redFlags: [],
-        highlights: []
+        highlights: [],
+        skills: []
       })
       repo.updateAnalysis(job2.id, {
         matchScore: 50,
         matchReasoning: '',
         summary: '',
         redFlags: [],
-        highlights: []
+        highlights: [],
+        skills: []
       })
 
       const jobs = repo.list({ minScore: 70 })
@@ -222,7 +224,8 @@ describe('JobsRepo', () => {
         matchReasoning: 'Great match',
         summary: 'A senior role',
         redFlags: ['Low pay', 'Vague description'],
-        highlights: ['Remote', 'Good tech stack']
+        highlights: ['Remote', 'Good tech stack'],
+        skills: ['react', 'typescript']
       })
 
       const updated = repo.getById(job.id)!
@@ -231,6 +234,7 @@ describe('JobsRepo', () => {
       expect(updated.summary).toBe('A senior role')
       expect(updated.redFlags).toEqual(['Low pay', 'Vague description'])
       expect(updated.highlights).toEqual(['Remote', 'Good tech stack'])
+      expect(updated.skills).toEqual(['react', 'typescript'])
     })
   })
 

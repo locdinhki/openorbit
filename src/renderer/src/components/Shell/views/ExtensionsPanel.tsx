@@ -96,6 +96,103 @@ function SettingField({
   )
 }
 
+// ---------------------------------------------------------------------------
+// Multi-key (password-list) field
+// ---------------------------------------------------------------------------
+
+function KeyListField({
+  value,
+  onChange
+}: {
+  value: string
+  onChange: (value: string) => void
+}): React.JSX.Element {
+  const [newKey, setNewKey] = useState('')
+
+  // Parse JSON array from stored value, with fallback for plain strings
+  const keys: string[] = (() => {
+    if (!value) return []
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed))
+        return parsed.filter((k: unknown) => typeof k === 'string' && k.length > 0)
+    } catch {
+      // Fall through — might be a plain single key (backward compat)
+    }
+    return value.length > 0 ? [value] : []
+  })()
+
+  const maskKey = (key: string): string => {
+    if (key.length <= 8) return '*'.repeat(key.length)
+    return key.slice(0, 7) + '*'.repeat(Math.min(key.length - 11, 20)) + key.slice(-4)
+  }
+
+  const handleAdd = (): void => {
+    const trimmed = newKey.trim()
+    if (!trimmed || keys.includes(trimmed)) return
+    const updated = [...keys, trimmed]
+    onChange(JSON.stringify(updated))
+    setNewKey('')
+  }
+
+  const handleRemove = (index: number): void => {
+    const updated = keys.filter((_, i) => i !== index)
+    onChange(JSON.stringify(updated))
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAdd()
+    }
+  }
+
+  const keyInputClass =
+    'flex-1 px-2.5 py-1.5 text-sm rounded-md bg-[var(--cos-bg-primary)] border border-[var(--cos-border)] text-[var(--cos-text-primary)] placeholder:text-[var(--cos-text-muted)] focus:outline-none focus:border-indigo-500/50'
+
+  return (
+    <div className="space-y-2">
+      {/* Existing keys */}
+      {keys.map((key, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--cos-bg-primary)] border border-[var(--cos-border)]"
+        >
+          <span className="flex-1 text-sm font-mono text-[var(--cos-text-secondary)] truncate">
+            {maskKey(key)}
+          </span>
+          <button
+            onClick={() => handleRemove(i)}
+            title="Remove key"
+            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-[var(--cos-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <SvgIcon name="x" size={12} />
+          </button>
+        </div>
+      ))}
+
+      {/* Add new key */}
+      <div className="flex items-center gap-2">
+        <input
+          type="password"
+          value={newKey}
+          onChange={(e) => setNewKey(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add new key..."
+          className={keyInputClass}
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!newKey.trim()}
+          className="flex-shrink-0 px-2.5 py-1.5 text-xs font-medium rounded-md bg-[var(--cos-accent)] text-white hover:bg-[var(--cos-accent-hover)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ExtensionSettingsForm({
   settings
 }: {
@@ -148,11 +245,15 @@ function ExtensionSettingsForm({
           <label className="block text-xs font-medium text-[var(--cos-text-secondary)] mb-1">
             {s.label}
           </label>
-          <SettingField
-            setting={s}
-            value={values[s.key] ?? ''}
-            onChange={(v) => handleChange(s.key, v)}
-          />
+          {s.type === 'password-list' ? (
+            <KeyListField value={values[s.key] ?? ''} onChange={(v) => handleChange(s.key, v)} />
+          ) : (
+            <SettingField
+              setting={s}
+              value={values[s.key] ?? ''}
+              onChange={(v) => handleChange(s.key, v)}
+            />
+          )}
           {s.description && (
             <p className="text-[11px] text-[var(--cos-text-muted)] mt-1">{s.description}</p>
           )}

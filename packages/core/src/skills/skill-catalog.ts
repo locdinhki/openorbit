@@ -13,6 +13,14 @@ import type { UserSkillsRepo } from './user-skills-repo'
 // Types
 // ---------------------------------------------------------------------------
 
+export interface ConfigField {
+  key: string
+  label: string
+  type: 'text' | 'password' | 'number' | 'boolean'
+  placeholder?: string
+  required?: boolean
+}
+
 export interface CatalogSkill {
   id: string
   displayName: string
@@ -22,6 +30,7 @@ export interface CatalogSkill {
   type: 'instruction' | 'tool'
   content?: string
   isBuiltIn: boolean
+  configFields?: ConfigField[]
 }
 
 export interface CatalogListItem {
@@ -34,6 +43,7 @@ export interface CatalogListItem {
   isBuiltIn: boolean
   isCustom: boolean
   isInstalled: boolean
+  configFields?: ConfigField[]
 }
 
 // ---------------------------------------------------------------------------
@@ -72,32 +82,13 @@ const SKILL_CATALOG: CatalogSkill[] = [
 
   // Instruction skills (installable)
   {
-    id: 'pdf-generation',
-    displayName: 'PDF Generation',
-    description: 'Create, edit, and review PDFs programmatically',
+    id: 'pdf-generate',
+    displayName: 'PDF Generator',
+    description: 'Generate PDF documents from structured content blocks using pdf-lib',
     category: 'document',
-    icon: 'sparkles',
-    type: 'instruction',
-    isBuiltIn: false,
-    content: `## Workflow
-1. Collect data from the user's request (contact info, deal data, property details, etc.)
-2. Select or build a PDF template (invoice, report, comp package, cover letter)
-3. Merge data into the template using placeholder fields
-4. Generate the PDF and present a download link or preview
-
-## Conventions
-- Use clean, professional layouts with consistent fonts and spacing
-- Include headers, footers, and page numbers for multi-page documents
-- Support merge fields from any extension's data (contacts, deals, properties)
-
-## Dependencies
-- pdf-lib or pdfkit for TypeScript-native PDF generation
-- Template system with {{field}} placeholders
-
-## Quality Gates
-- Generated PDFs must open correctly in standard PDF readers
-- All merge fields must be resolved (no raw {{field}} in output)
-- File size should be reasonable (compress images if needed)`
+    icon: 'file-text',
+    type: 'tool',
+    isBuiltIn: true
   },
   {
     id: 'spreadsheet',
@@ -130,86 +121,73 @@ const SKILL_CATALOG: CatalogSkill[] = [
   {
     id: 'email-smtp',
     displayName: 'Email (SMTP)',
-    description: 'Send emails programmatically via SMTP',
+    description:
+      'Send emails programmatically via SMTP using Nodemailer with HTML templates and merge fields',
     category: 'communication',
     icon: 'send',
-    type: 'instruction',
-    isBuiltIn: false,
-    content: `## Workflow
-1. Compose the email with recipient, subject, and body
-2. Apply merge fields from contact or deal data
-3. Attach files if needed (PDFs, spreadsheets)
-4. Send via configured SMTP server and track delivery status
-
-## Conventions
-- Always include plain text fallback for HTML emails
-- Use merge fields for personalization ({{firstName}}, {{company}})
-- Respect opt-out preferences and include unsubscribe links for marketing emails
-
-## Dependencies
-- nodemailer with SMTP config (Gmail, Outlook, custom)
-- HTML template engine with merge field support
-
-## Quality Gates
-- Emails must be deliverable (valid SMTP config, proper FROM address)
-- Attachments must be properly encoded and sized appropriately
-- Track sent/failed status for every email`
+    type: 'tool',
+    isBuiltIn: true,
+    configFields: [
+      {
+        key: 'email.smtp-host',
+        label: 'SMTP Host',
+        type: 'text',
+        placeholder: 'smtp.gmail.com',
+        required: true
+      },
+      { key: 'email.smtp-port', label: 'SMTP Port', type: 'number', placeholder: '587' },
+      {
+        key: 'email.smtp-user',
+        label: 'SMTP Username',
+        type: 'text',
+        placeholder: 'you@example.com',
+        required: true
+      },
+      { key: 'email.smtp-pass', label: 'SMTP Password', type: 'password', required: true },
+      {
+        key: 'email.smtp-from',
+        label: 'From Address',
+        type: 'text',
+        placeholder: 'you@example.com',
+        required: true
+      },
+      { key: 'email.smtp-secure', label: 'Use TLS (port 465)', type: 'boolean' }
+    ]
   },
   {
     id: 'sms-mms',
     displayName: 'SMS / MMS',
-    description: 'Send text messages programmatically',
+    description: 'Send SMS and MMS messages via Twilio with E.164 format and delivery tracking',
     category: 'communication',
     icon: 'message-circle',
-    type: 'instruction',
-    isBuiltIn: false,
-    content: `## Workflow
-1. Compose the message with recipient phone number and body
-2. Apply merge fields from contact data
-3. Attach media for MMS if needed
-4. Send via SMS gateway and track delivery status
-
-## Conventions
-- Keep SMS under 160 characters when possible
-- Include opt-out instructions for marketing messages
-- Use E.164 phone number format (+1XXXXXXXXXX)
-
-## Dependencies
-- Twilio API or generic SMS gateway
-- Template system with merge fields
-
-## Quality Gates
-- Messages must be deliverable (valid phone numbers, proper formatting)
-- Track delivery status (sent, delivered, failed)
-- Respect opt-in/opt-out preferences`
+    type: 'tool',
+    isBuiltIn: true,
+    configFields: [
+      {
+        key: 'twilio.account-sid',
+        label: 'Account SID',
+        type: 'text',
+        placeholder: 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        required: true
+      },
+      { key: 'twilio.auth-token', label: 'Auth Token', type: 'password', required: true },
+      {
+        key: 'twilio.phone-number',
+        label: 'Phone Number',
+        type: 'text',
+        placeholder: '+15551234567',
+        required: true
+      }
+    ]
   },
   {
-    id: 'charts-visualization',
-    displayName: 'Charts & Visualization',
-    description: 'Generate charts and data visualizations',
-    category: 'data',
-    icon: 'sparkles',
-    type: 'instruction',
-    isBuiltIn: false,
-    content: `## Workflow
-1. Collect data points from the user's request or extension data
-2. Determine the appropriate chart type (bar, line, pie, funnel, etc.)
-3. Configure chart options (colors, labels, axes, legends)
-4. Render the chart for display or export (PNG/SVG for PDF embedding)
-
-## Conventions
-- Use consistent color palettes aligned with the app theme
-- Always include axis labels, titles, and legends
-- Support responsive sizing for different container widths
-
-## Dependencies
-- chart.js for interactive charts in the renderer
-- Server-side rendering to PNG/SVG for PDF embedding
-
-## Quality Gates
-- Charts must accurately represent the underlying data
-- Labels must be readable (no overlapping text)
-- Export images must be high-resolution for print`
+    id: 'chart-render',
+    displayName: 'Chart Renderer',
+    description: 'Generate chart images (bar, line, pie, doughnut) from data using Chart.js',
+    category: 'media',
+    icon: 'bar-chart-2',
+    type: 'tool',
+    isBuiltIn: true
   },
   {
     id: 'document-generation',
@@ -243,35 +221,16 @@ const SKILL_CATALOG: CatalogSkill[] = [
   {
     id: 'financial-calculator',
     displayName: 'Financial Calculator',
-    description: 'Business and real estate financial formulas',
+    description: 'Real estate investment calculations (ROI, cap rate, DSCR, mortgage, etc.)',
     category: 'data',
     icon: 'calculator',
-    type: 'instruction',
-    isBuiltIn: false,
-    content: `## Workflow
-1. Identify the financial calculation needed (ROI, cap rate, DSCR, etc.)
-2. Collect required inputs (purchase price, rental income, expenses, etc.)
-3. Run the calculation using standard financial formulas
-4. Present results with clear labels and formatting
-
-## Conventions
-- Use standard financial formulas (ROI, cap rate, cash-on-cash, DSCR, mortgage amortization)
-- Format currency values with commas and 2 decimal places
-- Show formula breakdown so users can verify calculations
-
-## Dependencies
-- Pure TypeScript calculation library (no external APIs)
-- Support for: ROI, cap rate, cash-on-cash return, DSCR, mortgage amortization, rental yield, break-even analysis
-
-## Quality Gates
-- Calculations must be mathematically correct
-- Handle edge cases (division by zero, negative values)
-- Results should match industry-standard calculators`
+    type: 'tool',
+    isBuiltIn: true
   },
   {
     id: 'ocr-extraction',
     displayName: 'OCR / Text Extraction',
-    description: 'Extract text from images and scanned documents',
+    description: 'Extract text from images and scanned documents using Tesseract.js',
     category: 'media',
     icon: 'sparkles',
     type: 'instruction',
@@ -361,7 +320,8 @@ export function getMergedCatalogList(
       type: skill.type,
       isBuiltIn: skill.isBuiltIn,
       isCustom: false,
-      isInstalled: skill.isBuiltIn || settings.get(`skill.${skill.id}.installed`) === '1'
+      isInstalled: skill.isBuiltIn || settings.get(`skill.${skill.id}.installed`) === '1',
+      configFields: skill.configFields
     })
   }
 

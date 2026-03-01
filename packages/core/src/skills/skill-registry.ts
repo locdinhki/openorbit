@@ -25,9 +25,9 @@ export class SkillRegistry {
       log.warn(`Skill "${skill.id}" already registered, replacing`)
     }
     this.skills.set(skill.id, skill)
-    // Default to enabled if not explicitly set
+    // Default to disabled — user must explicitly enable skills
     if (!this.enabledMap.has(skill.id)) {
-      this.enabledMap.set(skill.id, true)
+      this.enabledMap.set(skill.id, false)
     }
     log.info(`Registered skill: ${skill.displayName} (${skill.id}) [${skill.extensionId}]`)
   }

@@ -23,7 +23,10 @@ export default defineConfig({
         '@openorbit/ext-whatsapp': resolve('packages/extensions/ext-whatsapp/src'),
         '@openorbit/ext-discord': resolve('packages/extensions/ext-discord/src'),
         '@openorbit/ext-zillow': resolve('packages/extensions/ext-zillow/src'),
-        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src')
+        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src'),
+        '@openorbit/ext-deal-analyzer': resolve('packages/extensions/ext-deal-analyzer/src'),
+        '@openorbit/ext-voip': resolve('packages/extensions/ext-voip/src'),
+        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src')
       }
     },
     build: {
@@ -34,7 +37,8 @@ export default defineConfig({
           'ws',
           '@anthropic-ai/claude-agent-sdk',
           '@whiskeysockets/baileys',
-          'discord.js'
+          'discord.js',
+          'canvas'
         ]
       }
     }
@@ -63,7 +67,10 @@ export default defineConfig({
         '@openorbit/ext-whatsapp': resolve('packages/extensions/ext-whatsapp/src'),
         '@openorbit/ext-discord': resolve('packages/extensions/ext-discord/src'),
         '@openorbit/ext-zillow': resolve('packages/extensions/ext-zillow/src'),
-        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src')
+        '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src'),
+        '@openorbit/ext-deal-analyzer': resolve('packages/extensions/ext-deal-analyzer/src'),
+        '@openorbit/ext-voip': resolve('packages/extensions/ext-voip/src'),
+        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src')
       }
     },
     define: {

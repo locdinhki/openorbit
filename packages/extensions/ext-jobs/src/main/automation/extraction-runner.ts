@@ -298,11 +298,14 @@ export class ExtractionRunner {
     await this.behavior.delay(2000, 4000)
 
     let pageNum = 1
-    const maxPages = 5
+    const settings = new SettingsRepo()
+    const maxPages = Number(settings.get('jobs.max-search-pages')) || 5
+    const maxExtractions =
+      Number(settings.get('jobs.max-extractions')) || HumanBehavior.MAX_EXTRACTIONS_PER_SESSION
 
     while (this.running && !this.paused && pageNum <= maxPages) {
       // Rate limit check
-      if (this.stats.jobsExtracted >= HumanBehavior.MAX_EXTRACTIONS_PER_SESSION) {
+      if (this.stats.jobsExtracted >= maxExtractions) {
         log.info('Extraction limit reached for session')
         break
       }
@@ -422,8 +425,13 @@ export class ExtractionRunner {
 
     log.info(`Extraction complete for ${profile.name}: ${this.stats.jobsExtracted} jobs`)
 
-    // Auto-analyze newly extracted jobs with Claude
-    await this.autoAnalyzeNewJobs(profile.id)
+    // Auto-analyze newly extracted jobs with Claude (if enabled)
+    const autoAnalyze = new SettingsRepo().get('jobs.auto-analyze')
+    if (autoAnalyze !== '0') {
+      await this.autoAnalyzeNewJobs(profile.id)
+    } else {
+      log.info('Auto-analyze disabled, skipping analysis')
+    }
   }
 
   /** Auto-analyze newly extracted jobs using Claude */
@@ -449,15 +457,17 @@ export class ExtractionRunner {
           matchReasoning: analysis.reasoning,
           summary: analysis.summary,
           redFlags: analysis.redFlags,
-          highlights: analysis.highlights
+          highlights: analysis.highlights,
+          skills: analysis.skills
         })
         this.jobsRepo.updateStatus(job.id, 'reviewed')
 
         analyzed++
         this.stats.jobsAnalyzed = analyzed
 
-        // Notify on high-match jobs (score >= 0.8)
-        if (analysis.matchScore >= 0.8) {
+        // Notify on high-match jobs
+        const threshold = Number(new SettingsRepo().get('jobs.high-match-threshold')) || 80
+        if (analysis.matchScore >= threshold) {
           getCoreNotifier()?.notifyHighMatchJob({
             title: job.title,
             company: job.company,

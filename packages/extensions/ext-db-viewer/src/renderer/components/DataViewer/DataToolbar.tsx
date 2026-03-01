@@ -58,7 +58,7 @@ export default function DataToolbar({
   }
 
   return (
-    <div className="border-b border-[var(--cos-border)]">
+    <div className="shrink-0 border-b border-[var(--cos-border)]">
       <div className="flex items-center justify-between px-3 py-1.5">
         <div className="flex items-center gap-2">
           <span className="text-xs text-[var(--cos-text-muted)]">

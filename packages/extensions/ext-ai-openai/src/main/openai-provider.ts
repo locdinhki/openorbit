@@ -72,6 +72,7 @@ export class OpenAIProvider implements AIProvider {
     models: [OPENAI_MODELS.GPT4O_MINI, OPENAI_MODELS.GPT4O, OPENAI_MODELS.O1]
   }
 
+  private keyIndex = 0
   private settingsRepo = new SettingsRepo()
   private usageRepo = new ApiUsageRepo()
   private log: Logger
@@ -82,15 +83,14 @@ export class OpenAIProvider implements AIProvider {
 
   isConfigured(): boolean {
     try {
-      const key = this.settingsRepo.get('openai_api_key')
-      return typeof key === 'string' && key.length > 0
+      return this.getKeys().length > 0
     } catch {
       return false
     }
   }
 
   resetClient(): void {
-    // No client caching needed — we create fresh fetch requests
+    this.keyIndex = 0
   }
 
   async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
@@ -323,14 +323,36 @@ export class OpenAIProvider implements AIProvider {
   // Private
   // -------------------------------------------------------------------------
 
+  /** Get all configured API keys. Reads JSON array from openai_api_keys, falls back to single key. */
+  private getKeys(): string[] {
+    const raw = this.settingsRepo.get('openai_api_keys')
+    if (raw) {
+      try {
+        const keys = JSON.parse(raw) as string[]
+        if (Array.isArray(keys) && keys.length > 0) return keys
+      } catch {
+        // Fall through to single key
+      }
+    }
+    const single = this.settingsRepo.get('openai_api_key')
+    return single && typeof single === 'string' && single.length > 0 ? [single] : []
+  }
+
   private getApiKey(): string {
-    const key = this.settingsRepo.get('openai_api_key')
-    if (!key || typeof key !== 'string') {
+    const keys = this.getKeys()
+    if (keys.length === 0) {
       throw new AuthenticationError(
         'OpenAI API key not configured. Go to Settings to add your key.'
       )
     }
-    return key
+    return keys[this.keyIndex % keys.length]
+  }
+
+  private rotateKey(): void {
+    const keys = this.getKeys()
+    if (keys.length > 1) {
+      this.keyIndex = (this.keyIndex + 1) % keys.length
+    }
   }
 
   private async callAPI(path: string, body: unknown): Promise<Record<string, unknown>> {
@@ -399,6 +421,7 @@ export class OpenAIProvider implements AIProvider {
           })
 
           if (isRateLimit || isTimeout) {
+            this.rotateKey()
             const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), MAX_BACKOFF_MS)
             await new Promise((r) => setTimeout(r, delay))
             continue

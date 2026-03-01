@@ -21,6 +21,7 @@ interface JobRow {
   summary: string | null
   red_flags: string | null
   highlights: string | null
+  skills: string | null
   status: string
   user_notes: string | null
   reviewed_at: string | null
@@ -52,6 +53,7 @@ function rowToJob(row: JobRow): JobListing {
     summary: row.summary ?? undefined,
     redFlags: row.red_flags ? JSON.parse(row.red_flags) : undefined,
     highlights: row.highlights ? JSON.parse(row.highlights) : undefined,
+    skills: row.skills ? JSON.parse(row.skills) : undefined,
     status: row.status as JobStatus,
     userNotes: row.user_notes ?? undefined,
     reviewedAt: row.reviewed_at ?? undefined,
@@ -74,13 +76,13 @@ export class JobsRepo {
       `INSERT INTO jobs (
         id, external_id, platform, profile_id, url, title, company, location,
         salary, job_type, description, posted_date, easy_apply,
-        match_score, match_reasoning, summary, red_flags, highlights,
+        match_score, match_reasoning, summary, red_flags, highlights, skills,
         status, user_notes, reviewed_at, applied_at,
         application_answers, cover_letter_used, resume_used,
         created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?,
@@ -105,6 +107,7 @@ export class JobsRepo {
       job.summary ?? null,
       job.redFlags ? JSON.stringify(job.redFlags) : null,
       job.highlights ? JSON.stringify(job.highlights) : null,
+      job.skills ? JSON.stringify(job.skills) : null,
       job.status,
       job.userNotes ?? null,
       job.reviewedAt ?? null,
@@ -206,13 +209,14 @@ export class JobsRepo {
       summary: string
       redFlags: string[]
       highlights: string[]
+      skills: string[]
     }
   ): void {
     const db = getDatabase()
     db.prepare(
       `UPDATE jobs SET
         match_score = ?, match_reasoning = ?, summary = ?,
-        red_flags = ?, highlights = ?, updated_at = ?
+        red_flags = ?, highlights = ?, skills = ?, updated_at = ?
       WHERE id = ?`
     ).run(
       analysis.matchScore,
@@ -220,6 +224,7 @@ export class JobsRepo {
       analysis.summary,
       JSON.stringify(analysis.redFlags),
       JSON.stringify(analysis.highlights),
+      JSON.stringify(analysis.skills),
       new Date().toISOString(),
       id
     )

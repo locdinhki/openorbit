@@ -1,0 +1,33 @@
+{
+  "name": "@openorbit/ext-stripe",
+  "version": "1.0.0",
+  "description": "Stripe payments and subscriptions extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-stripe",
+    "displayName": "Stripe Payments",
+    "category": "integrations",
+    "icon": "credit-card",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "stripe-sidebar", "label": "Stripe", "icon": "credit-card", "priority": 40 }
+      ],
+      "workspace": [
+        { "id": "stripe-workspace", "label": "Payments", "default": false }
+      ],
+      "settings": [
+        { "key": "stripe.secret-key", "label": "Secret Key", "type": "password", "description": "Stripe Secret Key (sk_live_xxx or sk_test_xxx)" },
+        { "key": "stripe.webhook-secret", "label": "Webhook Secret", "type": "password", "description": "Webhook signing secret (whsec_xxx)" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*",
+    "stripe": "^14.0.0"
+  }
+}

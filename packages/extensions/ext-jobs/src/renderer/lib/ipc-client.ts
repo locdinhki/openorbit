@@ -91,6 +91,11 @@ export const ipc = {
     analyzeJob: (jobId: string): Promise<IPCResult<JobListing>> =>
       api.invoke(EXT_JOBS_IPC.CHAT_ANALYZE_JOB, { jobId }) as Promise<IPCResult<JobListing>>,
 
+    analyzeAll: (): Promise<IPCResult<{ analyzed: number; total: number }>> =>
+      api.invoke(EXT_JOBS_IPC.CHAT_ANALYZE_ALL, {}) as Promise<
+        IPCResult<{ analyzed: number; total: number }>
+      >,
+
     clear: (): Promise<IPCResult> => api.invoke(EXT_JOBS_IPC.CHAT_CLEAR, {}) as Promise<IPCResult>
   },
 

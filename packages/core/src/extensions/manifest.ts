@@ -43,7 +43,7 @@ const commandContributionSchema = z.object({
 const settingContributionSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
-  type: z.enum(['string', 'number', 'boolean', 'password']),
+  type: z.enum(['string', 'number', 'boolean', 'password', 'password-list']),
   default: z.string().optional(),
   description: z.string().optional()
 })
@@ -76,7 +76,7 @@ export const extensionManifestSchema = z.object({
   displayName: z.string().min(1),
   description: z.string().optional(),
   version: z.string().optional(),
-  category: z.enum(['core', 'ai', 'integrations', 'messaging']).optional(),
+  category: z.enum(['core', 'ai', 'integrations', 'messaging', 'finance']).optional(),
   icon: z.string().min(1),
   activationEvents: z.array(z.string()).min(1),
   main: z.string().min(1),

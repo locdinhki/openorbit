@@ -1,0 +1,32 @@
+{
+  "name": "@openorbit/ext-voip",
+  "version": "1.0.0",
+  "description": "VoIP Call Tracking & Recording extension with AI transcription",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-voip",
+    "displayName": "VoIP & Call Recording",
+    "category": "integrations",
+    "icon": "phone",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "voip-sidebar", "label": "Calls", "icon": "phone", "priority": 40 }
+      ],
+      "settings": [
+        { "key": "voip.twilio-account-sid", "label": "Twilio Account SID", "type": "string", "description": "Your Twilio Account SID" },
+        { "key": "voip.twilio-auth-token", "label": "Twilio Auth Token", "type": "password", "description": "Your Twilio Auth Token" },
+        { "key": "voip.twilio-phone-number", "label": "Twilio Phone Number", "type": "string", "description": "Your Twilio phone number in E.164 format" },
+        { "key": "voip.recording-enabled", "label": "Enable Call Recording", "type": "boolean", "description": "Automatically record all calls" },
+        { "key": "voip.transcription-enabled", "label": "Enable Transcription", "type": "boolean", "description": "Automatically transcribe recorded calls" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

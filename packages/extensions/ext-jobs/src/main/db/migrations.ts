@@ -112,5 +112,32 @@ export const extJobsMigrations: ExtensionMigration[] = [
         CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated ON chat_sessions(updated_at DESC);
       `)
     }
+  },
+  {
+    version: 3,
+    description: 'Add skills column to jobs table',
+    up: (db) => {
+      db.exec(`ALTER TABLE jobs ADD COLUMN skills TEXT`)
+    }
+  },
+  {
+    version: 4,
+    description: 'Reset reviewed jobs without skills back to new for re-analysis',
+    up: (db) => {
+      db.exec(`
+        UPDATE jobs SET
+          status = 'new',
+          reviewed_at = NULL,
+          match_score = NULL,
+          match_reasoning = NULL,
+          summary = NULL,
+          red_flags = NULL,
+          highlights = NULL,
+          skills = NULL,
+          updated_at = datetime('now')
+        WHERE status = 'reviewed'
+          AND (skills IS NULL OR skills = '[]' OR skills = '')
+      `)
+    }
   }
 ]

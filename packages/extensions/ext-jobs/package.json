@@ -33,6 +33,85 @@
       "commands": [
         { "id": "ext-jobs:start-extraction", "label": "Start Extraction" },
         { "id": "ext-jobs:stop-extraction", "label": "Stop Extraction" }
+      ],
+      "settings": [
+        {
+          "key": "apply_disabled",
+          "label": "Disable Auto-Apply",
+          "type": "boolean",
+          "default": "0",
+          "description": "Prevent automated job applications (review-only mode)"
+        },
+        {
+          "key": "jobs.auto-analyze",
+          "label": "Auto-Analyze After Extraction",
+          "type": "boolean",
+          "default": "1",
+          "description": "Automatically analyze newly extracted jobs with AI"
+        },
+        {
+          "key": "jobs.high-match-threshold",
+          "label": "High-Match Notification Threshold",
+          "type": "number",
+          "default": "80",
+          "description": "Notify when a job match score meets or exceeds this value (0-100)"
+        },
+        {
+          "key": "jobs.max-search-pages",
+          "label": "Max Search Pages",
+          "type": "number",
+          "default": "5",
+          "description": "Maximum search result pages to scrape per profile"
+        },
+        {
+          "key": "jobs.max-extractions",
+          "label": "Max Extractions Per Session",
+          "type": "number",
+          "default": "75",
+          "description": "Hard limit on jobs extracted in one automation session"
+        },
+        {
+          "key": "auto_apply_threshold",
+          "label": "Auto-Apply Threshold",
+          "type": "number",
+          "default": "90",
+          "description": "Minimum match score to auto-apply (0-100)"
+        },
+        {
+          "key": "review_threshold",
+          "label": "Review Threshold",
+          "type": "number",
+          "default": "70",
+          "description": "Queue jobs for review above this score (0-100)"
+        },
+        {
+          "key": "skip_threshold",
+          "label": "Auto-Skip Threshold",
+          "type": "number",
+          "default": "40",
+          "description": "Automatically skip jobs below this score (0-100)"
+        },
+        {
+          "key": "daily_cap",
+          "label": "Daily Application Cap",
+          "type": "number",
+          "default": "20",
+          "description": "Maximum applications to submit per day"
+        },
+        {
+          "key": "session_cap",
+          "label": "Session Application Cap",
+          "type": "number",
+          "default": "15",
+          "description": "Maximum applications per automation session"
+        },
+        {
+          "key": "actions_per_minute",
+          "label": "Actions Per Minute",
+          "type": "number",
+          "default": "8",
+          "description": "Rate limit for automation actions (1-12)"
+        }
       ]
     }
   },

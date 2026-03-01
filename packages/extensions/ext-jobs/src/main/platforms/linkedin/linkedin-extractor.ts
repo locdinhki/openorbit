@@ -196,13 +196,14 @@ export class LinkedInExtractor {
       return null
     }
 
-    // Title
+    // Title — strip LinkedIn verification badge text that leaks from
+    // the shield icon's aria/alt text (e.g. "… with verification")
     let title = ''
     for (const sel of SELECTORS.cardTitle) {
       try {
         const titleEl = await el.$(sel)
         if (titleEl) {
-          title = ((await titleEl.innerText()) ?? '').trim()
+          title = ((await titleEl.innerText()) ?? '').trim().replace(/\s+with verification$/i, '')
           if (title) break
         }
       } catch {
@@ -210,13 +211,13 @@ export class LinkedInExtractor {
       }
     }
 
-    // Company
+    // Company — also strip verification badge text
     let company = ''
     for (const sel of SELECTORS.cardCompany) {
       try {
         const compEl = await el.$(sel)
         if (compEl) {
-          company = ((await compEl.innerText()) ?? '').trim()
+          company = ((await compEl.innerText()) ?? '').trim().replace(/\s+with verification$/i, '')
           if (company) break
         }
       } catch {

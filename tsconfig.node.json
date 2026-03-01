@@ -27,7 +27,11 @@
       "@openorbit/ext-discord/*": ["packages/extensions/ext-discord/src/*"],
       "@openorbit/ext-db-viewer/*": ["packages/extensions/ext-db-viewer/src/*"],
       "@openorbit/ext-zillow/*": ["packages/extensions/ext-zillow/src/*"],
-      "@openorbit/ext-ghl/*": ["packages/extensions/ext-ghl/src/*"]
+      "@openorbit/ext-ghl/*": ["packages/extensions/ext-ghl/src/*"],
+      "@openorbit/ext-ai-lm-studio/*": ["packages/extensions/ext-ai-lm-studio/src/*"],
+      "@openorbit/ext-voip/*": ["packages/extensions/ext-voip/src/*"],
+      "@openorbit/ext-docs/*": ["packages/extensions/ext-docs/src/*"],
+      "@openorbit/ext-deal-analyzer/*": ["packages/extensions/ext-deal-analyzer/src/*"]
     }
   }
 }

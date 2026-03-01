@@ -19,7 +19,13 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 11 | [CRM & Real Estate Intelligence](archive/phase-11-crm-real-estate/) | GoHighLevel CRM, Zillow property data, AI-powered CRM chat, ARV enrichment | Very High | **Complete** |
 | 12 | [Skill System](archive/phase-12-skill-system/) | Generic reusable capabilities any extension or AI can invoke | Moderate | **Complete** |
 | 13 | [Skills Panel UI](archive/phase-13-skills-panel-ui/) | Browsable skill catalog, install/uninstall, custom skill creation | Moderate | **Complete** |
-| 14 | [LM Studio Provider](phase-14-lm-studio-provider/) | LM Studio local LLM AI provider extension | Low | **Complete** |
+| 14 | [LM Studio Provider](archive/phase-14-lm-studio-provider/) | LM Studio local LLM AI provider extension | Low | **Complete** |
+| 15 | [Deal Analysis & Reporting](phase-15-deal-analysis-reporting/) | Financial calculator, PDF generation, charts skills + deal analyzer extension | High | **Complete** |
+| 16 | [Communication & Outreach](phase-16-communication-outreach/) | Email SMTP skill, SMS/MMS skill, VoIP extension | High | **Complete** |
+| 17 | [Document & Data Tooling](archive/phase-17-document-data-tooling/) | Spreadsheet/CSV skill, document templates, OCR, document management extension | High | **Complete** |
+| 18 | [Financial Operations](archive/phase-18-financial-operations/) | Stripe, Plaid, invoicing, bookkeeping extensions | Very High | **Complete** |
+| 19 | [Portfolio & Market Intelligence](phase-19-portfolio-market-intelligence/) | Property portfolio, Redfin data, generic web scraper | High | Not started |
+| 20 | [Marketing & Business Intelligence](phase-20-marketing-business-intelligence/) | Email marketing, social media, calendar, unified dashboard | Very High | Not started |
 
 ## After Each Phase
 
@@ -39,6 +45,12 @@ Internal development guide. Each phase interleaves engineering hardening with fe
 | 12 | A composable platform with generic skills (calculator, transcription, formatting) any extension or AI chat can invoke |
 | 13 | A platform with a browsable skills marketplace where users can install AI instruction skills and create custom ones |
 | 14 | A platform with 5 AI provider options including LM Studio for local inference alongside Claude, OpenAI, and Ollama |
+| 15 | A CRM-integrated platform with comprehensive real estate deal analysis, financial calculators, PDF reports with charts, and AI-powered deal evaluation |
+| 16 | A platform with three outbound communication channels (email, SMS, phone) composable by any extension |
+| 17 | A platform with a complete document pipeline — spreadsheet export, template generation, OCR, and managed document storage with e-signatures |
+| 18 | A platform with a full financial stack — Stripe payments, Plaid bank feeds, professional invoicing, and AI-assisted bookkeeping |
+| 19 | A platform tracking the full real estate lifecycle — deal analysis through owned property management with multi-source market intelligence |
+| 20 | A complete business operating system with marketing automation, social scheduling, calendar booking, and a unified dashboard with AI business intelligence |
 
 ## Phase Dependency Map
 
@@ -70,6 +82,18 @@ Phase 12: Skill System
 Phase 13: Skills Panel UI
     |
 Phase 14: LM Studio Provider (independent, parallel track after Phase 6)
+    |
+Phase 15: Deal Analysis & Reporting (depends on Phase 11 + 12)
+    |
+Phase 16: Communication & Outreach (depends on Phase 12)
+    |
+Phase 17: Document & Data Tooling (depends on Phase 15)
+    |
+Phase 18: Financial Operations (depends on Phase 16 + 17)
+    |
+Phase 19: Portfolio & Market Intelligence (depends on Phase 15)
+    |
+Phase 20: Marketing & Business Intelligence — capstone (depends on Phase 16 + 18)
 ```
 
 ## Critical Files (touched across multiple phases)

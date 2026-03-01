@@ -17,6 +17,7 @@ When analyzing a job, respond with ONLY valid JSON in this exact format:
   "summary": "<1-2 sentence job summary focusing on what matters to the candidate>",
   "redFlags": ["<red flag 1>", "<red flag 2>"],
   "highlights": ["<highlight 1>", "<highlight 2>"],
+  "skills": ["<skill 1>", "<skill 2>"],
   "recommendedResume": "<name of most relevant resume or 'default'>"
 }
 
@@ -24,6 +25,7 @@ Rules:
 - Be honest with scores — don't inflate. A perfect match is rare.
 - Red flags: low pay, unrealistic requirements, vague descriptions, high turnover signals, etc.
 - Highlights: good pay, remote, interesting tech, growth opportunity, etc.
+- Skills: extract specific technical skills, tools, frameworks, and languages from the description. Use lowercase, concise names (e.g., "react", "typescript", "aws", "python", "docker"). Include both required and preferred skills.
 - Consider the contractor's background, skills, and preferences when scoring.
 - If description is empty/minimal, note that as a red flag and give a lower score.`
 
@@ -107,6 +109,7 @@ ${memoryCtx}`
         summary: String(parsed.summary || ''),
         redFlags: Array.isArray(parsed.redFlags) ? parsed.redFlags.map(String) : [],
         highlights: Array.isArray(parsed.highlights) ? parsed.highlights.map(String) : [],
+        skills: this.normalizeSkills(parsed.skills),
         recommendedResume: String(parsed.recommendedResume || 'default')
       }
     } catch {
@@ -118,8 +121,24 @@ ${memoryCtx}`
         summary: 'Analysis parsing failed — review manually',
         redFlags: ['Could not parse AI analysis'],
         highlights: [],
+        skills: [],
         recommendedResume: 'default'
       }
     }
+  }
+
+  /** Normalize skills: lowercase, trim, deduplicate, remove empties */
+  private normalizeSkills(raw: unknown): string[] {
+    if (!Array.isArray(raw)) return []
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const item of raw) {
+      const skill = String(item).trim().toLowerCase()
+      if (skill && !seen.has(skill)) {
+        seen.add(skill)
+        result.push(skill)
+      }
+    }
+    return result
   }
 }

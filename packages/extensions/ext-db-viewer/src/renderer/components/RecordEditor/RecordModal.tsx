@@ -51,7 +51,7 @@ export default function RecordModal({
       onClick={onClose}
     >
       <div
-        className="bg-[var(--cos-bg-primary)] border border-[var(--cos-border)] rounded-lg shadow-xl w-[480px] max-h-[80vh] flex flex-col"
+        className="bg-[var(--cos-bg-primary)] border border-[var(--cos-border)] rounded-lg shadow-xl w-[480px] max-h-[600px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

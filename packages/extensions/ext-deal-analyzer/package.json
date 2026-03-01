@@ -1,0 +1,33 @@
+{
+  "name": "@openorbit/ext-deal-analyzer",
+  "version": "1.0.0",
+  "description": "Real estate deal analysis and reporting extension",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-deal-analyzer",
+    "displayName": "Deal Analyzer",
+    "category": "integrations",
+    "icon": "calculator",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "deal-analyzer-sidebar", "label": "Deals", "icon": "calculator", "priority": 35 }
+      ],
+      "workspace": [
+        { "id": "deal-analyzer-workspace", "label": "Deal Analyzer", "default": false }
+      ],
+      "skills": [
+        { "id": "analyze-deal", "label": "Analyze Deal", "category": "data" },
+        { "id": "compare-deals", "label": "Compare Deals", "category": "data" },
+        { "id": "export-deal-pdf", "label": "Export Deal PDF", "category": "document" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

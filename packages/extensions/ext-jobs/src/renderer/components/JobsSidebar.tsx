@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useStore } from '../store'
 import { ipc } from '../lib/ipc-client'
 import type { JobListing, JobStatus } from '@openorbit/core/types'
@@ -15,7 +15,14 @@ type LeftTab = 'profiles' | 'jobs' | 'settings'
 
 export default function LeftPanel(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<LeftTab>('jobs')
-  const { jobs, profiles, selectedJobId, selectJob } = useStore()
+  const { jobs, profiles, selectedJobId, selectJob, setProfiles } = useStore()
+
+  // Eagerly load profiles so the tab count is accurate before the tab is opened
+  useEffect(() => {
+    ipc.profiles.list().then((r) => {
+      if (r.success && r.data) setProfiles(r.data)
+    })
+  }, [setProfiles])
 
   return (
     <div className="flex flex-col h-full">
@@ -157,9 +164,12 @@ function JobsSection({
   onSelectJob: (id: string | null) => void
 }): React.JSX.Element {
   const removeJob = useStore((s) => s.removeJob)
+  const updateJob = useStore((s) => s.updateJob)
   const [filter, setFilter] = useState<JobStatus | 'all'>('reviewed')
   const [sort, setSort] = useState<SortKey>('newest')
   const [page, setPage] = useState(0)
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null)
+  const [analyzingAll, setAnalyzingAll] = useState(false)
 
   const filteredJobs = useMemo(() => {
     const filtered = filter === 'all' ? jobs : jobs.filter((j) => j.status === filter)
@@ -179,6 +189,26 @@ function JobsSection({
     e.stopPropagation()
     const result = await ipc.jobs.delete(jobId)
     if (result.success) removeJob(jobId)
+  }
+
+  const handleAnalyze = async (e: React.MouseEvent, jobId: string): Promise<void> => {
+    e.stopPropagation()
+    setAnalyzingId(jobId)
+    try {
+      const result = await ipc.chat.analyzeJob(jobId)
+      if (result.success && result.data) updateJob(jobId, result.data)
+    } finally {
+      setAnalyzingId(null)
+    }
+  }
+
+  const handleAnalyzeAll = async (): Promise<void> => {
+    setAnalyzingAll(true)
+    try {
+      await ipc.chat.analyzeAll()
+    } finally {
+      setAnalyzingAll(false)
+    }
   }
 
   return (
@@ -210,6 +240,53 @@ function JobsSection({
           )
         })}
       </div>
+
+      {/* Analyze All — shown when filtering to 'new' and there are new jobs */}
+      {filter === 'new' && filteredJobs.length > 0 && (
+        <button
+          onClick={handleAnalyzeAll}
+          disabled={analyzingAll}
+          className="w-full px-2 py-1.5 text-[11px] font-medium rounded border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default flex items-center justify-center gap-1.5"
+        >
+          {analyzingAll ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Analyzing {filteredJobs.length} jobs...
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"
+                />
+              </svg>
+              Analyze All ({filteredJobs.length})
+            </>
+          )}
+        </button>
+      )}
 
       {/* Sort */}
       <div className="flex items-center gap-1.5">
@@ -254,24 +331,7 @@ function JobsSection({
                 }`}
                 onClick={() => onSelectJob(job.id === selectedJobId ? null : job.id)}
               >
-                {/* Delete button */}
-                <button
-                  onClick={(e) => handleDelete(e, job.id)}
-                  className="absolute top-1.5 right-1.5 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 text-[var(--cos-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
-                  title="Delete job"
-                >
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-
-                <div className="flex items-start justify-between gap-2 pr-5">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{job.title}</p>
                     <p className="text-xs text-[var(--cos-text-muted)] truncate">{job.company}</p>
@@ -283,9 +343,56 @@ function JobsSection({
                     {[job.salary, job.jobType].filter(Boolean).join(' · ')}
                   </p>
                 )}
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Badge variant={statusVariant(job.status)}>{job.status}</Badge>
-                  {job.easyApply && <Badge variant="info">Easy Apply</Badge>}
+                <div className="flex items-center justify-between mt-1.5">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={statusVariant(job.status)}>{job.status}</Badge>
+                    {job.easyApply && <Badge variant="info">Easy Apply</Badge>}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {/* Analyze button — shown for new/unanalyzed jobs */}
+                    {(job.status === 'new' || job.matchScore === undefined) && (
+                      <button
+                        onClick={(e) => handleAnalyze(e, job.id)}
+                        disabled={analyzingId === job.id}
+                        className="w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 text-[var(--cos-text-muted)] hover:text-indigo-400 hover:bg-indigo-500/10 transition-all cursor-pointer disabled:opacity-100 disabled:animate-pulse"
+                        title="Analyze with AI"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => handleDelete(e, job.id)}
+                      className="w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 text-[var(--cos-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+                      title="Delete job"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

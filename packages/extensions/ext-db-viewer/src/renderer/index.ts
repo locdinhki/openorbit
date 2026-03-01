@@ -11,14 +11,12 @@ import type {
 } from '@openorbit/core/extensions/types'
 
 import DbViewerSidebar from './components/DbViewerSidebar'
-import DbViewerWorkspace from './components/DbViewerWorkspace'
-import SqlConsolePanel from './components/SqlConsole/SqlConsolePanel'
+import DbViewerTabbedWorkspace from './components/DbViewerTabbedWorkspace'
 
 const extension: ExtensionRendererAPI = {
   activate(ctx: ExtensionRendererContext): void {
     ctx.views.register('db-viewer-sidebar', DbViewerSidebar)
-    ctx.views.register('db-viewer-workspace', DbViewerWorkspace)
-    ctx.views.register('db-viewer-sql', SqlConsolePanel)
+    ctx.views.register('db-viewer-workspace', DbViewerTabbedWorkspace)
   },
 
   deactivate(): void {

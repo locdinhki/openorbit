@@ -19,9 +19,6 @@
       ],
       "workspace": [
         { "id": "db-viewer-workspace", "label": "Data Viewer", "default": false }
-      ],
-      "panel": [
-        { "id": "db-viewer-sql", "label": "SQL Console", "icon": "terminal" }
       ]
     }
   },

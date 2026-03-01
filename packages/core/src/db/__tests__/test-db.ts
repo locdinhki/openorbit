@@ -33,6 +33,7 @@ const TEST_MIGRATION_SQL = `
     summary TEXT,
     red_flags TEXT,
     highlights TEXT,
+    skills TEXT,
     status TEXT NOT NULL DEFAULT 'new',
     user_notes TEXT,
     reviewed_at TEXT,

@@ -15,10 +15,13 @@
   "dependencies": {
     "@anthropic-ai/sdk": "*",
     "better-sqlite3": "*",
+    "exceljs": "*",
     "js-yaml": "*",
     "node-cron": "*",
     "patchright": "*",
+    "pdf-lib": "*",
     "sqlite-vec": "*",
+    "tesseract.js": "*",
     "uuid": "*",
     "zod": "*"
   },

@@ -322,7 +322,8 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
           matchReasoning: analysis.reasoning,
           summary: analysis.summary,
           redFlags: analysis.redFlags,
-          highlights: analysis.highlights
+          highlights: analysis.highlights,
+          skills: analysis.skills
         })
         jobsRepo.updateStatus(jobId, 'reviewed')
 
@@ -330,6 +331,50 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
         return { success: true, data: updated }
       } catch (err) {
         log.error('Job analysis failed', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.CHAT_ANALYZE_ALL,
+    extJobsSchemas['ext-jobs:chat-analyze-all'],
+    async () => {
+      try {
+        const newJobs = jobsRepo.list({ status: 'new' })
+        if (newJobs.length === 0) {
+          return { success: true, data: { analyzed: 0, total: 0 } }
+        }
+
+        log.info(`Analyzing ${newJobs.length} new jobs`)
+        let analyzed = 0
+
+        for (const job of newJobs) {
+          try {
+            const analysis = await jobAnalyzer.analyze(job)
+            jobsRepo.updateAnalysis(job.id, {
+              matchScore: analysis.matchScore,
+              matchReasoning: analysis.reasoning,
+              summary: analysis.summary,
+              redFlags: analysis.redFlags,
+              highlights: analysis.highlights,
+              skills: analysis.skills
+            })
+            jobsRepo.updateStatus(job.id, 'reviewed')
+            analyzed++
+
+            // Push updated job to UI immediately so status updates in real-time
+            const updated = jobsRepo.getById(job.id)
+            if (updated) bus.emit('jobs:new', updated)
+          } catch (err) {
+            log.warn(`Failed to analyze job: ${job.title}`, err)
+          }
+        }
+
+        log.info(`Batch analysis complete: ${analyzed}/${newJobs.length}`)
+        return { success: true, data: { analyzed, total: newJobs.length } }
+      } catch (err) {
+        log.error('Batch analysis failed', err)
         return errorToResponse(err)
       }
     }

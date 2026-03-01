@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store'
 import { useChat } from '../hooks/useChat'
-import { ipc } from '../lib/ipc-client'
+import { ipc, shellIpc } from '../lib/ipc-client'
 import type { JobListing, JobStatus } from '@openorbit/core/types'
 import Button from '@renderer/components/shared/Button'
 
@@ -55,6 +55,64 @@ export default function JobWorkspace(): React.JSX.Element {
 }
 
 // ---------------------------------------------------------------------------
+// User Skills Hook — loads profile skills, provides add handler
+// ---------------------------------------------------------------------------
+
+function useUserSkills(): {
+  userSkills: Set<string>
+  addSkill: (skill: string) => Promise<void>
+} {
+  const [profileJson, setProfileJson] = useState<string | null>(null)
+  const [userSkills, setUserSkills] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    async function load(): Promise<void> {
+      const result = await shellIpc.settings.get('user_profile')
+      if (result.success && result.data) {
+        setProfileJson(result.data)
+        try {
+          const data = JSON.parse(result.data)
+          if (Array.isArray(data.skills)) {
+            setUserSkills(new Set(data.skills.map((s: string) => s.toLowerCase().trim())))
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+    load()
+  }, [])
+
+  const addSkill = useCallback(
+    async (skill: string): Promise<void> => {
+      const normalized = skill.toLowerCase().trim()
+      if (!normalized || userSkills.has(normalized)) return
+
+      // Update local state immediately
+      setUserSkills((prev) => new Set([...prev, normalized]))
+
+      // Persist to settings
+      let profile: Record<string, unknown> = {}
+      if (profileJson) {
+        try {
+          profile = JSON.parse(profileJson)
+        } catch {
+          // start fresh
+        }
+      }
+      const existingSkills = Array.isArray(profile.skills) ? (profile.skills as string[]) : []
+      profile.skills = [...existingSkills, normalized]
+      const updated = JSON.stringify(profile)
+      setProfileJson(updated)
+      await shellIpc.settings.update('user_profile', updated)
+    },
+    [userSkills, profileJson]
+  )
+
+  return { userSkills, addSkill }
+}
+
+// ---------------------------------------------------------------------------
 // Job Description Pane
 // ---------------------------------------------------------------------------
 
@@ -62,6 +120,7 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
   const { analyzeJob } = useChat()
   const updateJob = useStore((s) => s.updateJob)
   const [analyzing, setAnalyzing] = useState(false)
+  const { userSkills, addSkill } = useUserSkills()
 
   const handleAnalyze = async (): Promise<void> => {
     if (!job || analyzing) return
@@ -215,6 +274,45 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
             <p className="text-xs text-[var(--cos-text-secondary)]">{job.matchReasoning}</p>
           )}
           {job.summary && <p className="text-sm text-[var(--cos-text-secondary)]">{job.summary}</p>}
+          {job.skills && job.skills.length > 0 && (
+            <div>
+              <span className="text-[10px] font-semibold text-[var(--cos-text-muted)] uppercase tracking-wider">
+                Skills
+              </span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {job.skills.map((skill) => {
+                  const have = userSkills.has(skill.toLowerCase().trim())
+                  return have ? (
+                    <span
+                      key={skill}
+                      className="px-2 py-0.5 rounded text-xs bg-green-600/20 text-green-400 border border-green-600/30 inline-flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {skill}
+                    </span>
+                  ) : (
+                    <button
+                      key={skill}
+                      onClick={() => addSkill(skill)}
+                      className="px-2 py-0.5 rounded text-xs bg-indigo-600/10 text-indigo-400/70 border border-indigo-600/20 hover:bg-indigo-600/20 hover:text-indigo-400 hover:border-indigo-600/40 transition-colors cursor-pointer inline-flex items-center gap-1"
+                      title={`Add "${skill}" to your profile`}
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                      </svg>
+                      {skill}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           {job.highlights && job.highlights.length > 0 && (
             <ul className="space-y-1">
               {job.highlights.map((h, i) => (
@@ -242,8 +340,8 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
         </div>
       )}
 
-      {/* Analyze CTA — shown only when not yet scored */}
-      {job.matchScore === undefined && (
+      {/* Analyze CTA — shown for new or unanalyzed jobs */}
+      {(job.status === 'new' || job.matchScore === undefined) && (
         <Button variant="primary" size="sm" onClick={handleAnalyze} disabled={analyzing}>
           {analyzing ? 'Analyzing...' : 'Analyze with Claude'}
         </Button>

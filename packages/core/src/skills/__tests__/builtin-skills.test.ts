@@ -2,6 +2,20 @@ import { describe, it, expect, vi } from 'vitest'
 import { createCalcSkill, safeMathEval } from '../builtin/calc-skill'
 import { createFormatSkill, csvToJson, jsonToCsv } from '../builtin/format-skill'
 import { createVoiceTranscribeSkill } from '../builtin/voice-transcribe-skill'
+import { createFinancialCalcSkill } from '../builtin/financial-calc-skill'
+import {
+  calculate,
+  calculateROI,
+  calculateCapRate,
+  calculateCashOnCash,
+  calculateDSCR,
+  calculateMortgagePayment,
+  calculateRentalYield,
+  calculateBreakEven,
+  calculateGRM,
+  calculateNOI,
+  CALCULATION_TYPES
+} from '../builtin/financial-formulas'
 
 // ---------------------------------------------------------------------------
 // Calculator
@@ -246,5 +260,202 @@ describe('Voice Transcribe Skill', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toContain('Missing or invalid audioPath')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Financial Calculator
+// ---------------------------------------------------------------------------
+
+describe('Financial Formulas', () => {
+  describe('calculateROI', () => {
+    it('calculates ROI correctly', () => {
+      const result = calculateROI({ netProfit: 50000, totalInvestment: 200000 })
+      expect(result.result).toBe(0.25) // 25%
+      expect(result.calculation).toBe('roi')
+    })
+
+    it('handles negative returns', () => {
+      const result = calculateROI({ netProfit: -10000, totalInvestment: 100000 })
+      expect(result.result).toBe(-0.1) // -10%
+    })
+
+    it('throws on missing params', () => {
+      expect(() => calculateROI({ netProfit: 50000 })).toThrow('Missing required parameter')
+    })
+
+    it('throws on division by zero', () => {
+      expect(() => calculateROI({ netProfit: 50000, totalInvestment: 0 })).toThrow(
+        'Division by zero'
+      )
+    })
+  })
+
+  describe('calculateCapRate', () => {
+    it('calculates cap rate correctly', () => {
+      const result = calculateCapRate({ noi: 30000, purchasePrice: 400000 })
+      expect(result.result).toBe(0.075) // 7.5%
+      expect(result.calculation).toBe('cap-rate')
+    })
+  })
+
+  describe('calculateCashOnCash', () => {
+    it('calculates cash-on-cash return', () => {
+      const result = calculateCashOnCash({ annualCashFlow: 8000, totalCashInvested: 80000 })
+      expect(result.result).toBe(0.1) // 10%
+      expect(result.calculation).toBe('cash-on-cash')
+    })
+  })
+
+  describe('calculateDSCR', () => {
+    it('calculates DSCR correctly', () => {
+      const result = calculateDSCR({ noi: 50000, annualDebtService: 40000 })
+      expect(result.result).toBe(1.25)
+      expect(result.calculation).toBe('dscr')
+    })
+  })
+
+  describe('calculateMortgagePayment', () => {
+    it('calculates monthly mortgage payment', () => {
+      const result = calculateMortgagePayment({
+        loanAmount: 320000,
+        annualInterestRate: 7,
+        loanTermYears: 30
+      })
+      // 30-year fixed at 7% on $320k should be approximately $2,129/month
+      expect(result.result).toBeCloseTo(2129, -1)
+      expect(result.calculation).toBe('mortgage-payment')
+    })
+
+    it('handles 0% interest rate', () => {
+      const result = calculateMortgagePayment({
+        loanAmount: 120000,
+        annualInterestRate: 0,
+        loanTermYears: 10
+      })
+      // $120k / 120 months = $1000/month
+      expect(result.result).toBe(1000)
+    })
+  })
+
+  describe('calculateRentalYield', () => {
+    it('calculates rental yield', () => {
+      const result = calculateRentalYield({ annualRent: 24000, purchasePrice: 300000 })
+      expect(result.result).toBe(0.08) // 8%
+      expect(result.calculation).toBe('rental-yield')
+    })
+  })
+
+  describe('calculateBreakEven', () => {
+    it('calculates break-even ratio', () => {
+      const result = calculateBreakEven({
+        operatingExpenses: 12000,
+        debtService: 18000,
+        grossOperatingIncome: 40000
+      })
+      expect(result.result).toBe(0.75) // 75%
+      expect(result.calculation).toBe('break-even')
+    })
+  })
+
+  describe('calculateGRM', () => {
+    it('calculates gross rent multiplier', () => {
+      const result = calculateGRM({ purchasePrice: 400000, grossAnnualRent: 32000 })
+      expect(result.result).toBe(12.5)
+      expect(result.calculation).toBe('grm')
+    })
+  })
+
+  describe('calculateNOI', () => {
+    it('calculates net operating income', () => {
+      const result = calculateNOI({ grossOperatingIncome: 50000, operatingExpenses: 15000 })
+      expect(result.result).toBe(35000)
+      expect(result.calculation).toBe('noi')
+    })
+  })
+
+  describe('calculate dispatcher', () => {
+    it('dispatches to correct formula', () => {
+      const result = calculate('cap-rate', { noi: 30000, purchasePrice: 500000 })
+      expect(result.result).toBe(0.06)
+    })
+
+    it('throws on unknown calculation type', () => {
+      expect(() => calculate('unknown' as 'roi', {})).toThrow('Unknown calculation type')
+    })
+
+    it('lists all 9 calculation types', () => {
+      expect(CALCULATION_TYPES).toHaveLength(9)
+      expect(CALCULATION_TYPES).toContain('roi')
+      expect(CALCULATION_TYPES).toContain('cap-rate')
+      expect(CALCULATION_TYPES).toContain('cash-on-cash')
+      expect(CALCULATION_TYPES).toContain('dscr')
+      expect(CALCULATION_TYPES).toContain('mortgage-payment')
+      expect(CALCULATION_TYPES).toContain('rental-yield')
+      expect(CALCULATION_TYPES).toContain('break-even')
+      expect(CALCULATION_TYPES).toContain('grm')
+      expect(CALCULATION_TYPES).toContain('noi')
+    })
+  })
+})
+
+describe('Financial Calculator Skill', () => {
+  const skill = createFinancialCalcSkill('shell')
+
+  it('has correct metadata', () => {
+    expect(skill.id).toBe('financial-calculator')
+    expect(skill.category).toBe('data')
+    expect(skill.capabilities.aiTool).toBe(true)
+    expect(skill.capabilities.offlineCapable).toBe(true)
+  })
+
+  it('executes cap rate calculation', async () => {
+    const result = await skill.execute({
+      calculation: 'cap-rate',
+      params: { noi: 30000, purchasePrice: 400000 }
+    })
+
+    expect(result.success).toBe(true)
+    expect((result.data as { result: number }).result).toBe(0.075)
+    expect(result.summary).toContain('Cap Rate')
+  })
+
+  it('executes mortgage payment calculation', async () => {
+    const result = await skill.execute({
+      calculation: 'mortgage-payment',
+      params: { loanAmount: 240000, annualInterestRate: 6, loanTermYears: 30 }
+    })
+
+    expect(result.success).toBe(true)
+    expect((result.data as { result: number }).result).toBeGreaterThan(1400)
+    expect((result.data as { result: number }).result).toBeLessThan(1500)
+  })
+
+  it('returns error for invalid calculation type', async () => {
+    const result = await skill.execute({
+      calculation: 'invalid',
+      params: { foo: 123 }
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('Unknown calculation type')
+  })
+
+  it('returns error for missing params', async () => {
+    const result = await skill.execute({
+      calculation: 'roi',
+      params: {}
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('Missing required parameter')
+  })
+
+  it('validates input with validate method', () => {
+    const valid = skill.validate?.({ calculation: 'roi', params: {} })
+    expect(valid?.valid).toBe(true)
+
+    const invalid = skill.validate?.({ calculation: 123, params: {} })
+    expect(invalid?.valid).toBe(false)
   })
 })

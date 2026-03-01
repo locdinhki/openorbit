@@ -82,6 +82,7 @@ describe('JobAnalyzer', () => {
             summary: 'Senior React role at a good company',
             redFlags: ['No salary listed'],
             highlights: ['Remote', 'React focus'],
+            skills: ['react', 'typescript', 'node.js'],
             recommendedResume: 'react-resume'
           })
         )
@@ -93,6 +94,7 @@ describe('JobAnalyzer', () => {
       expect(result.reasoning).toBe('Great match for React expertise')
       expect(result.redFlags).toEqual(['No salary listed'])
       expect(result.highlights).toEqual(['Remote', 'React focus'])
+      expect(result.skills).toEqual(['react', 'typescript', 'node.js'])
     })
 
     it('parses markdown-wrapped JSON', async () => {
@@ -114,6 +116,44 @@ describe('JobAnalyzer', () => {
       expect(result.matchScore).toBe(50)
       expect(result.summary).toBe('Analysis parsing failed — review manually')
       expect(result.redFlags).toContain('Could not parse AI analysis')
+      expect(result.skills).toEqual([])
+    })
+
+    it('normalizes skills: lowercase, dedup, trim', async () => {
+      mockComplete.mockResolvedValue(
+        mockResponse(
+          JSON.stringify({
+            matchScore: 70,
+            reasoning: 'OK',
+            summary: 'Dev role',
+            redFlags: [],
+            highlights: [],
+            skills: ['React', ' TypeScript ', 'react', '', 'Node.js'],
+            recommendedResume: 'default'
+          })
+        )
+      )
+
+      const result = await analyzer.analyze(sampleJob)
+      expect(result.skills).toEqual(['react', 'typescript', 'node.js'])
+    })
+
+    it('returns empty skills when field is missing', async () => {
+      mockComplete.mockResolvedValue(
+        mockResponse(
+          JSON.stringify({
+            matchScore: 70,
+            reasoning: 'OK',
+            summary: 'Dev role',
+            redFlags: [],
+            highlights: [],
+            recommendedResume: 'default'
+          })
+        )
+      )
+
+      const result = await analyzer.analyze(sampleJob)
+      expect(result.skills).toEqual([])
     })
 
     it('clamps score above 100', async () => {
