@@ -11,13 +11,17 @@ import { getCoreEventBus } from '@openorbit/core/automation/core-events'
 import { MemoryRepo } from '@openorbit/core/db/memory-repo'
 import type { MemoryCategory } from '@openorbit/core/db/memory-repo'
 import { JobAnalyzer } from '@openorbit/core/ai/job-analyzer'
+import { CoverLetterGenerator } from '@openorbit/core/ai/cover-letter'
 import { JobsChatHandler } from './ai/jobs-chat-handler'
+import { ResumeTextExtractor } from './ai/resume-text-extractor'
+import { ResumeAnalyzer } from './ai/resume-analyzer'
 import { AutomationCoordinator } from './automation/automation-coordinator'
 import { ProfilesRepo } from './db/profiles-repo'
 import { JobsRepo } from './db/jobs-repo'
 import { ActionLogRepo } from './db/action-log-repo'
 import { AnswersRepo } from './db/answers-repo'
 import { ChatSessionsRepo } from './db/chat-sessions-repo'
+import { ResumeAnalysisRepo } from './db/resume-analysis-repo'
 import { EXT_JOBS_IPC } from '../ipc-channels'
 import { extJobsSchemas } from '../ipc-schemas'
 
@@ -26,7 +30,7 @@ let coordinator: AutomationCoordinator | null = null
 function getCoordinator(ctx: ExtensionContext): AutomationCoordinator {
   if (!coordinator) {
     const sessionManager = ctx.services.browser.getSession()
-    coordinator = new AutomationCoordinator(ctx.db, sessionManager)
+    coordinator = new AutomationCoordinator(ctx.db, sessionManager, ctx.services.ai)
   }
   return coordinator
 }
@@ -289,6 +293,19 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
   )
   chatHandler.setSessionsRepo(sessionsRepo)
   const jobAnalyzer = new JobAnalyzer(ctx.services.ai)
+  const resumeAnalysisRepo = new ResumeAnalysisRepo(db)
+
+  function buildResumeContext(): string | undefined {
+    const analyses = resumeAnalysisRepo.list()
+    if (analyses.length === 0) return undefined
+    return analyses
+      .map(
+        (a) =>
+          `- "${a.resumeName}": skills: ${a.analysis.skills.slice(0, 10).join(', ')}; ` +
+          `target roles: ${a.analysis.targetRoles.join(', ')}; seniority: ${a.analysis.seniorityLevel}`
+      )
+      .join('\n')
+  }
 
   ipc.handle(
     EXT_JOBS_IPC.CHAT_SEND,
@@ -315,7 +332,8 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
           return { success: false, error: 'Job not found' }
         }
 
-        const analysis = await jobAnalyzer.analyze(job)
+        const resumeCtx = buildResumeContext()
+        const analysis = await jobAnalyzer.analyze(job, resumeCtx)
 
         jobsRepo.updateAnalysis(jobId, {
           matchScore: analysis.matchScore,
@@ -323,7 +341,8 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
           summary: analysis.summary,
           redFlags: analysis.redFlags,
           highlights: analysis.highlights,
-          skills: analysis.skills
+          skills: analysis.skills,
+          recommendedResume: analysis.recommendedResume
         })
         jobsRepo.updateStatus(jobId, 'reviewed')
 
@@ -349,16 +368,19 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
         log.info(`Analyzing ${newJobs.length} new jobs`)
         let analyzed = 0
 
+        const resumeCtx = buildResumeContext()
+
         for (const job of newJobs) {
           try {
-            const analysis = await jobAnalyzer.analyze(job)
+            const analysis = await jobAnalyzer.analyze(job, resumeCtx)
             jobsRepo.updateAnalysis(job.id, {
               matchScore: analysis.matchScore,
               matchReasoning: analysis.reasoning,
               summary: analysis.summary,
               redFlags: analysis.redFlags,
               highlights: analysis.highlights,
-              skills: analysis.skills
+              skills: analysis.skills,
+              recommendedResume: analysis.recommendedResume
             })
             jobsRepo.updateStatus(job.id, 'reviewed')
             analyzed++
@@ -602,6 +624,90 @@ export function registerExtJobsHandlers(ctx: ExtensionContext): void {
         return { success: true, data: facts }
       } catch (err) {
         log.error('Memory list failed', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // --- Resume Analysis ---
+
+  const resumeTextExtractor = new ResumeTextExtractor()
+  const resumeAnalyzer = new ResumeAnalyzer(ctx.services.ai)
+
+  ipc.handle(
+    EXT_JOBS_IPC.RESUME_ANALYZE,
+    extJobsSchemas['ext-jobs:resume-analyze'],
+    async (_event, { resumeName, resumePath }) => {
+      try {
+        log.info(`Analyzing resume: ${resumeName}`)
+        const extractedText = await resumeTextExtractor.extractText(resumePath)
+        const analysis = await resumeAnalyzer.analyze(extractedText, resumeName)
+        const saved = resumeAnalysisRepo.upsert(resumeName, resumePath, extractedText, analysis)
+        return { success: true, data: saved }
+      } catch (err) {
+        log.error('Resume analysis failed', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.RESUME_ANALYSIS_LIST,
+    extJobsSchemas['ext-jobs:resume-analysis-list'],
+    () => {
+      try {
+        return { success: true, data: resumeAnalysisRepo.list() }
+      } catch (err) {
+        log.error('Failed to list resume analyses', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.RESUME_ANALYSIS_DELETE,
+    extJobsSchemas['ext-jobs:resume-analysis-delete'],
+    (_event, { resumeName }) => {
+      try {
+        resumeAnalysisRepo.delete(resumeName)
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to delete resume analysis', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // --- Cover Letter ---
+
+  ipc.handle(
+    EXT_JOBS_IPC.COVER_LETTER_GENERATE,
+    extJobsSchemas['ext-jobs:cover-letter-gen'],
+    async (_event, { jobId }) => {
+      try {
+        const job = jobsRepo.getById(jobId)
+        if (!job) return { success: false, error: 'Job not found' }
+
+        const generator = new CoverLetterGenerator(ctx.services.ai)
+        const coverLetter = await generator.generate(job)
+        jobsRepo.updateApplicationDetails(jobId, { coverLetterUsed: coverLetter })
+        return { success: true, data: coverLetter }
+      } catch (err) {
+        log.error('Cover letter generation failed', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_JOBS_IPC.COVER_LETTER_SAVE,
+    extJobsSchemas['ext-jobs:cover-letter-save'],
+    (_event, { jobId, coverLetter }) => {
+      try {
+        jobsRepo.updateApplicationDetails(jobId, { coverLetterUsed: coverLetter })
+        return { success: true }
+      } catch (err) {
+        log.error('Failed to save cover letter', err)
         return errorToResponse(err)
       }
     }

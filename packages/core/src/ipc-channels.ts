@@ -76,7 +76,13 @@ export const IPC = {
   SKILL_CATALOG_UNINSTALL: 'skill:catalog-uninstall',
   SKILL_CUSTOM_CREATE: 'skill:custom-create',
   SKILL_CUSTOM_UPDATE: 'skill:custom-update',
-  SKILL_CUSTOM_DELETE: 'skill:custom-delete'
+  SKILL_CUSTOM_DELETE: 'skill:custom-delete',
+
+  // Dialog
+  DIALOG_OPEN_FILE: 'dialog:open-file',
+
+  // Filesystem
+  FS_COPY_TO_DATA: 'fs:copy-to-data'
 } as const
 
 export type IPCChannel = (typeof IPC)[keyof typeof IPC]

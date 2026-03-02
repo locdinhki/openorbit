@@ -51,6 +51,15 @@ export const EXT_JOBS_IPC = {
   SESSIONS_RENAME: 'ext-jobs:sessions-rename',
   CHAT_CLEAR: 'ext-jobs:chat-clear',
 
+  // Resume Analysis
+  RESUME_ANALYZE: 'ext-jobs:resume-analyze',
+  RESUME_ANALYSIS_LIST: 'ext-jobs:resume-analysis-list',
+  RESUME_ANALYSIS_DELETE: 'ext-jobs:resume-analysis-delete',
+
+  // Cover Letter
+  COVER_LETTER_GENERATE: 'ext-jobs:cover-letter-gen',
+  COVER_LETTER_SAVE: 'ext-jobs:cover-letter-save',
+
   // Push events (main → renderer)
   AUTOMATION_STATUS_PUSH: 'ext-jobs:automation-status-push',
   JOBS_NEW: 'ext-jobs:jobs-new',

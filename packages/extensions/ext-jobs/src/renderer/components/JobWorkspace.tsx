@@ -4,6 +4,7 @@ import { useChat } from '../hooks/useChat'
 import { ipc, shellIpc } from '../lib/ipc-client'
 import type { JobListing, JobStatus } from '@openorbit/core/types'
 import Button from '@renderer/components/shared/Button'
+import CoverLetterPreview from './Application/CoverLetterPreview'
 
 /**
  * JobWorkspace fills the center panel when no browser screenshot is active.
@@ -120,6 +121,7 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
   const { analyzeJob } = useChat()
   const updateJob = useStore((s) => s.updateJob)
   const [analyzing, setAnalyzing] = useState(false)
+  const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false)
   const { userSkills, addSkill } = useUserSkills()
 
   const handleAnalyze = async (): Promise<void> => {
@@ -150,6 +152,25 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
     if (!job || job.status === status) return
     const result = await ipc.jobs.update(job.id, { status })
     if (result.success) updateJob(job.id, { status })
+  }
+
+  const handleGenerateCoverLetter = async (): Promise<void> => {
+    if (!job) return
+    setGeneratingCoverLetter(true)
+    try {
+      const result = await ipc.coverLetter.generate(job.id)
+      if (result.success && result.data) {
+        updateJob(job.id, { coverLetterUsed: result.data })
+      }
+    } finally {
+      setGeneratingCoverLetter(false)
+    }
+  }
+
+  const handleSaveCoverLetter = async (content: string): Promise<void> => {
+    if (!job) return
+    await ipc.coverLetter.save(job.id, content)
+    updateJob(job.id, { coverLetterUsed: content })
   }
 
   if (!job) {
@@ -347,7 +368,34 @@ function JobDescriptionPane({ job }: { job: JobListing | null }): React.JSX.Elem
         </Button>
       )}
 
-      {/* Testing: manual status override */}
+      {/* Cover Letter — shown when one exists or for approved/applied jobs */}
+      {(job.coverLetterUsed || job.status === 'approved' || job.status === 'applied') && (
+        <div className="border-t border-[var(--cos-border)] pt-3">
+          {job.coverLetterUsed ? (
+            <CoverLetterPreview
+              content={job.coverLetterUsed}
+              jobTitle={job.title}
+              company={job.company}
+              onSave={handleSaveCoverLetter}
+              onRegenerate={handleGenerateCoverLetter}
+            />
+          ) : (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-[var(--cos-text-secondary)]">Cover Letter</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGenerateCoverLetter}
+                disabled={generatingCoverLetter}
+              >
+                {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Status override */}
       <div className="pt-3 border-t border-[var(--cos-border)]">
         <p className="text-[10px] text-[var(--cos-text-muted)] uppercase tracking-wider mb-1.5">
           Set status

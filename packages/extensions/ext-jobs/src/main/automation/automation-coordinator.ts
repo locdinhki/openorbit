@@ -1,6 +1,7 @@
 import type { Page } from 'patchright'
 import type Database from 'better-sqlite3'
 import type { AutomationStatus, PlatformStatus } from '@openorbit/core/types'
+import type { AIService } from '@openorbit/core/ai/provider-types'
 import { ExtractionRunner } from './extraction-runner'
 import { SessionManager } from '@openorbit/core/automation/session-manager'
 import { ProfilesRepo } from '../db/profiles-repo'
@@ -22,12 +23,14 @@ export class AutomationCoordinator {
   private profilesRepo: ProfilesRepo
   private applicationsRepo: ApplicationsRepo
   private sessionStartTime: string | null = null
+  private ai: AIService | undefined
 
-  constructor(db: Database.Database, sessionManager: SessionManager) {
+  constructor(db: Database.Database, sessionManager: SessionManager, ai?: AIService) {
     this.db = db
     this.sessionManager = sessionManager
     this.profilesRepo = new ProfilesRepo(db)
     this.applicationsRepo = new ApplicationsRepo(db)
+    this.ai = ai
   }
 
   // ---------------------------------------------------------------------------
@@ -88,7 +91,8 @@ export class AutomationCoordinator {
     const runner = new ExtractionRunner(this.db, this.sessionManager, {
       page,
       platform,
-      onStatusUpdate: () => this.emitAggregateStatus()
+      onStatusUpdate: () => this.emitAggregateStatus(),
+      ai: this.ai
     })
     this.runners.set(platform, runner)
 
@@ -134,7 +138,8 @@ export class AutomationCoordinator {
     const runner = new ExtractionRunner(this.db, this.sessionManager, {
       page,
       platform,
-      onStatusUpdate: () => this.emitAggregateStatus()
+      onStatusUpdate: () => this.emitAggregateStatus(),
+      ai: this.ai
     })
     this.runners.set(platform, runner)
 

@@ -29,6 +29,7 @@ interface JobRow {
   application_answers: string | null
   cover_letter_used: string | null
   resume_used: string | null
+  recommended_resume: string | null
   created_at: string
   updated_at: string
 }
@@ -61,6 +62,7 @@ function rowToJob(row: JobRow): JobListing {
     applicationAnswers: row.application_answers ? JSON.parse(row.application_answers) : undefined,
     coverLetterUsed: row.cover_letter_used ?? undefined,
     resumeUsed: row.resume_used ?? undefined,
+    recommendedResume: row.recommended_resume ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }
@@ -209,13 +211,15 @@ export class JobsRepo {
       redFlags: string[]
       highlights: string[]
       skills: string[]
+      recommendedResume?: string
     }
   ): void {
     this.db
       .prepare(
         `UPDATE jobs SET
         match_score = ?, match_reasoning = ?, summary = ?,
-        red_flags = ?, highlights = ?, skills = ?, updated_at = ?
+        red_flags = ?, highlights = ?, skills = ?,
+        recommended_resume = ?, updated_at = ?
       WHERE id = ?`
       )
       .run(
@@ -225,6 +229,7 @@ export class JobsRepo {
         JSON.stringify(analysis.redFlags),
         JSON.stringify(analysis.highlights),
         JSON.stringify(analysis.skills),
+        analysis.recommendedResume ?? null,
         new Date().toISOString(),
         id
       )

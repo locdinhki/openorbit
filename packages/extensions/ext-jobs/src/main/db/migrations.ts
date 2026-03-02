@@ -139,5 +139,28 @@ export const extJobsMigrations: ExtensionMigration[] = [
           AND (skills IS NULL OR skills = '[]' OR skills = '')
       `)
     }
+  },
+  {
+    version: 5,
+    description: 'Add resume_analyses table and recommended_resume column to jobs',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS resume_analyses (
+          id TEXT PRIMARY KEY,
+          resume_name TEXT NOT NULL UNIQUE,
+          resume_path TEXT NOT NULL,
+          extracted_text TEXT NOT NULL DEFAULT '',
+          analysis TEXT NOT NULL DEFAULT '{}',
+          analyzed_at TEXT NOT NULL DEFAULT (datetime('now')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_resume_analyses_name ON resume_analyses(resume_name);
+      `)
+      const cols = db.prepare(`PRAGMA table_info(jobs)`).all() as { name: string }[]
+      if (!cols.some((c) => c.name === 'recommended_resume')) {
+        db.exec(`ALTER TABLE jobs ADD COLUMN recommended_resume TEXT`)
+      }
+    }
   }
 ]

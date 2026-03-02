@@ -253,6 +253,20 @@ export const ipc = {
 
     deleteCustom: (skillId: string): Promise<IPCResult> =>
       api.invoke(IPC.SKILL_CUSTOM_DELETE, { skillId }) as Promise<IPCResult>
+  },
+
+  dialog: {
+    openFile: (opts?: {
+      title?: string
+      filters?: { name: string; extensions: string[] }[]
+      multiple?: boolean
+    }): Promise<IPCResult<string[]>> =>
+      api.invoke(IPC.DIALOG_OPEN_FILE, opts ?? {}) as Promise<IPCResult<string[]>>
+  },
+
+  fs: {
+    copyToData: (sourcePath: string, subdir: string): Promise<IPCResult<string>> =>
+      api.invoke(IPC.FS_COPY_TO_DATA, { sourcePath, subdir }) as Promise<IPCResult<string>>
   }
 }
 

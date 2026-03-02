@@ -132,6 +132,15 @@ export const extJobsSchemas = {
     limit: z.number().optional()
   }),
 
+  // Resume Analysis
+  'ext-jobs:resume-analyze': z.object({ resumeName: z.string(), resumePath: z.string() }),
+  'ext-jobs:resume-analysis-list': z.object({}),
+  'ext-jobs:resume-analysis-delete': z.object({ resumeName: z.string() }),
+
+  // Cover Letter
+  'ext-jobs:cover-letter-gen': z.object({ jobId: z.string() }),
+  'ext-jobs:cover-letter-save': z.object({ jobId: z.string(), coverLetter: z.string() }),
+
   // Sessions
   'ext-jobs:sessions-list': z.object({ limit: z.number().optional() }),
   'ext-jobs:sessions-create': z.object({ title: z.string().optional() }),

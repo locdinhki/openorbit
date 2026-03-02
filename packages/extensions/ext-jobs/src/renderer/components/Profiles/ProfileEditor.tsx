@@ -1,7 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { SearchProfile, PlatformName } from '@openorbit/core/types'
 import Modal from '@renderer/components/shared/Modal'
 import Button from '@renderer/components/shared/Button'
+import { ipc } from '@renderer/lib/ipc-client'
+
+interface ResumeEntry {
+  name: string
+  path: string
+  isDefault: boolean
+  addedAt: string
+}
 
 interface ProfileEditorProps {
   open: boolean
@@ -52,10 +60,23 @@ export default function ProfileEditor({
   const [easyApplyOnly, setEasyApplyOnly] = useState(initial?.search.easyApplyOnly ?? false)
   const [remoteOnly, setRemoteOnly] = useState(initial?.search.remoteOnly ?? false)
   const [excludeTerms, setExcludeTerms] = useState(initial?.search.excludeTerms.join(', ') ?? '')
-  const [resumeFile, setResumeFile] = useState(initial?.application.resumeFile ?? '')
+  const [resumeFile, setResumeFile] = useState(initial?.application.resumeFile ?? 'auto')
   const [coverLetterTemplate, setCoverLetterTemplate] = useState(
     initial?.application.coverLetterTemplate ?? 'auto'
   )
+  const [resumes, setResumes] = useState<ResumeEntry[]>([])
+
+  useEffect(() => {
+    ipc.settings.get('resumes').then((result) => {
+      if (result.success && result.data) {
+        try {
+          setResumes(JSON.parse(result.data) as ResumeEntry[])
+        } catch {
+          // ignore
+        }
+      }
+    })
+  }, [])
 
   const handleSubmit = (): void => {
     if (!name.trim()) return
@@ -237,13 +258,20 @@ export default function ProfileEditor({
         {/* Resume & Cover Letter */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Resume File Path</label>
-            <input
+            <label className={labelClass}>Resume</label>
+            <select
               className={inputClass}
               value={resumeFile}
               onChange={(e) => setResumeFile(e.target.value)}
-              placeholder="/path/to/resume.pdf"
-            />
+            >
+              <option value="auto">Auto (AI picks best match)</option>
+              {resumes.map((r) => (
+                <option key={r.name} value={r.name}>
+                  {r.name}
+                  {r.isDefault ? ' (Default)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={labelClass}>Cover Letter</label>

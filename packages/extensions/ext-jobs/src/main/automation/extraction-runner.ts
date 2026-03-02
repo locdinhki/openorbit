@@ -17,6 +17,10 @@ import { ProfilesRepo } from '../db/profiles-repo'
 import { ApplicationsRepo } from '../db/applications-repo'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
 import { JobAnalyzer } from '@openorbit/core/ai/job-analyzer'
+import { CoverLetterGenerator } from '@openorbit/core/ai/cover-letter'
+import type { AIService } from '@openorbit/core/ai/provider-types'
+import { createLegacyAIService } from '@openorbit/core/ai/compat'
+import { ResumeResolver } from '../ai/resume-resolver'
 import { MAX_ACTIONS_PER_MINUTE, MAX_APPLICATIONS_PER_SESSION } from '@openorbit/core/constants'
 import { getCoreNotifier } from '@openorbit/core/core-notifier'
 import { createLogger } from '@openorbit/core/utils/logger'
@@ -63,6 +67,8 @@ export class ExtractionRunner {
   private running = false
   private paused = false
   private pendingQuestionResolve: ((answer: string | null) => void) | null = null
+  private ai: AIService
+  private resumeResolver: ResumeResolver
 
   private stats: AutomationStatus = {
     state: 'idle',
@@ -80,6 +86,7 @@ export class ExtractionRunner {
       page?: Page
       platform?: string
       onStatusUpdate?: (status: AutomationStatus) => void
+      ai?: AIService
     }
   ) {
     this.events = getCoreEventBus()
@@ -90,6 +97,8 @@ export class ExtractionRunner {
     this.dedicatedPage = opts?.page ?? null
     this.platformLabel = opts?.platform ?? null
     this.onStatusUpdate = opts?.onStatusUpdate ?? null
+    this.ai = opts?.ai ?? createLegacyAIService()
+    this.resumeResolver = new ResumeResolver(db, this.ai)
   }
 
   /** Get the page for this runner — dedicated page if set, otherwise from session manager. */
@@ -627,7 +636,19 @@ export class ExtractionRunner {
         // Get profile for default answers and resume
         const profile = job.profileId ? this.profilesRepo.getById(job.profileId) : null
         const answers = profile?.application.defaultAnswers || {}
-        const resumePath = profile?.application.resumeFile || ''
+        const resumePath = profile ? await this.resumeResolver.resolve(profile, job) : ''
+
+        // Generate cover letter if enabled
+        let coverLetter: string | undefined
+        if (profile?.application.coverLetterTemplate === 'auto') {
+          try {
+            this.updateStatus('running', `Generating cover letter: ${job.title}`)
+            coverLetter = await new CoverLetterGenerator(this.ai).generate(job)
+            log.info(`Generated cover letter for ${job.title} (${coverLetter.length} chars)`)
+          } catch (err) {
+            log.warn(`Failed to generate cover letter for ${job.title}`, err)
+          }
+        }
 
         try {
           const result = await this.circuitBreaker.execute(() =>
@@ -646,7 +667,8 @@ export class ExtractionRunner {
           if (result.success) {
             this.applicationsRepo.markApplied(job.id, {
               applicationAnswers: result.answersUsed,
-              resumeUsed: result.resumeUsed
+              resumeUsed: result.resumeUsed,
+              coverLetterUsed: coverLetter
             })
             applied++
             this.stats.applicationsSubmitted = applied

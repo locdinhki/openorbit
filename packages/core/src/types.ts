@@ -73,6 +73,7 @@ export interface JobListing {
   applicationAnswers?: Record<string, string>
   coverLetterUsed?: string
   resumeUsed?: string
+  recommendedResume?: string
 
   createdAt: string
   updatedAt: string

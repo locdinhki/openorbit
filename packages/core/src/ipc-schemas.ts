@@ -198,6 +198,19 @@ export const ipcSchemas = {
   }),
   'skill:custom-delete': z.object({
     skillId: z.string().min(1)
+  }),
+
+  // Dialog
+  'dialog:open-file': z.object({
+    title: z.string().optional(),
+    filters: z.array(z.object({ name: z.string(), extensions: z.array(z.string()) })).optional(),
+    multiple: z.boolean().optional()
+  }),
+
+  // Filesystem
+  'fs:copy-to-data': z.object({
+    sourcePath: z.string().min(1),
+    subdir: z.string().min(1)
   })
 } as const
 

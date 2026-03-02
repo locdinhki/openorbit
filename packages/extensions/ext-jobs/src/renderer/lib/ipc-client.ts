@@ -157,6 +157,32 @@ export const ipc = {
 
     list: (category?: string, limit?: number): Promise<IPCResult<unknown[]>> =>
       api.invoke(EXT_JOBS_IPC.MEMORY_LIST, { category, limit }) as Promise<IPCResult<unknown[]>>
+  },
+
+  resumeAnalysis: {
+    analyze: (
+      resumeName: string,
+      resumePath: string
+    ): Promise<IPCResult<import('../../main/db/resume-analysis-repo').ResumeAnalysis>> =>
+      api.invoke(EXT_JOBS_IPC.RESUME_ANALYZE, { resumeName, resumePath }) as Promise<
+        IPCResult<import('../../main/db/resume-analysis-repo').ResumeAnalysis>
+      >,
+
+    list: (): Promise<IPCResult<import('../../main/db/resume-analysis-repo').ResumeAnalysis[]>> =>
+      api.invoke(EXT_JOBS_IPC.RESUME_ANALYSIS_LIST, {}) as Promise<
+        IPCResult<import('../../main/db/resume-analysis-repo').ResumeAnalysis[]>
+      >,
+
+    delete: (resumeName: string): Promise<IPCResult> =>
+      api.invoke(EXT_JOBS_IPC.RESUME_ANALYSIS_DELETE, { resumeName }) as Promise<IPCResult>
+  },
+
+  coverLetter: {
+    generate: (jobId: string): Promise<IPCResult<string>> =>
+      api.invoke(EXT_JOBS_IPC.COVER_LETTER_GENERATE, { jobId }) as Promise<IPCResult<string>>,
+
+    save: (jobId: string, coverLetter: string): Promise<IPCResult> =>
+      api.invoke(EXT_JOBS_IPC.COVER_LETTER_SAVE, { jobId, coverLetter }) as Promise<IPCResult>
   }
 }
 

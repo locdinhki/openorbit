@@ -39,20 +39,24 @@ export class JobAnalyzer {
   }
 
   /** Analyze a single job listing */
-  async analyze(job: JobListing): Promise<ClaudeAnalysis> {
+  async analyze(job: JobListing, resumeContext?: string): Promise<ClaudeAnalysis> {
     const profile = this.userProfileRepo.get()
     const context = buildJobContext(job, profile)
     const memoryCtx = this.memoryContext.buildJobAnalysisContext(job.title, job.company)
 
-    const userMessage = `Analyze this job listing and return the JSON assessment.
+    let userMessage = `Analyze this job listing and return the JSON assessment.
 
 ${context}
 ${memoryCtx}`
 
+    if (resumeContext) {
+      userMessage += `\n\n## Available Resumes\n${resumeContext}`
+    }
+
     try {
       const result = await this.ai.complete({
         systemPrompt: SYSTEM_PROMPT,
-        userMessage,
+        userMessage: userMessage,
         tier: 'standard',
         maxTokens: 1024,
         task: 'score_job'

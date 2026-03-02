@@ -3,12 +3,15 @@
 // Extension handlers are registered via their own activate() methods.
 // ============================================================================
 
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, dialog } from 'electron'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
+import { join, basename } from 'path'
 import { networkInterfaces } from 'os'
 import { IPC } from '@openorbit/core/ipc-channels'
 import { ipcSchemas } from '@openorbit/core/ipc-schemas'
 import { errorToResponse } from '@openorbit/core/errors'
 import { getLogPath } from '@openorbit/core/utils/logger'
+import { getCoreConfig } from '@openorbit/core/config'
 import { SessionManager } from '@openorbit/core/automation/session-manager'
 import { AutomationCoordinator } from '@openorbit/core/automation/automation-coordinator'
 import { SettingsRepo } from '@openorbit/core/db/settings-repo'
@@ -728,6 +731,53 @@ export function registerIPCHandlers(mainWindow: BrowserWindow, pairing?: Pairing
         return { success: true }
       } catch (err) {
         log.error('Failed to delete custom skill', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // -------------------------------------------------------------------------
+  // Dialog
+  // -------------------------------------------------------------------------
+
+  validatedHandle(
+    IPC.DIALOG_OPEN_FILE,
+    ipcSchemas['dialog:open-file'],
+    async (_event, { title, filters, multiple }) => {
+      try {
+        const result = await dialog.showOpenDialog(mainWindow, {
+          title: title ?? 'Select File',
+          properties: multiple ? ['openFile', 'multiSelections'] : ['openFile'],
+          filters: filters ?? []
+        })
+        if (result.canceled) return { success: true, data: [] }
+        return { success: true, data: result.filePaths }
+      } catch (err) {
+        log.error('Failed to open file dialog', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // -------------------------------------------------------------------------
+  // Filesystem
+  // -------------------------------------------------------------------------
+
+  validatedHandle(
+    IPC.FS_COPY_TO_DATA,
+    ipcSchemas['fs:copy-to-data'],
+    (_event, { sourcePath, subdir }) => {
+      try {
+        const destDir = join(getCoreConfig().dataDir, subdir)
+        if (!existsSync(destDir)) mkdirSync(destDir, { recursive: true })
+
+        const filename = basename(sourcePath)
+        const destPath = join(destDir, filename)
+        copyFileSync(sourcePath, destPath)
+
+        return { success: true, data: destPath }
+      } catch (err) {
+        log.error('Failed to copy file to data dir', err)
         return errorToResponse(err)
       }
     }

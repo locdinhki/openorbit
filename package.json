@@ -1,6 +1,6 @@
 {
   "name": "openorbit",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Autonomous job search and application platform",
   "license": "SEE LICENSE IN LICENSE",
   "main": "./out/main/index.js",
@@ -50,6 +50,7 @@
     "nodemailer": "^6.9.15",
     "patchright": "^1.57.0",
     "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.4",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "sqlite-vec": "^0.1.7-alpha.2",
