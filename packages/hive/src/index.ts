@@ -79,7 +79,7 @@ async function main(): Promise<void> {
   if (existsSync(dashboardDir)) {
     app.use(express.static(dashboardDir))
     // SPA fallback: serve index.html for non-API routes
-    app.get('*', (req, res) => {
+    app.get('/{*path}', (req, res) => {
       if (req.path.startsWith('/api/') || req.path.startsWith('/minion/')) {
         res.status(404).json({ error: 'Not found' })
         return
