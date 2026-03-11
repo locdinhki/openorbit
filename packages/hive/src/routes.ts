@@ -19,11 +19,20 @@ export function createRoutes(
   // ── Auth middleware ────────────────────────────────────────────────────
 
   function requireAuth(req: Request, res: Response, next: NextFunction): void {
-    if (!controllerApiKey) return next() // No key = dev mode
+    if (!controllerApiKey) {
+      next()
+      return
+    }
     const auth = req.headers.authorization
-    if (!auth) return res.status(401).json({ error: 'Missing Authorization header' })
+    if (!auth) {
+      res.status(401).json({ error: 'Missing Authorization header' })
+      return
+    }
     const token = auth.replace(/^Bearer\s+/i, '')
-    if (token !== controllerApiKey) return res.status(403).json({ error: 'Invalid API key' })
+    if (token !== controllerApiKey) {
+      res.status(403).json({ error: 'Invalid API key' })
+      return
+    }
     next()
   }
 
@@ -41,7 +50,7 @@ export function createRoutes(
   })
 
   router.get('/api/devices/:id', requireAuth, async (req, res) => {
-    const device = await store.getDevice(req.params.id)
+    const device = await store.getDevice(String(req.params.id))
     if (!device) return res.status(404).json({ error: 'Device not found' })
     res.json(sanitizeDevice(device))
   })
@@ -92,7 +101,7 @@ export function createRoutes(
   })
 
   router.get('/api/tasks/:id', requireAuth, async (req, res) => {
-    const task = await store.getTask(req.params.id)
+    const task = await store.getTask(String(req.params.id))
     if (!task) return res.status(404).json({ error: 'Task not found' })
 
     const results = await store.getResults(task.id)
