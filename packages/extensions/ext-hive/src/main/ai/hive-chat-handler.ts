@@ -229,6 +229,41 @@ export class HiveChatHandler {
       case 'broadcast_command':
         return client.broadcastCommand(input.groupId as string, input.command as string)
 
+      case 'check_minion_versions': {
+        const [devices, latest] = await Promise.all([
+          client.listDevices(),
+          client.getMinionLatest().catch(() => null)
+        ])
+        const latestVersion = (latest as Record<string, unknown> | null)?.version ?? 'unknown'
+        return {
+          latestVersion,
+          devices: devices.map((d) => ({
+            id: d.id,
+            name: d.name,
+            status: d.status,
+            version: (d as Record<string, unknown>).minionVersion ?? null,
+            upToDate:
+              latestVersion !== 'unknown' &&
+              (d as Record<string, unknown>).minionVersion === latestVersion
+          }))
+        }
+      }
+
+      case 'update_minion':
+        if (input.deviceId) {
+          return client.updateMinion(input.deviceId as string)
+        }
+        return client.updateAllMinions()
+
+      case 'get_device_metrics':
+        return client.getMetrics(input.deviceId as string, (input.limit as number) ?? 20)
+
+      case 'list_alerts':
+        return client.listAlerts({
+          deviceId: input.deviceId as string | undefined,
+          active: (input.activeOnly as boolean | undefined) ?? false
+        })
+
       default:
         throw new Error(`Unknown tool: ${name}`)
     }

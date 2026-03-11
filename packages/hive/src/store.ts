@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid'
-import { eq, and, desc, or, isNull, lte } from 'drizzle-orm'
+import { eq, and, desc, or, isNull, lte, lt } from 'drizzle-orm'
 import bcrypt from 'bcrypt'
 import type { Db } from './db/index.js'
 import {
@@ -10,7 +10,10 @@ import {
   workflows,
   workflowRuns,
   workflowStepRuns,
-  deviceGroups
+  deviceGroups,
+  deviceMetrics,
+  alertRules,
+  alerts
 } from './db/schema.js'
 import type { WorkflowStep } from './db/schema.js'
 import type { ConnectedMinion, TaskStatus, TaskPriority } from './types.js'
@@ -23,6 +26,9 @@ export type WorkflowRun = typeof workflowRuns.$inferSelect
 export type WorkflowStepRun = typeof workflowStepRuns.$inferSelect
 export type Schedule = typeof schedules.$inferSelect
 export type DeviceGroup = typeof deviceGroups.$inferSelect
+export type DeviceMetric = typeof deviceMetrics.$inferSelect
+export type AlertRule = typeof alertRules.$inferSelect
+export type Alert = typeof alerts.$inferSelect
 
 const BCRYPT_ROUNDS = 10
 
@@ -105,6 +111,13 @@ export class Store {
     await this.db
       .update(devices)
       .set({ status: 'offline', updatedAt: new Date() })
+      .where(eq(devices.id, id))
+  }
+
+  async setDeviceVersion(id: string, version: string): Promise<void> {
+    await this.db
+      .update(devices)
+      .set({ minionVersion: version, updatedAt: new Date() })
       .where(eq(devices.id, id))
   }
 
@@ -428,5 +441,128 @@ export class Store {
       .from(devices)
       .where(and(eq(devices.locationTag, group.tagFilter), eq(devices.status, 'online')))
       .orderBy(devices.name)
+  }
+
+  // ── Device Metrics ──────────────────────────────────────────────────────
+
+  async saveMetrics(
+    deviceId: string,
+    metrics: { cpuPercent: number; memPercent: number; memUsedMb: number; memTotalMb: number }
+  ): Promise<DeviceMetric> {
+    const [row] = await this.db
+      .insert(deviceMetrics)
+      .values({
+        id: uuid(),
+        deviceId,
+        cpuPercent: metrics.cpuPercent,
+        memPercent: metrics.memPercent,
+        memUsedMb: metrics.memUsedMb,
+        memTotalMb: metrics.memTotalMb
+      })
+      .returning()
+    return row
+  }
+
+  async getMetrics(deviceId: string, limit = 60): Promise<DeviceMetric[]> {
+    return this.db
+      .select()
+      .from(deviceMetrics)
+      .where(eq(deviceMetrics.deviceId, deviceId))
+      .orderBy(desc(deviceMetrics.recordedAt))
+      .limit(limit)
+  }
+
+  async pruneMetrics(): Promise<void> {
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    await this.db.delete(deviceMetrics).where(lt(deviceMetrics.recordedAt, cutoff))
+  }
+
+  // ── Alert Rules ─────────────────────────────────────────────────────────
+
+  async createAlertRule(opts: {
+    name: string
+    deviceId?: string
+    metric: string
+    threshold: number
+  }): Promise<AlertRule> {
+    const [rule] = await this.db
+      .insert(alertRules)
+      .values({
+        id: uuid(),
+        name: opts.name,
+        deviceId: opts.deviceId ?? null,
+        metric: opts.metric,
+        threshold: opts.threshold
+      })
+      .returning()
+    return rule
+  }
+
+  async getAlertRule(id: string): Promise<AlertRule | undefined> {
+    const [rule] = await this.db.select().from(alertRules).where(eq(alertRules.id, id))
+    return rule
+  }
+
+  async listAlertRules(filter?: { forDevice?: string; metric?: string }): Promise<AlertRule[]> {
+    let query = this.db.select().from(alertRules).$dynamic()
+    if (filter?.forDevice) {
+      // Rules for this specific device OR global rules (deviceId IS NULL)
+      query = query.where(
+        and(
+          eq(alertRules.enabled, true),
+          or(eq(alertRules.deviceId, filter.forDevice), isNull(alertRules.deviceId))
+        )
+      )
+    }
+    if (filter?.metric) {
+      query = query.where(eq(alertRules.metric, filter.metric))
+    }
+    return query.orderBy(desc(alertRules.createdAt))
+  }
+
+  async deleteAlertRule(id: string): Promise<void> {
+    // Delete related alerts first
+    await this.db.delete(alerts).where(eq(alerts.ruleId, id))
+    await this.db.delete(alertRules).where(eq(alertRules.id, id))
+  }
+
+  // ── Alerts ──────────────────────────────────────────────────────────────
+
+  async createAlert(opts: { ruleId: string; deviceId: string; message?: string }): Promise<Alert> {
+    const [alert] = await this.db
+      .insert(alerts)
+      .values({
+        id: uuid(),
+        ruleId: opts.ruleId,
+        deviceId: opts.deviceId,
+        message: opts.message
+      })
+      .returning()
+    return alert
+  }
+
+  async getActiveAlert(ruleId: string, deviceId: string): Promise<Alert | undefined> {
+    const [alert] = await this.db
+      .select()
+      .from(alerts)
+      .where(
+        and(eq(alerts.ruleId, ruleId), eq(alerts.deviceId, deviceId), isNull(alerts.resolvedAt))
+      )
+    return alert
+  }
+
+  async resolveAlert(id: string): Promise<void> {
+    await this.db.update(alerts).set({ resolvedAt: new Date() }).where(eq(alerts.id, id))
+  }
+
+  async markAlertNotified(id: string): Promise<void> {
+    await this.db.update(alerts).set({ notified: true }).where(eq(alerts.id, id))
+  }
+
+  async listAlerts(filter?: { deviceId?: string; activeOnly?: boolean }): Promise<Alert[]> {
+    let query = this.db.select().from(alerts).$dynamic()
+    if (filter?.deviceId) query = query.where(eq(alerts.deviceId, filter.deviceId))
+    if (filter?.activeOnly) query = query.where(isNull(alerts.resolvedAt))
+    return query.orderBy(desc(alerts.triggeredAt))
   }
 }

@@ -155,6 +155,50 @@ export async function migrateDb(databaseUrl: string): Promise<void> {
       );
     `
 
+    // V5: Monitoring + Alerts
+    await sql`
+      CREATE TABLE IF NOT EXISTS device_metrics (
+        id TEXT PRIMARY KEY,
+        device_id TEXT NOT NULL REFERENCES devices(id),
+        recorded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        cpu_percent REAL,
+        mem_percent REAL,
+        mem_used_mb INTEGER,
+        mem_total_mb INTEGER
+      );
+    `
+    await sql`
+      CREATE INDEX IF NOT EXISTS device_metrics_device_recorded
+        ON device_metrics(device_id, recorded_at DESC);
+    `
+    await sql`
+      CREATE TABLE IF NOT EXISTS alert_rules (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        device_id TEXT REFERENCES devices(id),
+        metric TEXT NOT NULL,
+        threshold REAL NOT NULL DEFAULT 90,
+        enabled BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+    await sql`
+      CREATE TABLE IF NOT EXISTS alerts (
+        id TEXT PRIMARY KEY,
+        rule_id TEXT NOT NULL REFERENCES alert_rules(id),
+        device_id TEXT NOT NULL REFERENCES devices(id),
+        triggered_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        resolved_at TIMESTAMPTZ,
+        notified BOOLEAN NOT NULL DEFAULT false,
+        message TEXT
+      );
+    `
+
+    // V6: Minion auto-update — version tracking
+    await sql`
+      ALTER TABLE devices ADD COLUMN IF NOT EXISTS minion_version TEXT;
+    `
+
     console.log('[db] Schema migration complete')
   } finally {
     await sql.end()

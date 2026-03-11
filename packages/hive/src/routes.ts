@@ -45,6 +45,67 @@ export function createRoutes(
     res.json({ status: 'ok', uptime: process.uptime() })
   })
 
+  // ── Minion update info (public — no auth required) ─────────────────────
+
+  router.get('/minion/latest', (_req, res) => {
+    const version = process.env.MINION_LATEST_VERSION
+    const downloadUrl = process.env.MINION_DOWNLOAD_URL
+    const checksum = process.env.MINION_CHECKSUM ?? ''
+
+    if (!version || !downloadUrl) {
+      return res.status(404).json({ error: 'No minion update configured' })
+    }
+
+    res.json({ version, downloadUrl, checksum })
+  })
+
+  // Dispatch self-update to a single device
+  router.post('/api/minion/update/:deviceId', requireAuth, async (req, res) => {
+    const deviceId = String(req.params.deviceId)
+    const device = await store.getDevice(deviceId)
+    if (!device) return res.status(404).json({ error: 'Device not found' })
+
+    const version = process.env.MINION_LATEST_VERSION
+    const downloadUrl = process.env.MINION_DOWNLOAD_URL
+    const checksum = process.env.MINION_CHECKSUM ?? ''
+    if (!version || !downloadUrl) {
+      return res
+        .status(503)
+        .json({ error: 'MINION_LATEST_VERSION and MINION_DOWNLOAD_URL env vars not set' })
+    }
+
+    const instruction = { type: 'self-update', version, downloadUrl, checksum }
+    const task = await store.createTask({ targetDevice: deviceId, instruction, priority: 'high' })
+    dispatchTaskToDevice(deviceId, task.id, instruction)
+    res.status(201).json(task)
+  })
+
+  // Dispatch self-update to all online minions
+  router.post('/api/minion/update-all', requireAuth, async (_req, res) => {
+    const version = process.env.MINION_LATEST_VERSION
+    const downloadUrl = process.env.MINION_DOWNLOAD_URL
+    const checksum = process.env.MINION_CHECKSUM ?? ''
+    if (!version || !downloadUrl) {
+      return res
+        .status(503)
+        .json({ error: 'MINION_LATEST_VERSION and MINION_DOWNLOAD_URL env vars not set' })
+    }
+
+    const allDevices = await store.listDevices()
+    const online = allDevices.filter((d) => d.status === 'online' && d.type === 'minion')
+
+    const instruction = { type: 'self-update', version, downloadUrl, checksum }
+    const tasks = await Promise.all(
+      online.map(async (d) => {
+        const task = await store.createTask({ targetDevice: d.id, instruction, priority: 'high' })
+        dispatchTaskToDevice(d.id, task.id, instruction)
+        return task
+      })
+    )
+
+    res.status(201).json({ version, deviceCount: tasks.length, tasks })
+  })
+
   // ── Devices ────────────────────────────────────────────────────────────
 
   router.get('/api/devices', requireAuth, async (_req, res) => {
@@ -298,6 +359,59 @@ export function createRoutes(
     )
 
     res.status(201).json({ groupId: group.id, taskCount: tasks.length, tasks })
+  })
+
+  // ── Device Metrics ─────────────────────────────────────────────────────
+
+  router.get('/api/metrics/:deviceId', requireAuth, async (req, res) => {
+    const deviceId = String(req.params.deviceId)
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 60
+    const metrics = await store.getMetrics(deviceId, limit)
+    // Return oldest-first for charting
+    res.json(metrics.reverse())
+  })
+
+  // ── Alert Rules ────────────────────────────────────────────────────────
+
+  router.get('/api/alert-rules', requireAuth, async (_req, res) => {
+    const rules = await store.listAlertRules()
+    res.json(rules)
+  })
+
+  router.post('/api/alert-rules', requireAuth, async (req, res) => {
+    const { name, deviceId, metric, threshold } = req.body
+    if (!name || !metric || threshold === undefined) {
+      return res.status(400).json({ error: 'name, metric, and threshold required' })
+    }
+    if (!['cpu', 'mem', 'offline'].includes(metric)) {
+      return res.status(400).json({ error: 'metric must be cpu, mem, or offline' })
+    }
+    const rule = await store.createAlertRule({
+      name,
+      deviceId: deviceId || undefined,
+      metric,
+      threshold: Number(threshold)
+    })
+    res.status(201).json(rule)
+  })
+
+  router.delete('/api/alert-rules/:id', requireAuth, async (req, res) => {
+    await store.deleteAlertRule(String(req.params.id))
+    res.json({ success: true })
+  })
+
+  // ── Alerts ─────────────────────────────────────────────────────────────
+
+  router.get('/api/alerts', requireAuth, async (req, res) => {
+    const deviceId = req.query.deviceId as string | undefined
+    const activeOnly = req.query.active === 'true'
+    const alertList = await store.listAlerts({ deviceId, activeOnly })
+    res.json(alertList)
+  })
+
+  router.post('/api/alerts/:id/resolve', requireAuth, async (req, res) => {
+    await store.resolveAlert(String(req.params.id))
+    res.json({ success: true })
   })
 
   return router

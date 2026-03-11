@@ -17,6 +17,9 @@ import WorkflowNew from './pages/WorkflowNew'
 import WorkflowRunDetail from './pages/WorkflowRunDetail'
 import Groups from './pages/Groups'
 import GroupNew from './pages/GroupNew'
+import Monitoring from './pages/Monitoring'
+import AlertRules from './pages/AlertRules'
+import Alerts from './pages/Alerts'
 import './index.css'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -49,6 +52,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/workflow-runs/:runId" element={<WorkflowRunDetail />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/groups/new" element={<GroupNew />} />
+          <Route path="/monitoring" element={<Monitoring />} />
+          <Route path="/alert-rules" element={<AlertRules />} />
+          <Route path="/alerts" element={<Alerts />} />
         </Route>
       </Routes>
     </BrowserRouter>

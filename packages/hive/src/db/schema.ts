@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, jsonb, pgEnum, boolean, integer } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  text,
+  timestamp,
+  jsonb,
+  pgEnum,
+  boolean,
+  integer,
+  real
+} from 'drizzle-orm/pg-core'
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +38,7 @@ export const devices = pgTable('devices', {
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
   ipAddress: text('ip_address'),
   hardwareInfo: jsonb('hardware_info').$type<Record<string, unknown>>(),
+  minionVersion: text('minion_version'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 })
@@ -116,6 +126,44 @@ export const deviceGroups = pgTable('device_groups', {
   description: text('description'),
   tagFilter: text('tag_filter').notNull(), // matches devices where locationTag equals this value
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+// ── Phase 11: Monitoring + Alerts ─────────────────────────────────────────
+
+export const deviceMetrics = pgTable('device_metrics', {
+  id: text('id').primaryKey(),
+  deviceId: text('device_id')
+    .notNull()
+    .references(() => devices.id),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
+  cpuPercent: real('cpu_percent'),
+  memPercent: real('mem_percent'),
+  memUsedMb: integer('mem_used_mb'),
+  memTotalMb: integer('mem_total_mb')
+})
+
+export const alertRules = pgTable('alert_rules', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  deviceId: text('device_id').references(() => devices.id), // null = all devices
+  metric: text('metric').notNull(), // 'cpu' | 'mem' | 'offline'
+  threshold: real('threshold').notNull().default(90), // percent for cpu/mem; 0 for offline
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const alerts = pgTable('alerts', {
+  id: text('id').primaryKey(),
+  ruleId: text('rule_id')
+    .notNull()
+    .references(() => alertRules.id),
+  deviceId: text('device_id')
+    .notNull()
+    .references(() => devices.id),
+  triggeredAt: timestamp('triggered_at', { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  notified: boolean('notified').notNull().default(false),
+  message: text('message')
 })
 
 export const taskResults = pgTable('task_results', {

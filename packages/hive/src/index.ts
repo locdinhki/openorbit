@@ -89,6 +89,15 @@ async function main(): Promise<void> {
     console.log('[hive] Dashboard serving from', dashboardDir)
   }
 
+  // Metrics pruner — delete records older than 7 days, run every hour
+  setInterval(async () => {
+    try {
+      await store.pruneMetrics()
+    } catch (err) {
+      console.error('[metrics] Prune error:', err)
+    }
+  }, 60 * 60_000)
+
   // Schedule evaluator — check every 60s for due schedules
   setInterval(async () => {
     try {

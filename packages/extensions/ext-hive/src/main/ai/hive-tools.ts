@@ -258,6 +258,54 @@ export const HIVE_TOOLS: AIToolDefinition[] = [
       },
       required: ['groupId', 'command']
     }
+  },
+  {
+    name: 'check_minion_versions',
+    description:
+      'List all devices with their current minion version and whether they are up to date. Also shows what the latest available version is.',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'update_minion',
+    description:
+      'Dispatch a self-update task to one or all online minions. The minion will download the new binary, verify its checksum, replace itself, and restart.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: {
+          type: 'string',
+          description: 'Device ID to update. Omit to update ALL online minions.'
+        }
+      }
+    }
+  },
+  {
+    name: 'get_device_metrics',
+    description:
+      'Get recent CPU and RAM usage metrics for a device (last N readings, recorded every ~30s)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: { type: 'string', description: 'Device ID' },
+        limit: { type: 'number', description: 'Number of readings to return (default 20)' }
+      },
+      required: ['deviceId']
+    }
+  },
+  {
+    name: 'list_alerts',
+    description:
+      'List monitoring alerts, optionally filtered by device or showing only active ones',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: { type: 'string', description: 'Filter by device ID (optional)' },
+        activeOnly: {
+          type: 'boolean',
+          description: 'Only return unresolved alerts (default false)'
+        }
+      }
+    }
   }
 ]
 

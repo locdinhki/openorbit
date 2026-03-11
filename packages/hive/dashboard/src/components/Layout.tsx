@@ -7,7 +7,10 @@ const navItems = [
   { path: '/tasks', label: 'Tasks' },
   { path: '/schedules', label: 'Schedules' },
   { path: '/workflows', label: 'Workflows' },
-  { path: '/groups', label: 'Groups' }
+  { path: '/groups', label: 'Groups' },
+  { path: '/monitoring', label: 'Monitoring' },
+  { path: '/alert-rules', label: 'Alert Rules' },
+  { path: '/alerts', label: 'Alerts' }
 ]
 
 export default function Layout() {

@@ -150,18 +150,19 @@ A conversational AI interface inside the ext-hive workspace. The user talks natu
 - [x] Build verified: main 978kB, renderer 1366kB; dashboard 284kB JS + 17kB CSS
 
 ## Phase 11: Monitoring + Alerts
-- [ ] Minion metrics collector: CPU, RAM, disk, network usage — reported via heartbeat payload
-- [ ] `device_metrics` table (time-series, 1-min granularity, auto-prune after 7 days)
-- [ ] Alert rules: configurable thresholds (device offline > N min, disk > X%, CPU > X%)
-- [ ] `alerts` table (rule_id, device_id, triggered_at, resolved_at, notified)
-- [ ] Notification channel: Telegram via ext-telegram (reuse existing bot gateway)
-- [ ] Dashboard: device metrics charts (sparklines), alert rules config, alert history
-- [ ] AI agent tool: `get_device_metrics`, `list_alerts`
+- [x] Minion metrics collector: CPU% (loadavg/cores), RAM% (os.freemem/totalmem) — reported in every heartbeat
+- [x] `device_metrics` table (30s granularity, auto-prune after 7 days) — V5 migration
+- [x] Alert rules: configurable thresholds (cpu > X%, mem > X%, device offline) — per-device or global
+- [x] `alerts` table (rule_id, device_id, triggered_at, resolved_at, notified) — auto-resolve when metric drops
+- [x] Notification channel: Telegram Bot API direct from hive (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars)
+- [x] Dashboard: Monitoring page (sparklines + metric bars per device), Alert Rules page (create/delete), Alerts page (active/resolved, manual resolve)
+- [x] AI agent tools: `get_device_metrics`, `list_alerts` (20 total tools in HiveChatHandler)
 
 ## Phase 12: Minion Auto-Update
-- [ ] Version field in minion config + heartbeat payload
-- [ ] Hive tracks latest minion version (env var or DB setting)
-- [ ] REST endpoint: GET `/minion/latest` → version + download URL
-- [ ] Minion `self-update` instruction type: download new binary, verify checksum, replace, restart via systemd
-- [ ] Dashboard: version column in device list, "Update All" button
-- [ ] AI agent tool: `update_minion`, `check_minion_versions`
+- [x] Version field: `src/version.ts` (MINION_VERSION const), included in auth + heartbeat
+- [x] Hive tracks latest version via env vars: `MINION_LATEST_VERSION`, `MINION_DOWNLOAD_URL`, `MINION_CHECKSUM` — stored per-device in `devices.minion_version` (V6 migration)
+- [x] REST endpoint: `GET /minion/latest` → `{ version, downloadUrl, checksum }` (public, no auth)
+- [x] `POST /api/minion/update/:deviceId` + `POST /api/minion/update-all` — dispatches self-update tasks
+- [x] Minion `self-update` instruction: download binary, SHA256 verify, replace via `copyFileSync`, restart via `systemctl` or process re-spawn (2s delay after returning result)
+- [x] Dashboard: version column (amber if outdated), per-device Update button, "Update All (N)" button for online outdated minions
+- [x] AI agent tools: `check_minion_versions`, `update_minion` (22 total tools in HiveChatHandler)

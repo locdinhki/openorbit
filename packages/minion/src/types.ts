@@ -17,7 +17,14 @@ export interface MinionConfig {
 
 // ── Instructions ────────────────────────────────────────────────────────────
 
-export type InstructionType = 'exec' | 'read' | 'write' | 'upload' | 'download' | 'http'
+export type InstructionType =
+  | 'exec'
+  | 'read'
+  | 'write'
+  | 'upload'
+  | 'download'
+  | 'http'
+  | 'self-update'
 
 export interface ExecInstruction {
   type: 'exec'
@@ -63,6 +70,13 @@ export interface HttpInstruction {
   timeout?: number
 }
 
+export interface SelfUpdateInstruction {
+  type: 'self-update'
+  version: string // target version string
+  downloadUrl: string // URL to download the new binary
+  checksum: string // sha256 hex (or "sha256:<hex>")
+}
+
 export type Instruction =
   | ExecInstruction
   | ReadInstruction
@@ -70,6 +84,7 @@ export type Instruction =
   | UploadInstruction
   | DownloadInstruction
   | HttpInstruction
+  | SelfUpdateInstruction
 
 // ── Results ─────────────────────────────────────────────────────────────────
 
@@ -102,6 +117,12 @@ export interface HttpResult {
   body: string
 }
 
+export interface SelfUpdateResult {
+  updated: boolean
+  version: string
+  message: string
+}
+
 export type InstructionResult =
   | ExecResult
   | ReadResult
@@ -109,6 +130,7 @@ export type InstructionResult =
   | UploadResult
   | DownloadResult
   | HttpResult
+  | SelfUpdateResult
 
 // ── Messages ────────────────────────────────────────────────────────────────
 

@@ -55,8 +55,15 @@ export interface Device {
   capabilities: unknown
   locationTag: string | null
   hardwareInfo: Record<string, unknown> | null
+  minionVersion: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface MinionLatest {
+  version: string
+  downloadUrl: string
+  checksum: string
 }
 
 export interface Task {
@@ -162,6 +169,36 @@ export interface BroadcastResult {
   tasks: Task[]
 }
 
+export interface DeviceMetric {
+  id: string
+  deviceId: string
+  recordedAt: string
+  cpuPercent: number | null
+  memPercent: number | null
+  memUsedMb: number | null
+  memTotalMb: number | null
+}
+
+export interface AlertRule {
+  id: string
+  name: string
+  deviceId: string | null
+  metric: string
+  threshold: number
+  enabled: boolean
+  createdAt: string
+}
+
+export interface Alert {
+  id: string
+  ruleId: string
+  deviceId: string
+  triggeredAt: string
+  resolvedAt: string | null
+  notified: boolean
+  message: string | null
+}
+
 export interface HealthResponse {
   status: string
   uptime: number
@@ -175,6 +212,21 @@ export const api = {
   listDevices: () => request<Device[]>('/api/devices'),
 
   getDevice: (id: string) => request<Device>(`/api/devices/${encodeURIComponent(id)}`),
+
+  // Minion auto-update
+  getMinionLatest: () => request<MinionLatest>('/minion/latest'),
+
+  updateMinion: (deviceId: string) =>
+    request<{ id: string }>(`/api/minion/update/${encodeURIComponent(deviceId)}`, {
+      method: 'POST',
+      body: '{}'
+    }),
+
+  updateAllMinions: () =>
+    request<{ version: string; deviceCount: number; tasks: Task[] }>('/api/minion/update-all', {
+      method: 'POST',
+      body: '{}'
+    }),
 
   listTasks: (params?: { status?: string; deviceId?: string; limit?: number }) => {
     const q = new URLSearchParams()
@@ -257,6 +309,36 @@ export const api = {
     request<BroadcastResult>(`/api/groups/${encodeURIComponent(groupId)}/broadcast`, {
       method: 'POST',
       body: JSON.stringify(body)
+    }),
+
+  // Monitoring
+  getMetrics: (deviceId: string, limit = 60) =>
+    request<DeviceMetric[]>(`/api/metrics/${encodeURIComponent(deviceId)}?limit=${limit}`),
+
+  // Alert Rules
+  listAlertRules: () => request<AlertRule[]>('/api/alert-rules'),
+
+  createAlertRule: (body: { name: string; deviceId?: string; metric: string; threshold: number }) =>
+    request<AlertRule>('/api/alert-rules', { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteAlertRule: (id: string) =>
+    request<{ success: boolean }>(`/api/alert-rules/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }),
+
+  // Alerts
+  listAlerts: (params?: { deviceId?: string; active?: boolean }) => {
+    const q = new URLSearchParams()
+    if (params?.deviceId) q.set('deviceId', params.deviceId)
+    if (params?.active) q.set('active', 'true')
+    const qs = q.toString()
+    return request<Alert[]>(`/api/alerts${qs ? `?${qs}` : ''}`)
+  },
+
+  resolveAlert: (id: string) =>
+    request<{ success: boolean }>(`/api/alerts/${encodeURIComponent(id)}/resolve`, {
+      method: 'POST',
+      body: '{}'
     }),
 
   validateToken: async (token: string): Promise<boolean> => {

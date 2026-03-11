@@ -118,6 +118,42 @@ export class HiveClient {
     )
   }
 
+  // ── Minion Updates ────────────────────────────────────────────────────────
+
+  async getMinionLatest(): Promise<Record<string, unknown>> {
+    return this.get<Record<string, unknown>>('/minion/latest')
+  }
+
+  async updateMinion(deviceId: string): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>(
+      `/api/minion/update/${encodeURIComponent(deviceId)}`,
+      {}
+    )
+  }
+
+  async updateAllMinions(): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>('/api/minion/update-all', {})
+  }
+
+  // ── Monitoring ────────────────────────────────────────────────────────────
+
+  async getMetrics(deviceId: string, limit = 60): Promise<Record<string, unknown>[]> {
+    return this.get<Record<string, unknown>[]>(
+      `/api/metrics/${encodeURIComponent(deviceId)}?limit=${limit}`
+    )
+  }
+
+  async listAlerts(params?: {
+    deviceId?: string
+    active?: boolean
+  }): Promise<Record<string, unknown>[]> {
+    const q = new URLSearchParams()
+    if (params?.deviceId) q.set('deviceId', params.deviceId)
+    if (params?.active) q.set('active', 'true')
+    const qs = q.toString()
+    return this.get<Record<string, unknown>[]>(`/api/alerts${qs ? `?${qs}` : ''}`)
+  }
+
   // ── Health ────────────────────────────────────────────────────────────────
 
   async health(): Promise<{ status: string; uptime: number }> {

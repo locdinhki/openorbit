@@ -1,6 +1,7 @@
 import { WebSocketServer, type WebSocket } from 'ws'
 import type { Server } from 'node:http'
 import type { Store } from './store.js'
+import { AlertEngine } from './alert-engine.js'
 import type { AuthMessage, ResultMessage } from './types.js'
 import { v4 as uuid } from 'uuid'
 
@@ -18,6 +19,7 @@ export function createWsServer(
     instruction: Record<string, unknown>
   ) => boolean
 } {
+  const alertEngine = new AlertEngine(store)
   const wss = new WebSocketServer({ server: httpServer })
 
   wss.on('connection', (ws, req) => {
@@ -75,6 +77,16 @@ export function createWsServer(
         await store.setDeviceOnline(device.id, ip, authMsg.deviceInfo as Record<string, unknown>)
         store.addConnection({ deviceId: device.id, ws, lastHeartbeat: new Date() })
 
+        // Record minion version if provided
+        if (typeof (msg as Record<string, unknown>).version === 'string') {
+          store
+            .setDeviceVersion(device.id, (msg as Record<string, unknown>).version as string)
+            .catch(() => {})
+        }
+
+        // Resolve any open offline alerts for this device
+        alertEngine.resolveOffline(device.id, device.name).catch(() => {})
+
         ws.send(JSON.stringify({ type: 'auth-ok', deviceId: device.id }))
         console.log(`[ws] Device ${device.id} authenticated from ${ip}`)
 
@@ -91,6 +103,37 @@ export function createWsServer(
       if (msg.type === 'heartbeat') {
         const conn = store.getConnection(deviceId!)
         if (conn) conn.lastHeartbeat = new Date()
+
+        // Update minion version if included in heartbeat
+        if (typeof msg.version === 'string') {
+          store.setDeviceVersion(deviceId!, msg.version as string).catch(() => {})
+        }
+
+        // Save metrics + check alert thresholds
+        if (msg.metrics && typeof msg.metrics === 'object') {
+          const m = msg.metrics as Record<string, number>
+          store
+            .saveMetrics(deviceId!, {
+              cpuPercent: m.cpuPercent ?? 0,
+              memPercent: m.memPercent ?? 0,
+              memUsedMb: m.memUsedMb ?? 0,
+              memTotalMb: m.memTotalMb ?? 0
+            })
+            .then((saved) => {
+              const device = store.getConnection(deviceId!)
+              if (saved && device) {
+                return store.getDevice(deviceId!).then((d) => {
+                  if (d) {
+                    return alertEngine.checkMetrics(deviceId!, d.name, {
+                      cpuPercent: m.cpuPercent ?? 0,
+                      memPercent: m.memPercent ?? 0
+                    })
+                  }
+                })
+              }
+            })
+            .catch(() => {})
+        }
 
         const pending = await store.getQueuedTasksForDevice(deviceId!)
         ws.send(JSON.stringify({ type: 'heartbeat-ack', pendingTasks: pending.length }))
@@ -110,6 +153,8 @@ export function createWsServer(
         console.log(`[ws] Device ${deviceId} disconnected`)
         store.removeConnection(deviceId)
         await store.setDeviceOffline(deviceId)
+        const device = await store.getDevice(deviceId)
+        if (device) alertEngine.checkOffline(deviceId, device.name).catch(() => {})
       }
     })
 
@@ -131,6 +176,7 @@ export function createWsServer(
         conn.ws.close(4005, 'Heartbeat timeout')
         store.removeConnection(device.id)
         await store.setDeviceOffline(device.id)
+        alertEngine.checkOffline(device.id, device.name).catch(() => {})
       }
     }
   }, HEARTBEAT_INTERVAL)

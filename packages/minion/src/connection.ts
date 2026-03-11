@@ -1,6 +1,25 @@
 import WebSocket from 'ws'
+import { cpus, loadavg, freemem, totalmem } from 'node:os'
 import type { MinionConfig, Instruction, HardwareInfo } from './types.js'
 import type { Executor } from './executor.js'
+import { MINION_VERSION } from './version.js'
+
+function collectMetrics(): {
+  cpuPercent: number
+  memPercent: number
+  memUsedMb: number
+  memTotalMb: number
+} {
+  const load = loadavg()[0]
+  const numCpus = cpus().length
+  const cpuPercent = Math.min(100, Math.round((load / numCpus) * 100))
+  const free = freemem()
+  const total = totalmem()
+  const memPercent = Math.round((1 - free / total) * 100)
+  const memUsedMb = Math.round((total - free) / 1024 / 1024)
+  const memTotalMb = Math.round(total / 1024 / 1024)
+  return { cpuPercent, memPercent, memUsedMb, memTotalMb }
+}
 
 const BACKOFF_STEPS = [5_000, 10_000, 30_000, 60_000] // cap at 60s
 
@@ -27,7 +46,8 @@ export function connectToHive(
           type: 'auth',
           apiKey: config.apiKey,
           hardwareId: hardwareInfo.hardwareId,
-          deviceInfo: hardwareInfo
+          deviceInfo: hardwareInfo,
+          version: MINION_VERSION
         })
       )
     })
@@ -118,7 +138,14 @@ export function connectToHive(
     stopHeartbeat()
     heartbeatTimer = setInterval(() => {
       if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'heartbeat', timestamp: Date.now() }))
+        ws.send(
+          JSON.stringify({
+            type: 'heartbeat',
+            timestamp: Date.now(),
+            version: MINION_VERSION,
+            metrics: collectMetrics()
+          })
+        )
       }
     }, 30_000)
   }
