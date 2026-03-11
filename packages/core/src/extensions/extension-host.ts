@@ -23,7 +23,7 @@ import type Database from 'better-sqlite3'
 const log = createLogger('ExtensionHost')
 
 /** Extensions that are enabled by default (no explicit user opt-in needed). */
-const CORE_EXTENSION_IDS = new Set(['ext-db-viewer'])
+const CORE_EXTENSION_IDS = new Set(['ext-db-viewer', 'ext-hive'])
 
 export interface ExtensionHostDeps {
   /** Electron ipcMain module */

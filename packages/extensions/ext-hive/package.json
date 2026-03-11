@@ -1,0 +1,43 @@
+{
+  "name": "@openorbit/ext-hive",
+  "version": "1.0.0",
+  "description": "Hive minion fleet management and AI tool integration",
+  "type": "module",
+  "main": "./src/main/index.ts",
+  "keywords": ["openorbit-extension"],
+  "openorbit": {
+    "id": "ext-hive",
+    "displayName": "Hive",
+    "category": "integrations",
+    "icon": "server",
+    "activationEvents": ["onStartup"],
+    "main": "./src/main/index.ts",
+    "renderer": "./src/renderer/index.ts",
+    "contributes": {
+      "sidebar": [
+        { "id": "hive-sidebar", "label": "Hive", "icon": "server", "priority": 35 }
+      ],
+      "workspace": [
+        { "id": "hive-workspace", "label": "Task Dispatch", "default": false },
+        { "id": "hive-agent", "label": "Hive Agent", "default": false }
+      ],
+      "settings": [
+        {
+          "key": "hive.url",
+          "label": "Hive URL",
+          "type": "string",
+          "description": "Hive server base URL (e.g. https://openhive-web-production.up.railway.app)"
+        },
+        {
+          "key": "hive.api-key",
+          "label": "Hive API Key",
+          "type": "password",
+          "description": "Controller API key for hive REST API"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@openorbit/core": "*"
+  }
+}

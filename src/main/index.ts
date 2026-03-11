@@ -68,6 +68,7 @@ import extGhlMain from '@openorbit/ext-ghl/main/index'
 import extVoipMain from '@openorbit/ext-voip/main/index'
 import extDocsMain from '@openorbit/ext-docs/main/index'
 import extDealAnalyzerMain from '@openorbit/ext-deal-analyzer/main/index'
+import extHiveMain from '@openorbit/ext-hive/main/index'
 
 let mainWindow: BrowserWindow | null = null
 let configWatcher: ConfigWatcher | null = null
@@ -205,7 +206,8 @@ function createWindow(): void {
     ['ext-ghl', extGhlMain],
     ['ext-voip', extVoipMain],
     ['ext-docs', extDocsMain],
-    ['ext-deal-analyzer', extDealAnalyzerMain]
+    ['ext-deal-analyzer', extDealAnalyzerMain],
+    ['ext-hive', extHiveMain]
   ])
 
   const projectRoot = is.dev ? resolve(__dirname, '../..') : resolve(app.getAppPath(), '../..')
@@ -226,7 +228,7 @@ function createWindow(): void {
         }
       },
       ai: aiServiceFacade,
-      settings: { get: () => null },
+      settings: { get: (key: string) => new SettingsRepo().get(key) },
       scheduler: {
         addJob: () => '',
         removeJob: () => {},

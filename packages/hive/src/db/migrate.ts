@@ -84,6 +84,77 @@ export async function migrateDb(databaseUrl: string): Promise<void> {
       );
     `
 
+    // V2: Schedules
+    await sql`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id TEXT PRIMARY KEY,
+        device_id TEXT NOT NULL REFERENCES devices(id),
+        name TEXT NOT NULL,
+        instruction JSONB NOT NULL,
+        cron_expression TEXT NOT NULL,
+        enabled BOOLEAN NOT NULL DEFAULT true,
+        last_run_at TIMESTAMPTZ,
+        next_run_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    // V3: Workflows
+    await sql`
+      DO $$ BEGIN
+        CREATE TYPE workflow_run_status AS ENUM ('pending', 'running', 'completed', 'failed');
+      EXCEPTION WHEN duplicate_object THEN null;
+      END $$;
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS workflows (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        steps JSONB NOT NULL DEFAULT '[]',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS workflow_runs (
+        id TEXT PRIMARY KEY,
+        workflow_id TEXT NOT NULL REFERENCES workflows(id),
+        status workflow_run_status NOT NULL DEFAULT 'pending',
+        current_step INTEGER NOT NULL DEFAULT 0,
+        context JSONB DEFAULT '{}',
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS workflow_step_runs (
+        id TEXT PRIMARY KEY,
+        run_id TEXT NOT NULL REFERENCES workflow_runs(id),
+        step_index INTEGER NOT NULL,
+        task_id TEXT REFERENCES tasks(id),
+        status workflow_run_status NOT NULL DEFAULT 'pending',
+        output JSONB,
+        error TEXT,
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ
+      );
+    `
+
+    // V4: Device Groups
+    await sql`
+      CREATE TABLE IF NOT EXISTS device_groups (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        tag_filter TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
     console.log('[db] Schema migration complete')
   } finally {
     await sql.end()

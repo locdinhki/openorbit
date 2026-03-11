@@ -14,13 +14,15 @@ import extJobsRenderer from '@openorbit/ext-jobs/renderer/index'
 import extDbViewerRenderer from '@openorbit/ext-db-viewer/renderer/index'
 import extZillowRenderer from '@openorbit/ext-zillow/renderer/index'
 import extGhlRenderer from '@openorbit/ext-ghl/renderer/index'
+import extHiveRenderer from '@openorbit/ext-hive/renderer/index'
 
 const rendererModules = new Map<string, ExtensionRendererAPI>([
   ['ext-ai-claude', extAiClaudeRenderer],
   ['ext-jobs', extJobsRenderer],
   ['ext-db-viewer', extDbViewerRenderer],
   ['ext-zillow', extZillowRenderer],
-  ['ext-ghl', extGhlRenderer]
+  ['ext-ghl', extGhlRenderer],
+  ['ext-hive', extHiveRenderer]
 ])
 
 function App(): React.JSX.Element {

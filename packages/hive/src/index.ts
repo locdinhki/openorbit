@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 import { createServer } from 'node:http'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, existsSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import express from 'express'
 import { createDb } from './db/index.js'
 import { migrateDb } from './db/migrate.js'
 import { Store } from './store.js'
 import { createRoutes } from './routes.js'
 import { createWsServer } from './ws-server.js'
+import { getNextRun } from './cron.js'
 
 // ── Load env file if present ────────────────────────────────────────────────
 
@@ -70,6 +72,48 @@ async function main(): Promise<void> {
 
   // REST routes
   app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY))
+
+  // Dashboard SPA — serve static files, fallback to index.html
+  const __dirname = dirname(fileURLToPath(import.meta.url))
+  const dashboardDir = resolve(__dirname, 'dashboard')
+  if (existsSync(dashboardDir)) {
+    app.use(express.static(dashboardDir))
+    // SPA fallback: serve index.html for non-API routes
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/minion/')) {
+        res.status(404).json({ error: 'Not found' })
+        return
+      }
+      res.sendFile(resolve(dashboardDir, 'index.html'))
+    })
+    console.log('[hive] Dashboard serving from', dashboardDir)
+  }
+
+  // Schedule evaluator — check every 60s for due schedules
+  setInterval(async () => {
+    try {
+      const due = await store.getDueSchedules()
+      for (const schedule of due) {
+        const task = await store.createTask({
+          targetDevice: schedule.deviceId,
+          instruction: schedule.instruction as Record<string, unknown>,
+          priority: 'normal'
+        })
+        dispatchTaskToDevice(
+          schedule.deviceId,
+          task.id,
+          schedule.instruction as Record<string, unknown>
+        )
+        const nextRunAt = getNextRun(schedule.cronExpression)
+        await store.markScheduleRan(schedule.id, nextRunAt)
+        console.log(
+          `[scheduler] Dispatched task ${task.id} for schedule "${schedule.name}" → next run ${nextRunAt.toISOString()}`
+        )
+      }
+    } catch (err) {
+      console.error('[scheduler] Error:', err)
+    }
+  }, 60_000)
 
   httpServer.listen(PORT, () => {
     console.log(`[hive] Listening on port ${PORT}`)

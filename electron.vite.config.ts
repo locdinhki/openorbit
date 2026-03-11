@@ -26,7 +26,8 @@ export default defineConfig({
         '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src'),
         '@openorbit/ext-deal-analyzer': resolve('packages/extensions/ext-deal-analyzer/src'),
         '@openorbit/ext-voip': resolve('packages/extensions/ext-voip/src'),
-        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src')
+        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src'),
+        '@openorbit/ext-hive': resolve('packages/extensions/ext-hive/src')
       }
     },
     build: {
@@ -70,7 +71,8 @@ export default defineConfig({
         '@openorbit/ext-ghl': resolve('packages/extensions/ext-ghl/src'),
         '@openorbit/ext-deal-analyzer': resolve('packages/extensions/ext-deal-analyzer/src'),
         '@openorbit/ext-voip': resolve('packages/extensions/ext-voip/src'),
-        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src')
+        '@openorbit/ext-docs': resolve('packages/extensions/ext-docs/src'),
+        '@openorbit/ext-hive': resolve('packages/extensions/ext-hive/src')
       }
     },
     define: {

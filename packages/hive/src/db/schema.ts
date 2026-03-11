@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, pgEnum, boolean, integer } from 'drizzle-orm/pg-core'
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,79 @@ export const tasks = pgTable('tasks', {
   instruction: jsonb('instruction').$type<Record<string, unknown>>().notNull(),
   dispatchedAt: timestamp('dispatched_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const schedules = pgTable('schedules', {
+  id: text('id').primaryKey(),
+  deviceId: text('device_id')
+    .notNull()
+    .references(() => devices.id),
+  name: text('name').notNull(),
+  instruction: jsonb('instruction').$type<Record<string, unknown>>().notNull(),
+  cronExpression: text('cron_expression').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  lastRunAt: timestamp('last_run_at', { withTimezone: true }),
+  nextRunAt: timestamp('next_run_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const workflowRunStatusEnum = pgEnum('workflow_run_status', [
+  'pending',
+  'running',
+  'completed',
+  'failed'
+])
+
+export const workflows = pgTable('workflows', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  steps: jsonb('steps').$type<WorkflowStep[]>().notNull().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const workflowRuns = pgTable('workflow_runs', {
+  id: text('id').primaryKey(),
+  workflowId: text('workflow_id')
+    .notNull()
+    .references(() => workflows.id),
+  status: workflowRunStatusEnum('status').notNull().default('pending'),
+  currentStep: integer('current_step').notNull().default(0),
+  context: jsonb('context').$type<Record<string, string>>().default({}),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const workflowStepRuns = pgTable('workflow_step_runs', {
+  id: text('id').primaryKey(),
+  runId: text('run_id')
+    .notNull()
+    .references(() => workflowRuns.id),
+  stepIndex: integer('step_index').notNull(),
+  taskId: text('task_id').references(() => tasks.id),
+  status: workflowRunStatusEnum('status').notNull().default('pending'),
+  output: jsonb('output').$type<Record<string, unknown>>(),
+  error: text('error'),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true })
+})
+
+export interface WorkflowStep {
+  name: string
+  deviceId: string
+  instruction: Record<string, unknown>
+  onSuccess?: number | null // step index to jump to (null = next)
+  onFailure?: number | null // step index to jump to on failure (null = abort)
+  passOutputAs?: string // variable name — stdout stored here, injectable as ${VAR}
+}
+
+export const deviceGroups = pgTable('device_groups', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  tagFilter: text('tag_filter').notNull(), // matches devices where locationTag equals this value
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 })
 

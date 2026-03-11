@@ -2,3 +2,4 @@ node_modules
 dist
 *.sh
 .env
+dashboard/node_modules

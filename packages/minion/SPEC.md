@@ -250,9 +250,131 @@ Tables: `devices`, `tasks`, `task_results`
 - Manual task dispatch UI
 
 **Not in first version:**
-- AI-powered task composition (describe goal → AI generates instructions)
 - Task chain builder UI
 - Live WebSocket feed from hive
+
+---
+
+### 4. Web Dashboard (hive-served SPA)
+
+**What it is:** A lightweight React SPA served directly from the hive Express server on Railway. Provides fleet visibility and task management from any browser without the OpenOrbit desktop app.
+
+**Location:** `packages/hive/dashboard/` (Vite + React + Tailwind)
+
+**Build:** `npm run build:dashboard` → `packages/hive/dist/dashboard/` → served by Express at `/`
+
+**Auth:**
+- Login page with single password field
+- Token validated against `CONTROLLER_API_KEY` env var
+- Stored in localStorage, sent as `Authorization: Bearer` header on all API calls
+- No session server-side — stateless token check (same as REST API auth)
+
+**Pages:**
+
+| Route | Purpose |
+|---|---|
+| `/` | Fleet overview: device counts, task stats today, hive uptime |
+| `/devices` | Device table: name, status badge, type, hardware, location, last seen |
+| `/devices/:id` | Device detail: full hardware info, capabilities, recent tasks |
+| `/tasks` | Task list: filterable by status, device, date range |
+| `/tasks/new` | Dispatch form: device selector, instruction type, dynamic fields, priority |
+| `/tasks/:id` | Task detail: instruction, status timeline, result (stdout/stderr), duration |
+| `/login` | Password field → stores token in localStorage |
+
+**Tech choices:**
+- Vite for build (fast, small output)
+- React + Tailwind (consistent with OpenOrbit renderer)
+- No state management library — React state + fetch is sufficient for read-heavy views
+- Polling for live updates (10s for device list, 2s for running tasks)
+
+**Routing:** Express serves `index.html` for all non-`/api/` and non-`/minion/` routes (SPA fallback). API routes unchanged.
+
+**Constraints:**
+- Must not increase Railway memory footprint significantly (static files only)
+- No WebSocket connection from dashboard to hive (polling only — keeps it simple)
+- No AI features in the dashboard (that lives in ext-hive Phase 7)
+
+---
+
+### 5. AI Agent Chat (ext-hive)
+
+**What it is:** A conversational AI interface inside the ext-hive OpenOrbit extension. The user talks naturally and the AI orchestrates hive operations using tool calling. Follows the established chat handler pattern (ext-ghl).
+
+**Location:** `packages/extensions/ext-hive/src/main/ai/` (main process) + `packages/extensions/ext-hive/src/renderer/` (UI)
+
+**Interaction model:**
+- Human-like: "make sure all minions have node 22 installed", "check disk space on the pi", "what's the uptime on minion-01?"
+- AI figures out which devices to target, what commands to run, executes through hive, and summarizes results
+- Multi-step: AI can chain tool calls (list devices → exec on each → report aggregate results)
+
+**Main process — HiveChatHandler:**
+
+```
+HiveChatHandler {
+  constructor(ai: AIService, client: HiveClient, skills: SkillService)
+  sendMessage(message: string): Promise<string>
+  clearHistory(): void
+}
+```
+
+- Agentic loop: `provider.completeWithTools()` → execute tool calls → feed results back → repeat
+- Max 10 tool rounds (higher than ext-ghl's 5 — fleet ops often need multi-device iteration)
+- In-memory history: max 20 messages, auto-trim oldest
+- Lazy initialization on first chat message
+- Fallback for non-tool-capable providers: prefetch device list into system prompt
+
+**System prompt principles:**
+- You are a fleet operator assistant managing a distributed compute network
+- You know device names, capabilities, and current status
+- Prefer acting over asking — execute commands and show results
+- Explain what you did after acting, not before
+- For multi-device operations, iterate over devices and aggregate results
+- Never generate destructive commands (rm -rf, dd, format) without explicit confirmation
+- Safety: refuse to modify minion config/binary, refuse to expose API keys
+
+**Tools (8 tools, mapped to existing HiveClient methods):**
+
+| Tool | Description | Backed by |
+|---|---|---|
+| `list_devices` | List all devices with status and hardware info | `HiveClient.listDevices()` |
+| `get_device` | Get single device detail | `HiveClient.getDevice(id)` |
+| `exec_command` | Execute shell command on a device | `dispatchAndPoll()` with exec instruction |
+| `read_file` | Read file from a device | `dispatchAndPoll()` with read instruction |
+| `write_file` | Write file to a device | `dispatchAndPoll()` with write instruction |
+| `http_request` | Make HTTP request from a device | `dispatchAndPoll()` with http instruction |
+| `list_tasks` | List recent tasks (filterable) | `HiveClient.listTasks()` |
+| `get_task` | Get task detail + results | `HiveClient.getTask(id)` |
+
+Tool dispatch reuses existing `dispatchAndPoll()` helper from Phase 5 skills. Combined with OpenOrbit skill tools via `getCombinedTools()`.
+
+**IPC channels (2 new):**
+- `ext-hive:chat-send` — send message, returns AI response string
+- `ext-hive:chat-clear` — clear conversation history
+
+**Renderer — HiveAgentPanel:**
+- New workspace view: `hive-agent` (registered in package.json contributes)
+- Message list: user right-aligned, assistant left-aligned with markdown rendering
+- Thinking indicator while AI works (agentic loop may take 10-30s for multi-device ops)
+- Auto-scroll to bottom on new messages
+- Empty state with suggested prompts:
+  - "What devices are online?"
+  - "Check disk space on all minions"
+  - "Install python3 on minion-01"
+  - "Run `uptime` on every device"
+- Auto-expanding textarea, Enter to send, Shift+Enter for newline
+- Clear conversation button in header
+- Errors shown inline as system messages
+
+**State management:**
+- `chatSlice` in ext-hive Zustand store: `chatMessages`, `chatLoading`, `sendChatMessage()`, `clearChat()`
+- Same pattern as ext-ghl chatSlice
+
+**What the user does NOT see:**
+- Individual tool calls and results (hidden inside agentic loop)
+- The AI's internal reasoning about which tools to call
+- Raw JSON responses from hive API
+
+The user sees only the final summary: "All 3 minions have node 22.x installed. minion-01: v22.11.0, minion-02: v22.11.0, minion-03: v22.9.0."
 
 ---
 

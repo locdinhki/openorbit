@@ -138,7 +138,7 @@ ExecStart=$TSX_PATH $INSTALL_DIR/src/index.ts --config $CONFIG_DIR/config.json
 # Hardening
 NoNewPrivileges=false
 ProtectSystem=strict
-ReadWritePaths=$WORK_DIR $CONFIG_DIR
+ReadWritePaths=$WORK_DIR $CONFIG_DIR /tmp
 ProtectHome=true
 
 [Install]
