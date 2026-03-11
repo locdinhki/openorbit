@@ -158,7 +158,7 @@ Priority: Pi serial > DMI UUID > machine-id. Combined with MAC. Stored locally a
 **Hosted on:** Railway (hobby plan)
 
 **Tech stack:**
-- Node.js + Express (REST API)
+- Node.js + Express 5 (REST API) — note: Express 5 uses path-to-regexp v8, wildcard routes must use `/{*path}` not `*`
 - `ws` library (WebSocket server)
 - PostgreSQL (Railway managed)
 - Drizzle ORM (migrations + queries)
