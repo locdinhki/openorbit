@@ -22,3 +22,6 @@ browser-state.json
 
 # OS files
 Thumbs.db
+
+# Creative Studio (separate project)
+creative-studio/

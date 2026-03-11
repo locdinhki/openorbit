@@ -1,0 +1,30 @@
+{
+  "name": "@openorbit/hive",
+  "version": "0.1.0",
+  "description": "Hive relay server — central task queue and device registry for the Open Hive network",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "drizzle-orm": "^0.45.1",
+    "express": "^5.1.0",
+    "postgres": "^3.4.8",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.19.1",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.9",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  }
+}

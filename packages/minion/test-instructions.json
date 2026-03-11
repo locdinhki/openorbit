@@ -1,0 +1,19 @@
+[
+  {
+    "type": "exec",
+    "command": "echo 'Hello from minion' && uname -a"
+  },
+  {
+    "type": "write",
+    "path": "/tmp/hive-test/hello.txt",
+    "content": "Written by hive minion agent"
+  },
+  {
+    "type": "read",
+    "path": "/tmp/hive-test/hello.txt"
+  },
+  {
+    "type": "exec",
+    "command": "ls -la /tmp/hive-test/"
+  }
+]
