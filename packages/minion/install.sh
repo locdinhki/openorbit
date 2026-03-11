@@ -1,13 +1,9 @@
 #!/bin/bash
 # Open Hive — Minion install script
-# Usage: curl -sSL https://your-hive.example.com/minion/install.sh | bash -s -- <HIVE_URL> <API_KEY>
+# Usage: sudo bash install.sh <HIVE_URL> <API_KEY> [DEVICE_NAME]
 #
-# This script:
-#   1. Installs Node.js if not present (via nvm)
-#   2. Clones or updates the minion source
-#   3. Installs dependencies
-#   4. Writes config
-#   5. Installs and enables systemd service
+# It clones the minion source from GitHub, installs deps, writes
+# config, and sets up a systemd service.
 
 set -e
 
@@ -18,6 +14,7 @@ INSTALL_DIR="/opt/hive-minion"
 CONFIG_DIR="/etc/hive-minion"
 WORK_DIR="/home/hive/workspace"
 SERVICE_USER="hive"
+REPO_URL="https://github.com/locdinhki/openorbit.git"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -32,7 +29,7 @@ fi
 
 if [ -z "$HIVE_URL" ] || [ -z "$API_KEY" ]; then
   error "Usage: install.sh <HIVE_URL> <API_KEY> [DEVICE_NAME]
-  Example: install.sh wss://hive.example.com hive_abc123def456 my-pi"
+  Example: sudo bash install.sh wss://openhive-web-production.up.railway.app hive_abc123 my-pi"
 fi
 
 # ── Create service user ─────────────────────────────────────────────────────
@@ -60,24 +57,32 @@ fi
 NODE_VERSION=$(node -v)
 info "Node.js: $NODE_VERSION"
 
-# ── Install minion ───────────────────────────────────────────────────────────
+# ── Copy minion source ──────────────────────────────────────────────────────
 
 info "Installing minion to $INSTALL_DIR"
-mkdir -p "$INSTALL_DIR"
 
-if [ -d "$INSTALL_DIR/.git" ]; then
+if [ -d "$INSTALL_DIR/src" ]; then
   info "Updating existing install..."
-  cd "$INSTALL_DIR"
-  git pull --ff-only
+  cd /tmp
+  rm -rf openorbit-clone
+  git clone --depth 1 "$REPO_URL" openorbit-clone
+  rsync -a --delete --exclude node_modules openorbit-clone/packages/minion/ "$INSTALL_DIR/"
+  rm -rf openorbit-clone
 else
   info "Cloning minion source..."
-  git clone --depth 1 https://github.com/yourusername/openorbit.git /tmp/openorbit-clone
-  cp -r /tmp/openorbit-clone/packages/minion/* "$INSTALL_DIR/"
-  cp -r /tmp/openorbit-clone/packages/minion/.* "$INSTALL_DIR/" 2>/dev/null || true
-  rm -rf /tmp/openorbit-clone
+  cd /tmp
+  git clone --depth 1 "$REPO_URL" openorbit-clone
+  mkdir -p "$INSTALL_DIR"
+  cp -r openorbit-clone/packages/minion/* "$INSTALL_DIR/"
+  rm -rf openorbit-clone
 fi
 
 cd "$INSTALL_DIR"
+
+# Install tsx globally for systemd (avoids npx resolution issues)
+npm install -g tsx
+
+# Install production dependencies
 npm install --omit=dev
 info "Dependencies installed"
 
@@ -109,6 +114,9 @@ fi
 
 # ── systemd service ─────────────────────────────────────────────────────────
 
+TSX_PATH=$(which tsx)
+NODE_PATH=$(which node)
+
 info "Installing systemd service"
 cat > /etc/systemd/system/hive-minion.service <<EOF
 [Unit]
@@ -124,7 +132,8 @@ WorkingDirectory=$INSTALL_DIR
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
-ExecStart=$(which npx) tsx $INSTALL_DIR/src/index.ts --config $CONFIG_DIR/config.json
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=$TSX_PATH $INSTALL_DIR/src/index.ts --config $CONFIG_DIR/config.json
 
 # Hardening
 NoNewPrivileges=false
