@@ -29,7 +29,7 @@ fi
 
 if [ -z "$HIVE_URL" ] || [ -z "$API_KEY" ]; then
   error "Usage: install.sh <HIVE_URL> <API_KEY> [DEVICE_NAME]
-  Example: sudo bash install.sh wss://openhive-web-production.up.railway.app hive_abc123 my-pi"
+  Example: sudo bash install.sh wss://hive.openorbit.ai hive_abc123 my-pi"
 fi
 
 # ── Create service user ─────────────────────────────────────────────────────

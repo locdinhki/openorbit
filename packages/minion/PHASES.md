@@ -34,7 +34,7 @@
 - [x] Dockerfile + build script for Railway deployment
 - [x] Compiled JS verified (`npm run build` → `node dist/index.js`)
 - [x] Minion install script (`install.sh`) with systemd service
-- [x] Deploy hive to Railway (openhive-web-production.up.railway.app)
+- [x] Deploy hive to Railway → hive.openorbit.ai
 - [x] End-to-end verified: REST → Railway hive → WSS → local minion → result
 - [x] Deploy minion to Pi (run install.sh)
 
