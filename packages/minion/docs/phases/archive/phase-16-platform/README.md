@@ -2,7 +2,7 @@
 
 **Theme:** Harden the platform for shared use — user accounts with roles, a tamper-evident audit log, and a terminal CLI for operators who live in the shell.
 
-**Effort:** Medium | **Depends on:** Phase 6 (dashboard auth) | **Status:** Not started
+**Effort:** Medium | **Depends on:** Phase 6 (dashboard auth) | **Status:** Complete
 
 ## Why This Phase
 

@@ -1,0 +1,23 @@
+{
+  "name": "hive-ctl",
+  "version": "0.1.0",
+  "description": "CLI for Open Hive fleet management",
+  "type": "module",
+  "bin": {
+    "hive-ctl": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  }
+}

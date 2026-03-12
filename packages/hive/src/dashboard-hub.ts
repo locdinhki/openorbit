@@ -4,6 +4,7 @@
 
 import { WebSocketServer, type WebSocket } from 'ws'
 import type { Server } from 'node:http'
+import jwt from 'jsonwebtoken'
 import type { Store } from './store.js'
 
 export type DashboardEvent =
@@ -49,7 +50,8 @@ export function createDashboardWs(
   httpServer: Server,
   hub: DashboardHub,
   store: Store,
-  controllerApiKey: string
+  controllerApiKey: string,
+  jwtSecret?: string
 ): void {
   const wss = new WebSocketServer({ noServer: true })
 
@@ -57,9 +59,21 @@ export function createDashboardWs(
     const url = new URL(req.url ?? '/', `http://${req.headers.host}`)
     if (url.pathname !== '/api/ws/dashboard') return
 
-    // Auth
+    // Auth — accept legacy API key or JWT
     const token = url.searchParams.get('token')
-    if (controllerApiKey && token !== controllerApiKey) {
+    let authed = !controllerApiKey // dev mode
+    if (token) {
+      if (token === controllerApiKey) authed = true
+      if (jwtSecret) {
+        try {
+          jwt.verify(token, jwtSecret)
+          authed = true
+        } catch {
+          // not a valid JWT
+        }
+      }
+    }
+    if (!authed) {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
       socket.destroy()
       return

@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'hive_token'
+const USER_KEY = 'hive_user'
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -10,10 +11,30 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
+}
+
+export interface CurrentUser {
+  id: string
+  username: string
+  role: string
+}
+
+export function getUser(): CurrentUser | null {
+  const raw = localStorage.getItem(USER_KEY)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+export function setUser(user: CurrentUser): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
 function getBaseUrl(): string {
-  // In dev, proxy through vite. In prod, same origin.
   return ''
 }
 
@@ -288,10 +309,68 @@ export interface FleetReport {
   periodEnd: string
 }
 
+export interface UserAccount {
+  id: string
+  username: string
+  role: string
+  createdAt: string
+  lastLoginAt: string | null
+}
+
+export interface AuditEntry {
+  id: string
+  userId: string | null
+  action: string
+  targetId: string | null
+  payload: Record<string, unknown> | null
+  ipAddress: string | null
+  createdAt: string
+}
+
 // ── API methods ────────────────────────────────────────────────────────────
 
 export const api = {
   health: () => request<HealthResponse>('/api/health'),
+
+  // Auth
+  login: (username: string, password: string) =>
+    request<{ token: string; user: CurrentUser }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    }),
+
+  me: () => request<{ user: CurrentUser }>('/api/auth/me'),
+
+  // Users (admin only)
+  listUsers: () => request<UserAccount[]>('/api/users'),
+
+  createUser: (body: { username: string; password: string; role: string }) =>
+    request<UserAccount>('/api/users', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateUser: (id: string, body: { role?: string; password?: string }) =>
+    request<UserAccount>(`/api/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    }),
+
+  deleteUser: (id: string) =>
+    request<{ success: boolean }>(`/api/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Audit log (admin only)
+  listAuditLog: (params?: {
+    userId?: string
+    action?: string
+    limit?: number
+    offset?: number
+  }) => {
+    const q = new URLSearchParams()
+    if (params?.userId) q.set('userId', params.userId)
+    if (params?.action) q.set('action', params.action)
+    if (params?.limit) q.set('limit', String(params.limit))
+    if (params?.offset) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request<AuditEntry[]>(`/api/audit-log${qs ? `?${qs}` : ''}`)
+  },
 
   listDevices: () => request<Device[]>('/api/devices'),
 
@@ -523,12 +602,9 @@ export const api = {
   generateReport: () =>
     request<FleetReport>('/api/reports/generate', { method: 'POST', body: '{}' }),
 
+  // Legacy token validation (for backwards compat with API key login)
   validateToken: async (token: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/health`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      // health endpoint doesn't require auth, so also try devices
       const devRes = await fetch(`${getBaseUrl()}/api/devices`, {
         headers: { Authorization: `Bearer ${token}` }
       })

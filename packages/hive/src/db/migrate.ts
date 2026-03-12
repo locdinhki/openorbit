@@ -304,6 +304,37 @@ export async function migrateDb(databaseUrl: string): Promise<void> {
       );
     `
 
+    // V9: Platform & Access — users + audit log
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id            TEXT PRIMARY KEY,
+        username      TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role          TEXT NOT NULL CHECK(role IN ('admin', 'operator', 'viewer')),
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+        last_login_at TIMESTAMPTZ
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id         TEXT PRIMARY KEY,
+        user_id    TEXT REFERENCES users(id),
+        action     TEXT NOT NULL,
+        target_id  TEXT,
+        payload    JSONB,
+        ip_address TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at DESC);
+    `
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log(user_id, created_at DESC);
+    `
+
     console.log('[db] Schema migration complete')
   } finally {
     await sql.end()

@@ -21,7 +21,9 @@ import {
   triggerRuns,
   healthChecks,
   healthCheckResults,
-  fleetReports
+  fleetReports,
+  users,
+  auditLog
 } from './db/schema.js'
 import type { WorkflowStep } from './db/schema.js'
 import type { ConnectedMinion, TaskStatus, TaskPriority } from './types.js'
@@ -45,6 +47,8 @@ export type TriggerRun = typeof triggerRuns.$inferSelect
 export type HealthCheck = typeof healthChecks.$inferSelect
 export type HealthCheckResult = typeof healthCheckResults.$inferSelect
 export type FleetReport = typeof fleetReports.$inferSelect
+export type User = typeof users.$inferSelect
+export type AuditEntry = typeof auditLog.$inferSelect
 
 const BCRYPT_ROUNDS = 10
 
@@ -900,5 +904,106 @@ export class Store {
       .orderBy(desc(fleetReports.generatedAt))
       .limit(1)
     return report
+  }
+
+  // ── Users ────────────────────────────────────────────────────────────────
+
+  async createUser(opts: { username: string; password: string; role: string }): Promise<User> {
+    const passwordHash = await bcrypt.hash(opts.password, BCRYPT_ROUNDS)
+    const [user] = await this.db
+      .insert(users)
+      .values({
+        id: uuid(),
+        username: opts.username,
+        passwordHash,
+        role: opts.role
+      })
+      .returning()
+    return user
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await this.db.select().from(users).where(eq(users.id, id))
+    return user
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await this.db.select().from(users).where(eq(users.username, username))
+    return user
+  }
+
+  async listUsers(): Promise<User[]> {
+    return this.db.select().from(users).orderBy(desc(users.createdAt))
+  }
+
+  async updateUser(
+    id: string,
+    updates: { role?: string; password?: string }
+  ): Promise<User | undefined> {
+    const set: Record<string, unknown> = {}
+    if (updates.role) set.role = updates.role
+    if (updates.password) set.passwordHash = await bcrypt.hash(updates.password, BCRYPT_ROUNDS)
+    if (Object.keys(set).length === 0) return this.getUser(id)
+    const [updated] = await this.db.update(users).set(set).where(eq(users.id, id)).returning()
+    return updated
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.db.delete(users).where(eq(users.id, id))
+  }
+
+  async verifyUserPassword(username: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByUsername(username)
+    if (!user) return undefined
+    const match = await bcrypt.compare(password, user.passwordHash)
+    if (!match) return undefined
+    // Update last login
+    await this.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id))
+    return user
+  }
+
+  async userCount(): Promise<number> {
+    const result = await this.db.select().from(users)
+    return result.length
+  }
+
+  // ── Audit Log ────────────────────────────────────────────────────────────
+
+  async createAuditEntry(opts: {
+    userId?: string
+    action: string
+    targetId?: string
+    payload?: Record<string, unknown>
+    ip?: string
+  }): Promise<AuditEntry> {
+    const [entry] = await this.db
+      .insert(auditLog)
+      .values({
+        id: uuid(),
+        userId: opts.userId ?? null,
+        action: opts.action,
+        targetId: opts.targetId ?? null,
+        payload: opts.payload ?? null,
+        ipAddress: opts.ip ?? null
+      })
+      .returning()
+    return entry
+  }
+
+  async listAuditLog(filter?: {
+    userId?: string
+    action?: string
+    limit?: number
+    offset?: number
+  }): Promise<AuditEntry[]> {
+    let query = this.db.select().from(auditLog).$dynamic()
+    const conditions = []
+    if (filter?.userId) conditions.push(eq(auditLog.userId, filter.userId))
+    if (filter?.action) conditions.push(eq(auditLog.action, filter.action))
+    if (conditions.length) query = query.where(and(...conditions))
+    query = query.orderBy(desc(auditLog.createdAt))
+    if (filter?.limit) query = query.limit(filter.limit)
+    if (filter?.offset) query = query.offset(filter.offset)
+    return query
   }
 }

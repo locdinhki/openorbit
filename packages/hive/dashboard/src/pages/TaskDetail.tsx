@@ -38,7 +38,7 @@ export default function TaskDetail() {
 
   const instruction = task.instruction as Record<string, unknown>
   const result = task.results?.[0]
-  const resultData = result?.result as Record<string, unknown> | null
+  const resultData = result?.result as Record<string, string | number | null | undefined> | null
 
   return (
     <div className="space-y-6">

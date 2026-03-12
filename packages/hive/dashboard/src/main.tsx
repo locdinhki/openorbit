@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { getToken } from './lib/api'
+import { getToken, setToken, setUser } from './lib/api'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Overview from './pages/Overview'
@@ -25,7 +25,20 @@ import Templates from './pages/Templates'
 import Webhooks from './pages/Webhooks'
 import Triggers from './pages/Triggers'
 import Reports from './pages/Reports'
+import Users from './pages/Users'
+import AuditLog from './pages/AuditLog'
 import './index.css'
+
+// Auto-login via hash token: #token=<api-key>
+// Used by the Electron ext-hive iframe to bypass the login screen
+const hashParams = new URLSearchParams(window.location.hash.slice(1))
+const hashToken = hashParams.get('token')
+if (hashToken) {
+  setToken(hashToken)
+  setUser({ id: 'api-key', username: 'api-key', role: 'admin' })
+  // Clean the hash so it doesn't persist in the URL
+  history.replaceState(null, '', window.location.pathname)
+}
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!getToken()) return <Navigate to="/login" replace />
@@ -65,6 +78,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/webhooks" element={<Webhooks />} />
           <Route path="/triggers" element={<Triggers />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/audit-log" element={<AuditLog />} />
         </Route>
       </Routes>
     </BrowserRouter>

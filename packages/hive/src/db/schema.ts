@@ -256,6 +256,27 @@ export const fleetReports = pgTable('fleet_reports', {
   periodEnd: timestamp('period_end', { withTimezone: true }).notNull()
 })
 
+// ── Phase 16: Platform & Access ──────────────────────────────────────────
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  username: text('username').unique().notNull(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role').notNull(), // 'admin' | 'operator' | 'viewer'
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true })
+})
+
+export const auditLog = pgTable('audit_log', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id),
+  action: text('action').notNull(),
+  targetId: text('target_id'),
+  payload: jsonb('payload').$type<Record<string, unknown>>(),
+  ipAddress: text('ip_address'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
 export const taskResults = pgTable('task_results', {
   id: text('id').primaryKey(),
   taskId: text('task_id')

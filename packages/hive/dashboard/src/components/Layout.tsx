@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { clearToken } from '../lib/api'
+import { clearToken, getUser } from '../lib/api'
 
 interface NavGroup {
   label: string
-  items: { path: string; label: string }[]
+  items: { path: string; label: string; adminOnly?: boolean }[]
 }
 
 const navGroups: NavGroup[] = [
@@ -39,6 +39,13 @@ const navGroups: NavGroup[] = [
   {
     label: 'Integrations',
     items: [{ path: '/webhooks', label: 'Webhooks' }]
+  },
+  {
+    label: 'Settings',
+    items: [
+      { path: '/users', label: 'Users', adminOnly: true },
+      { path: '/audit-log', label: 'Audit Log', adminOnly: true }
+    ]
   }
 ]
 
@@ -60,6 +67,7 @@ export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const user = getUser()
 
   function toggleGroup(label: string) {
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }))
@@ -73,6 +81,17 @@ export default function Layout() {
   function handleLogout() {
     clearToken()
     navigate('/login')
+  }
+
+  const isAdmin = user?.role === 'admin'
+
+  const roleBadge = (role: string) => {
+    const colors: Record<string, string> = {
+      admin: 'text-red-400',
+      operator: 'text-blue-400',
+      viewer: 'text-gray-500'
+    }
+    return <span className={`text-[10px] ${colors[role] ?? colors.viewer}`}>{role}</span>
   }
 
   return (
@@ -89,6 +108,9 @@ export default function Layout() {
         {/* Nav groups */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           {navGroups.map((group) => {
+            const visibleItems = group.items.filter((item) => !item.adminOnly || isAdmin)
+            if (visibleItems.length === 0) return null
+
             const isOpen = !collapsed[group.label]
             return (
               <div key={group.label} className="mb-1">
@@ -101,7 +123,7 @@ export default function Layout() {
                 </button>
                 {isOpen && (
                   <div className="mt-0.5 space-y-0.5">
-                    {group.items.map((item) => (
+                    {visibleItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}
@@ -121,8 +143,14 @@ export default function Layout() {
           })}
         </nav>
 
-        {/* Logout */}
+        {/* User info + Logout */}
         <div className="border-t border-gray-800 px-5 py-3">
+          {user && user.username !== 'api-key' && (
+            <div className="mb-2">
+              <p className="text-xs text-gray-300">{user.username}</p>
+              {roleBadge(user.role)}
+            </div>
+          )}
           <button
             onClick={handleLogout}
             className="text-xs text-gray-500 hover:text-gray-300 transition-colors"

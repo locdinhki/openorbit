@@ -5,6 +5,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import express from 'express'
+import jwt from 'jsonwebtoken'
 import { createDb } from './db/index.js'
 import { migrateDb } from './db/migrate.js'
 import { Store } from './store.js'
@@ -45,9 +46,12 @@ loadEnv()
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
+import crypto from 'node:crypto'
+
 const PORT = parseInt(process.env.PORT ?? '8080')
 const CONTROLLER_API_KEY = process.env.CONTROLLER_API_KEY ?? ''
 const DATABASE_URL = process.env.OPENHIVE_DB_URL
+const JWT_SECRET = process.env.JWT_SECRET ?? crypto.randomBytes(32).toString('hex')
 
 if (!DATABASE_URL) {
   console.error('[hive] FATAL: OPENHIVE_DB_URL not set')
@@ -92,7 +96,7 @@ async function main(): Promise<void> {
   alertEngine.dashboardHub = dashboardHub
 
   // Dashboard WS endpoint (/api/ws/dashboard)
-  createDashboardWs(httpServer, dashboardHub, store, CONTROLLER_API_KEY)
+  createDashboardWs(httpServer, dashboardHub, store, CONTROLLER_API_KEY, JWT_SECRET)
 
   // PTY relay (dashboard → minion terminal sessions)
   createPtyRelay(httpServer, sendToDevice, onDeviceMessage, CONTROLLER_API_KEY)
@@ -117,8 +121,17 @@ async function main(): Promise<void> {
   triggerRef.engine = triggerEngine
   alertEngine.triggerEngine = triggerEngine
 
+  // Bootstrap default admin on first boot
+  const userCount = await store.userCount()
+  if (userCount === 0) {
+    const adminUser = process.env.ADMIN_USERNAME ?? 'admin'
+    const adminPass = process.env.ADMIN_PASSWORD ?? (CONTROLLER_API_KEY || 'admin')
+    await store.createUser({ username: adminUser, password: adminPass, role: 'admin' })
+    console.log(`[hive] Created default admin user: ${adminUser}`)
+  }
+
   // REST routes (with dashboardHub for task.created broadcast)
-  app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY, dashboardHub))
+  app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY, JWT_SECRET, dashboardHub))
 
   // ── Prometheus /metrics endpoint ──────────────────────────────────────────
   app.get('/metrics', async (req, res) => {
@@ -144,14 +157,22 @@ async function main(): Promise<void> {
 
   // ── Fleet Report generation endpoint ──────────────────────────────────────
   app.post('/api/reports/generate', express.json(), async (req, res) => {
-    // Check auth
-    if (CONTROLLER_API_KEY) {
-      const auth = req.headers.authorization
-      const token = auth?.replace(/^Bearer\s+/i, '')
-      if (token !== CONTROLLER_API_KEY) {
-        res.status(403).json({ error: 'Invalid API key' })
-        return
+    // Check auth — accept CONTROLLER_API_KEY or valid JWT
+    const auth = req.headers.authorization
+    const token = auth?.replace(/^Bearer\s+/i, '')
+    let authed = !CONTROLLER_API_KEY // dev mode = no auth
+    if (token) {
+      if (CONTROLLER_API_KEY && token === CONTROLLER_API_KEY) authed = true
+      try {
+        jwt.verify(token, JWT_SECRET)
+        authed = true
+      } catch {
+        // not a valid JWT
       }
+    }
+    if (!authed) {
+      res.status(403).json({ error: 'Invalid API key' })
+      return
     }
     try {
       const report = await generateFleetReport(store)
