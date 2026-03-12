@@ -105,5 +105,25 @@ export const extHiveSchemas = {
 
   'ext-hive:delete-trigger': z.object({
     id: z.string().min(1)
-  })
+  }),
+
+  // Health Checks
+  'ext-hive:list-health-checks': z.object({
+    deviceId: z.string().optional()
+  }),
+
+  'ext-hive:create-health-check': z.object({
+    deviceId: z.string().min(1),
+    name: z.string().min(1),
+    type: z.enum(['http', 'command']),
+    url: z.string().optional(),
+    command: z.string().optional(),
+    runFrom: z.enum(['hive', 'device']).optional(),
+    intervalS: z.number().int().optional()
+  }),
+
+  // Fleet Reports
+  'ext-hive:generate-report': z.object({}),
+
+  'ext-hive:get-latest-report': z.object({})
 } as const

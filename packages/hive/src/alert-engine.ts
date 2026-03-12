@@ -4,9 +4,11 @@
 
 import type { Store } from './store.js'
 import type { TriggerEngine } from './trigger-engine.js'
+import type { DashboardHub } from './dashboard-hub.js'
 
 export class AlertEngine {
   triggerEngine?: TriggerEngine
+  dashboardHub?: DashboardHub
 
   constructor(private store: Store) {}
 
@@ -50,6 +52,7 @@ export class AlertEngine {
       if (!active) {
         const message = `Device "${deviceName}" is offline`
         const alert = await this.store.createAlert({ ruleId: rule.id, deviceId, message })
+        this.dashboardHub?.broadcast('alert.fired', { alert })
         await this.sendTelegram(`🔴 Open Hive Alert\n${message}`)
         await this.store.markAlertNotified(alert.id)
         this.triggerEngine
@@ -73,6 +76,10 @@ export class AlertEngine {
       const active = await this.store.getActiveAlert(rule.id, deviceId)
       if (active) {
         await this.store.resolveAlert(active.id)
+        this.dashboardHub?.broadcast('alert.resolved', {
+          alertId: active.id,
+          resolvedAt: new Date().toISOString()
+        })
         await this.sendTelegram(`✅ Open Hive: Device "${deviceName}" is back online`)
         this.triggerEngine
           ?.evaluate({
@@ -101,6 +108,7 @@ export class AlertEngine {
       if (!active) {
         const message = `Device "${deviceName}" ${label} at ${value}% (threshold: ${threshold}%)`
         const alert = await this.store.createAlert({ ruleId, deviceId, message })
+        this.dashboardHub?.broadcast('alert.fired', { alert })
         await this.sendTelegram(`⚠️ Open Hive Alert\n${message}`)
         await this.store.markAlertNotified(alert.id)
         this.triggerEngine
@@ -117,6 +125,10 @@ export class AlertEngine {
       // Resolve if threshold no longer exceeded
       if (active) {
         await this.store.resolveAlert(active.id)
+        this.dashboardHub?.broadcast('alert.resolved', {
+          alertId: active.id,
+          resolvedAt: new Date().toISOString()
+        })
         this.triggerEngine
           ?.evaluate({
             type: 'alert.resolved',

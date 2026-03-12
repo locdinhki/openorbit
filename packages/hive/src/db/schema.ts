@@ -216,6 +216,46 @@ export const triggerRuns = pgTable('trigger_runs', {
   resultId: text('result_id')
 })
 
+// ── Phase 15: Observability ──────────────────────────────────────────────
+
+export const healthChecks = pgTable('health_checks', {
+  id: text('id').primaryKey(),
+  deviceId: text('device_id')
+    .notNull()
+    .references(() => devices.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  type: text('type').notNull(), // 'http' | 'command'
+  url: text('url'),
+  expectedStatus: integer('expected_status').default(200),
+  expectedBody: text('expected_body'),
+  command: text('command'),
+  expectedExit: integer('expected_exit').default(0),
+  runFrom: text('run_from').notNull().default('device'), // 'hive' | 'device'
+  intervalS: integer('interval_s').notNull().default(60),
+  timeoutS: integer('timeout_s').notNull().default(10),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const healthCheckResults = pgTable('health_check_results', {
+  id: text('id').primaryKey(),
+  checkId: text('check_id')
+    .notNull()
+    .references(() => healthChecks.id, { onDelete: 'cascade' }),
+  status: text('status').notNull(), // 'pass' | 'fail'
+  durationMs: integer('duration_ms'),
+  error: text('error'),
+  checkedAt: timestamp('checked_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const fleetReports = pgTable('fleet_reports', {
+  id: text('id').primaryKey(),
+  generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+  content: text('content').notNull(),
+  periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
+  periodEnd: timestamp('period_end', { withTimezone: true }).notNull()
+})
+
 export const taskResults = pgTable('task_results', {
   id: text('id').primaryKey(),
   taskId: text('task_id')

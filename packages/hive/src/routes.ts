@@ -6,6 +6,7 @@ import type { devices } from './db/schema.js'
 import { getNextRun, validateCron } from './cron.js'
 import { WorkflowRunner } from './workflow-runner.js'
 import crypto from 'node:crypto'
+import type { DashboardHub } from './dashboard-hub.js'
 
 export function createRoutes(
   store: Store,
@@ -14,7 +15,8 @@ export function createRoutes(
     taskId: string,
     instruction: Record<string, unknown>
   ) => boolean,
-  controllerApiKey: string
+  controllerApiKey: string,
+  dashboardHub?: DashboardHub
 ): Router {
   const workflowRunner = new WorkflowRunner(store, dispatchTaskToDevice)
   const router = Router()
@@ -149,6 +151,7 @@ export function createRoutes(
     }
 
     const task = await store.createTask({ targetDevice, priority, instruction })
+    dashboardHub?.broadcast('task.created', { task })
 
     // Try to dispatch immediately if target is online
     if (targetDevice) {
@@ -599,6 +602,100 @@ export function createRoutes(
     const runs = await store.listTriggerRuns(String(req.params.id))
     res.json(runs)
   })
+
+  // ── Health Checks ──────────────────────────────────────────────────────
+
+  router.get('/api/health-checks', requireAuth, async (req, res) => {
+    const deviceId = req.query.deviceId as string | undefined
+    const checks = await store.listHealthChecks(deviceId ? { deviceId } : undefined)
+    // Enrich with latest result status
+    const enriched = await Promise.all(
+      checks.map(async (c) => {
+        const latest = await store.getLatestHealthCheckResult(c.id)
+        return {
+          ...c,
+          lastStatus: latest?.status ?? null,
+          lastCheckedAt: latest?.checkedAt ?? null
+        }
+      })
+    )
+    res.json(enriched)
+  })
+
+  router.post('/api/health-checks', requireAuth, async (req, res) => {
+    const {
+      deviceId,
+      name,
+      type,
+      url,
+      expectedStatus,
+      expectedBody,
+      command,
+      expectedExit,
+      runFrom,
+      intervalS,
+      timeoutS
+    } = req.body
+    if (!deviceId || !name || !type) {
+      return res.status(400).json({ error: 'deviceId, name, and type required' })
+    }
+    if (!['http', 'command'].includes(type)) {
+      return res.status(400).json({ error: 'type must be http or command' })
+    }
+    const check = await store.createHealthCheck({
+      deviceId,
+      name,
+      type,
+      url,
+      expectedStatus,
+      expectedBody,
+      command,
+      expectedExit,
+      runFrom,
+      intervalS,
+      timeoutS
+    })
+    res.status(201).json(check)
+  })
+
+  router.patch('/api/health-checks/:id', requireAuth, async (req, res) => {
+    const id = String(req.params.id)
+    const existing = await store.getHealthCheck(id)
+    if (!existing) return res.status(404).json({ error: 'Health check not found' })
+    const updates: { enabled?: boolean; intervalS?: number; timeoutS?: number; name?: string } = {}
+    if (req.body.enabled !== undefined) updates.enabled = req.body.enabled
+    if (req.body.intervalS !== undefined) updates.intervalS = req.body.intervalS
+    if (req.body.timeoutS !== undefined) updates.timeoutS = req.body.timeoutS
+    if (req.body.name !== undefined) updates.name = req.body.name
+    const updated = await store.updateHealthCheck(id, updates)
+    res.json(updated)
+  })
+
+  router.delete('/api/health-checks/:id', requireAuth, async (req, res) => {
+    await store.deleteHealthCheck(String(req.params.id))
+    res.json({ success: true })
+  })
+
+  router.get('/api/health-checks/:id/results', requireAuth, async (req, res) => {
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 20
+    const results = await store.getHealthCheckResults(String(req.params.id), limit)
+    res.json(results)
+  })
+
+  // ── Fleet Reports ──────────────────────────────────────────────────────
+
+  router.get('/api/reports', requireAuth, async (_req, res) => {
+    const reports = await store.listFleetReports()
+    res.json(reports)
+  })
+
+  router.get('/api/reports/:id', requireAuth, async (req, res) => {
+    const report = await store.getFleetReport(String(req.params.id))
+    if (!report) return res.status(404).json({ error: 'Report not found' })
+    res.json(report)
+  })
+
+  // POST /api/reports/generate is wired in index.ts (needs AI + store access)
 
   return router
 }

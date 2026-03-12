@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { api } from '../lib/api'
 import type { Device, DeviceMetric } from '../lib/api'
+import { useLiveUpdates, type LiveEvent } from '../lib/use-live-updates'
 import Sparkline from '../components/Sparkline'
 
 function MetricBar({ value, color }: { value: number | null; color: string }) {
@@ -47,9 +48,40 @@ export default function Monitoring() {
 
   useEffect(() => {
     load()
-    const t = setInterval(load, 30_000)
-    return () => clearInterval(t)
   }, [])
+
+  // Live metrics push — append new reading to the matching device row
+  const handleLive = useCallback((evt: LiveEvent) => {
+    if (evt.event === 'device.metrics') {
+      const p = evt.payload as { deviceId: string; metrics: Record<string, number> }
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.device.id !== p.deviceId) return row
+          const fake: DeviceMetric = {
+            id: '',
+            deviceId: p.deviceId,
+            recordedAt: new Date().toISOString(),
+            cpuPercent: p.metrics.cpuPercent ?? null,
+            memPercent: p.metrics.memPercent ?? null,
+            memUsedMb: p.metrics.memUsedMb ?? null,
+            memTotalMb: p.metrics.memTotalMb ?? null
+          }
+          const metrics = [...row.metrics, fake].slice(-60)
+          return { ...row, metrics, latest: fake }
+        })
+      )
+    } else if (evt.event === 'device.status') {
+      const p = evt.payload as { deviceId: string; status: string }
+      setRows((prev) =>
+        prev.map((row) =>
+          row.device.id === p.deviceId
+            ? { ...row, device: { ...row.device, status: p.status } }
+            : row
+        )
+      )
+    }
+  }, [])
+  useLiveUpdates(handleLive)
 
   return (
     <div>

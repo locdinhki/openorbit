@@ -204,6 +204,38 @@ export class HiveClient {
     return this.post<Record<string, unknown>>('/api/triggers', params)
   }
 
+  // ── Health Checks ──────────────────────────────────────────────────────
+
+  async listHealthChecks(params?: { deviceId?: string }): Promise<Record<string, unknown>[]> {
+    const q = new URLSearchParams()
+    if (params?.deviceId) q.set('deviceId', params.deviceId)
+    const qs = q.toString()
+    return this.get<Record<string, unknown>[]>(`/api/health-checks${qs ? `?${qs}` : ''}`)
+  }
+
+  async createHealthCheck(params: {
+    deviceId: string
+    name: string
+    type: string
+    url?: string
+    command?: string
+    runFrom?: string
+    intervalS?: number
+  }): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>('/api/health-checks', params)
+  }
+
+  // ── Fleet Reports ──────────────────────────────────────────────────────
+
+  async generateFleetReport(): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>('/api/reports/generate', {})
+  }
+
+  async getLatestReport(): Promise<Record<string, unknown>[]> {
+    const reports = await this.get<Record<string, unknown>[]>('/api/reports')
+    return reports.length > 0 ? [reports[0]] : []
+  }
+
   // ── Health ────────────────────────────────────────────────────────────────
 
   async health(): Promise<{ status: string; uptime: number }> {

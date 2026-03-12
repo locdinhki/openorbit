@@ -4,6 +4,7 @@ import type { Store } from './store.js'
 import { AlertEngine } from './alert-engine.js'
 import type { TriggerEngine } from './trigger-engine.js'
 import type { AuthMessage, ResultMessage } from './types.js'
+import type { DashboardHub } from './dashboard-hub.js'
 import { v4 as uuid } from 'uuid'
 
 const HEARTBEAT_INTERVAL = 30_000
@@ -14,7 +15,8 @@ type DeviceMessageHandler = (deviceId: string, msg: Record<string, unknown>) => 
 export function createWsServer(
   httpServer: Server,
   store: Store,
-  triggerRef?: { engine?: TriggerEngine }
+  triggerRef?: { engine?: TriggerEngine },
+  dashboardHub?: DashboardHub
 ): {
   wss: WebSocketServer
   alertEngine: AlertEngine
@@ -105,6 +107,11 @@ export function createWsServer(
           .catch(() => {})
 
         ws.send(JSON.stringify({ type: 'auth-ok', deviceId: device.id }))
+        dashboardHub?.broadcast('device.status', {
+          deviceId: device.id,
+          status: 'online',
+          lastSeenAt: new Date().toISOString()
+        })
         console.log(`[ws] Device ${device.id} authenticated from ${ip}`)
 
         // Dispatch any queued tasks
@@ -126,9 +133,10 @@ export function createWsServer(
           store.setDeviceVersion(deviceId!, msg.version as string).catch(() => {})
         }
 
-        // Save metrics + check alert thresholds
+        // Save metrics + check alert thresholds + push to dashboard
         if (msg.metrics && typeof msg.metrics === 'object') {
           const m = msg.metrics as Record<string, number>
+          dashboardHub?.broadcast('device.metrics', { deviceId: deviceId!, metrics: m })
           store
             .saveMetrics(deviceId!, {
               cpuPercent: m.cpuPercent ?? 0,
@@ -174,7 +182,7 @@ export function createWsServer(
       // ── Task result ─────────────────────────────────────────────────────
       if (msg.messageId && msg.taskId) {
         const result = msg as unknown as ResultMessage
-        await handleResult(result, deviceId!, store)
+        await handleResult(result, deviceId!, store, dashboardHub)
         return
       }
     })
@@ -184,6 +192,11 @@ export function createWsServer(
         console.log(`[ws] Device ${deviceId} disconnected`)
         store.removeConnection(deviceId)
         await store.setDeviceOffline(deviceId)
+        dashboardHub?.broadcast('device.status', {
+          deviceId,
+          status: 'offline',
+          lastSeenAt: new Date().toISOString()
+        })
         const device = await store.getDevice(deviceId)
         if (device) {
           alertEngine.checkOffline(deviceId, device.name).catch(() => {})
@@ -216,6 +229,11 @@ export function createWsServer(
         conn.ws.close(4005, 'Heartbeat timeout')
         store.removeConnection(device.id)
         await store.setDeviceOffline(device.id)
+        dashboardHub?.broadcast('device.status', {
+          deviceId: device.id,
+          status: 'offline',
+          lastSeenAt: new Date().toISOString()
+        })
         alertEngine.checkOffline(device.id, device.name).catch(() => {})
         triggerRef?.engine
           ?.evaluate({
@@ -271,7 +289,12 @@ async function dispatchTask(
   console.log(`[ws] Dispatched task ${taskId}`)
 }
 
-async function handleResult(result: ResultMessage, deviceId: string, store: Store): Promise<void> {
+async function handleResult(
+  result: ResultMessage,
+  deviceId: string,
+  store: Store,
+  hub?: DashboardHub
+): Promise<void> {
   const status = result.status === 'completed' ? 'success' : 'error'
   await store.addResult({
     taskId: result.taskId,
@@ -280,9 +303,12 @@ async function handleResult(result: ResultMessage, deviceId: string, store: Stor
     result: result.result as Record<string, unknown>,
     error: result.error
   })
-  await store.updateTaskStatus(
-    result.taskId,
-    result.status === 'completed' ? 'completed' : 'failed'
-  )
+  const taskStatus = result.status === 'completed' ? 'completed' : 'failed'
+  await store.updateTaskStatus(result.taskId, taskStatus)
+  hub?.broadcast('task.updated', {
+    taskId: result.taskId,
+    status: taskStatus,
+    completedAt: new Date().toISOString()
+  })
   console.log(`[ws] Result for task ${result.taskId}: ${result.status}`)
 }

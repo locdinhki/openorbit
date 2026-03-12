@@ -11,9 +11,11 @@ const navItems = [
   { path: '/monitoring', label: 'Monitoring' },
   { path: '/alert-rules', label: 'Alert Rules' },
   { path: '/alerts', label: 'Alerts' },
+  { path: '/health-checks', label: 'Health Checks' },
   { path: '/templates', label: 'Templates' },
   { path: '/webhooks', label: 'Webhooks' },
-  { path: '/triggers', label: 'Triggers' }
+  { path: '/triggers', label: 'Triggers' },
+  { path: '/reports', label: 'Reports' }
 ]
 
 export default function Layout() {

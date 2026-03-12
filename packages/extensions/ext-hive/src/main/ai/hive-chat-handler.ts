@@ -294,6 +294,28 @@ export class HiveChatHandler {
           cooldownS: input.cooldownS as number | undefined
         })
 
+      case 'list_health_checks':
+        return client.listHealthChecks({
+          deviceId: input.deviceId as string | undefined
+        })
+
+      case 'create_health_check':
+        return client.createHealthCheck({
+          deviceId: input.deviceId as string,
+          name: input.name as string,
+          type: input.type as string,
+          url: input.url as string | undefined,
+          command: input.command as string | undefined,
+          runFrom: input.runFrom as string | undefined,
+          intervalS: input.intervalS as number | undefined
+        })
+
+      case 'generate_fleet_report':
+        return client.generateFleetReport()
+
+      case 'get_latest_report':
+        return client.getLatestReport()
+
       default:
         throw new Error(`Unknown tool: ${name}`)
     }

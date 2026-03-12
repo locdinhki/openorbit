@@ -301,5 +301,61 @@ export function registerExtHiveHandlers(
     }
   )
 
-  log.info('ext-hive IPC handlers registered (20 channels)')
+  // ── Health Checks ──────────────────────────────────────────────────────
+
+  ipc.handle(
+    EXT_HIVE_IPC.LIST_HEALTH_CHECKS,
+    extHiveSchemas['ext-hive:list-health-checks'],
+    async (_event, { deviceId }) => {
+      try {
+        const data = await requireClient().listHealthChecks({ deviceId })
+        return { success: true, data }
+      } catch (err) {
+        log.error('Failed to list health checks', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_HIVE_IPC.CREATE_HEALTH_CHECK,
+    extHiveSchemas['ext-hive:create-health-check'],
+    async (_event, params) => {
+      try {
+        const data = await requireClient().createHealthCheck(params)
+        return { success: true, data }
+      } catch (err) {
+        log.error('Failed to create health check', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // ── Fleet Reports ────────────────────────────────────────────────────
+
+  ipc.handle(EXT_HIVE_IPC.GENERATE_REPORT, extHiveSchemas['ext-hive:generate-report'], async () => {
+    try {
+      const data = await requireClient().generateFleetReport()
+      return { success: true, data }
+    } catch (err) {
+      log.error('Failed to generate fleet report', err)
+      return errorToResponse(err)
+    }
+  })
+
+  ipc.handle(
+    EXT_HIVE_IPC.GET_LATEST_REPORT,
+    extHiveSchemas['ext-hive:get-latest-report'],
+    async () => {
+      try {
+        const data = await requireClient().getLatestReport()
+        return { success: true, data }
+      } catch (err) {
+        log.error('Failed to get latest report', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  log.info('ext-hive IPC handlers registered (24 channels)')
 }

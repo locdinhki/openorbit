@@ -39,7 +39,15 @@ export const EXT_HIVE_IPC = {
   // Triggers
   LIST_TRIGGERS: 'ext-hive:list-triggers',
   CREATE_TRIGGER: 'ext-hive:create-trigger',
-  DELETE_TRIGGER: 'ext-hive:delete-trigger'
+  DELETE_TRIGGER: 'ext-hive:delete-trigger',
+
+  // Health Checks
+  LIST_HEALTH_CHECKS: 'ext-hive:list-health-checks',
+  CREATE_HEALTH_CHECK: 'ext-hive:create-health-check',
+
+  // Fleet Reports
+  GENERATE_REPORT: 'ext-hive:generate-report',
+  GET_LATEST_REPORT: 'ext-hive:get-latest-report'
 } as const
 
 export type ExtHiveIPCChannel = (typeof EXT_HIVE_IPC)[keyof typeof EXT_HIVE_IPC]

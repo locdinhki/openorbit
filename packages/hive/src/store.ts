@@ -18,7 +18,10 @@ import {
   webhooks,
   webhookCalls,
   triggers,
-  triggerRuns
+  triggerRuns,
+  healthChecks,
+  healthCheckResults,
+  fleetReports
 } from './db/schema.js'
 import type { WorkflowStep } from './db/schema.js'
 import type { ConnectedMinion, TaskStatus, TaskPriority } from './types.js'
@@ -39,6 +42,9 @@ export type Webhook = typeof webhooks.$inferSelect
 export type WebhookCall = typeof webhookCalls.$inferSelect
 export type Trigger = typeof triggers.$inferSelect
 export type TriggerRun = typeof triggerRuns.$inferSelect
+export type HealthCheck = typeof healthChecks.$inferSelect
+export type HealthCheckResult = typeof healthCheckResults.$inferSelect
+export type FleetReport = typeof fleetReports.$inferSelect
 
 const BCRYPT_ROUNDS = 10
 
@@ -751,5 +757,148 @@ export class Store {
       .from(triggerRuns)
       .where(eq(triggerRuns.triggerId, triggerId))
       .orderBy(desc(triggerRuns.firedAt))
+  }
+
+  // ── Health Checks ────────────────────────────────────────────────────────
+
+  async createHealthCheck(opts: {
+    deviceId: string
+    name: string
+    type: string
+    url?: string
+    expectedStatus?: number
+    expectedBody?: string
+    command?: string
+    expectedExit?: number
+    runFrom?: string
+    intervalS?: number
+    timeoutS?: number
+  }): Promise<HealthCheck> {
+    const [check] = await this.db
+      .insert(healthChecks)
+      .values({
+        id: uuid(),
+        deviceId: opts.deviceId,
+        name: opts.name,
+        type: opts.type,
+        url: opts.url,
+        expectedStatus: opts.expectedStatus ?? 200,
+        expectedBody: opts.expectedBody,
+        command: opts.command,
+        expectedExit: opts.expectedExit ?? 0,
+        runFrom: opts.runFrom ?? 'device',
+        intervalS: opts.intervalS ?? 60,
+        timeoutS: opts.timeoutS ?? 10
+      })
+      .returning()
+    return check
+  }
+
+  async getHealthCheck(id: string): Promise<HealthCheck | undefined> {
+    const [check] = await this.db.select().from(healthChecks).where(eq(healthChecks.id, id))
+    return check
+  }
+
+  async listHealthChecks(filter?: { deviceId?: string }): Promise<HealthCheck[]> {
+    let query = this.db.select().from(healthChecks).$dynamic()
+    if (filter?.deviceId) query = query.where(eq(healthChecks.deviceId, filter.deviceId))
+    return query.orderBy(desc(healthChecks.createdAt))
+  }
+
+  async updateHealthCheck(
+    id: string,
+    updates: { enabled?: boolean; intervalS?: number; timeoutS?: number; name?: string }
+  ): Promise<HealthCheck | undefined> {
+    const [updated] = await this.db
+      .update(healthChecks)
+      .set(updates)
+      .where(eq(healthChecks.id, id))
+      .returning()
+    return updated
+  }
+
+  async deleteHealthCheck(id: string): Promise<void> {
+    await this.db.delete(healthChecks).where(eq(healthChecks.id, id))
+  }
+
+  async getEnabledHealthChecks(): Promise<HealthCheck[]> {
+    return this.db.select().from(healthChecks).where(eq(healthChecks.enabled, true))
+  }
+
+  // ── Health Check Results ─────────────────────────────────────────────────
+
+  async addHealthCheckResult(opts: {
+    checkId: string
+    status: string
+    durationMs?: number
+    error?: string
+  }): Promise<HealthCheckResult> {
+    const [result] = await this.db
+      .insert(healthCheckResults)
+      .values({
+        id: uuid(),
+        checkId: opts.checkId,
+        status: opts.status,
+        durationMs: opts.durationMs,
+        error: opts.error
+      })
+      .returning()
+    return result
+  }
+
+  async getHealthCheckResults(checkId: string, limit = 20): Promise<HealthCheckResult[]> {
+    return this.db
+      .select()
+      .from(healthCheckResults)
+      .where(eq(healthCheckResults.checkId, checkId))
+      .orderBy(desc(healthCheckResults.checkedAt))
+      .limit(limit)
+  }
+
+  async getLatestHealthCheckResult(checkId: string): Promise<HealthCheckResult | undefined> {
+    const [result] = await this.db
+      .select()
+      .from(healthCheckResults)
+      .where(eq(healthCheckResults.checkId, checkId))
+      .orderBy(desc(healthCheckResults.checkedAt))
+      .limit(1)
+    return result
+  }
+
+  // ── Fleet Reports ────────────────────────────────────────────────────────
+
+  async createFleetReport(opts: {
+    content: string
+    periodStart: Date
+    periodEnd: Date
+  }): Promise<FleetReport> {
+    const [report] = await this.db
+      .insert(fleetReports)
+      .values({
+        id: uuid(),
+        content: opts.content,
+        periodStart: opts.periodStart,
+        periodEnd: opts.periodEnd
+      })
+      .returning()
+    return report
+  }
+
+  async getFleetReport(id: string): Promise<FleetReport | undefined> {
+    const [report] = await this.db.select().from(fleetReports).where(eq(fleetReports.id, id))
+    return report
+  }
+
+  async listFleetReports(limit = 30): Promise<FleetReport[]> {
+    return this.db.select().from(fleetReports).orderBy(desc(fleetReports.generatedAt)).limit(limit)
+  }
+
+  async getLatestFleetReport(): Promise<FleetReport | undefined> {
+    const [report] = await this.db
+      .select()
+      .from(fleetReports)
+      .orderBy(desc(fleetReports.generatedAt))
+      .limit(1)
+    return report
   }
 }

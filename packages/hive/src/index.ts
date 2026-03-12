@@ -14,6 +14,10 @@ import { createPtyRelay } from './pty-relay.js'
 import { TriggerEngine } from './trigger-engine.js'
 import { WorkflowRunner } from './workflow-runner.js'
 import { getNextRun } from './cron.js'
+import { DashboardHub, createDashboardWs } from './dashboard-hub.js'
+import { HealthCheckRunner } from './health-check-runner.js'
+import { buildPrometheusText } from './prometheus.js'
+import { generateFleetReport, sendReportToTelegram } from './fleet-report-generator.js'
 
 // ── Load env file if present ────────────────────────────────────────────────
 
@@ -70,6 +74,9 @@ async function main(): Promise<void> {
   const app = express()
   const httpServer = createServer(app)
 
+  // Dashboard Hub — real-time push to dashboard WS clients
+  const dashboardHub = new DashboardHub()
+
   // Trigger engine ref — set after ws-server provides dispatchTaskToDevice
   const triggerRef: { engine?: TriggerEngine } = {}
 
@@ -77,8 +84,15 @@ async function main(): Promise<void> {
   const { dispatchTaskToDevice, sendToDevice, onDeviceMessage, alertEngine } = createWsServer(
     httpServer,
     store,
-    triggerRef
+    triggerRef,
+    dashboardHub
   )
+
+  // Wire dashboardHub into alertEngine
+  alertEngine.dashboardHub = dashboardHub
+
+  // Dashboard WS endpoint (/api/ws/dashboard)
+  createDashboardWs(httpServer, dashboardHub, store, CONTROLLER_API_KEY)
 
   // PTY relay (dashboard → minion terminal sessions)
   createPtyRelay(httpServer, sendToDevice, onDeviceMessage, CONTROLLER_API_KEY)
@@ -103,8 +117,51 @@ async function main(): Promise<void> {
   triggerRef.engine = triggerEngine
   alertEngine.triggerEngine = triggerEngine
 
-  // REST routes
-  app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY))
+  // REST routes (with dashboardHub for task.created broadcast)
+  app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY, dashboardHub))
+
+  // ── Prometheus /metrics endpoint ──────────────────────────────────────────
+  app.get('/metrics', async (req, res) => {
+    // Optional bearer token auth
+    const metricsToken = process.env.METRICS_TOKEN
+    if (metricsToken) {
+      const auth = req.headers.authorization
+      const token = auth?.replace(/^Bearer\s+/i, '')
+      if (token !== metricsToken) {
+        res.status(403).send('Forbidden')
+        return
+      }
+    }
+    try {
+      const text = await buildPrometheusText(store)
+      res.set('Content-Type', 'text/plain; version=0.0.4')
+      res.send(text)
+    } catch (err) {
+      console.error('[metrics] Prometheus build error:', err)
+      res.status(500).send('Internal error')
+    }
+  })
+
+  // ── Fleet Report generation endpoint ──────────────────────────────────────
+  app.post('/api/reports/generate', express.json(), async (req, res) => {
+    // Check auth
+    if (CONTROLLER_API_KEY) {
+      const auth = req.headers.authorization
+      const token = auth?.replace(/^Bearer\s+/i, '')
+      if (token !== CONTROLLER_API_KEY) {
+        res.status(403).json({ error: 'Invalid API key' })
+        return
+      }
+    }
+    try {
+      const report = await generateFleetReport(store)
+      await sendReportToTelegram(report.content)
+      res.status(201).json(report)
+    } catch (err) {
+      console.error('[fleet-report] Generation error:', err)
+      res.status(500).json({ error: 'Report generation failed' })
+    }
+  })
 
   // Dashboard SPA — serve static files, fallback to index.html
   const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -113,7 +170,11 @@ async function main(): Promise<void> {
     app.use(express.static(dashboardDir))
     // SPA fallback: serve index.html for non-API routes
     app.get('/{*path}', (req, res) => {
-      if (req.path.startsWith('/api/') || req.path.startsWith('/minion/')) {
+      if (
+        req.path.startsWith('/api/') ||
+        req.path.startsWith('/minion/') ||
+        req.path === '/metrics'
+      ) {
         res.status(404).json({ error: 'Not found' })
         return
       }
@@ -121,6 +182,15 @@ async function main(): Promise<void> {
     })
     console.log('[hive] Dashboard serving from', dashboardDir)
   }
+
+  // Health check runner
+  const healthCheckRunner = new HealthCheckRunner(
+    store,
+    alertEngine,
+    dashboardHub,
+    dispatchTaskToDevice
+  )
+  healthCheckRunner.start()
 
   // Metrics pruner — delete records older than 7 days, run every hour
   setInterval(async () => {
@@ -156,6 +226,23 @@ async function main(): Promise<void> {
       console.error('[scheduler] Error:', err)
     }
   }, 60_000)
+
+  // Daily fleet report scheduler
+  const reportTime = process.env.REPORT_TIME ?? '08:00'
+  const [reportHour, reportMinute] = reportTime.split(':').map(Number)
+  setInterval(async () => {
+    const now = new Date()
+    if (now.getHours() === reportHour && now.getMinutes() === (reportMinute ?? 0)) {
+      try {
+        console.log('[fleet-report] Generating daily report...')
+        const report = await generateFleetReport(store)
+        await sendReportToTelegram(report.content)
+        console.log(`[fleet-report] Daily report ${report.id} generated and sent`)
+      } catch (err) {
+        console.error('[fleet-report] Daily report error:', err)
+      }
+    }
+  }, 60_000) // check every minute
 
   httpServer.listen(PORT, () => {
     console.log(`[hive] Listening on port ${PORT}`)

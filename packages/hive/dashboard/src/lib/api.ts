@@ -252,6 +252,42 @@ export interface HealthResponse {
   uptime: number
 }
 
+export interface HealthCheck {
+  id: string
+  deviceId: string
+  name: string
+  type: string
+  url: string | null
+  expectedStatus: number | null
+  expectedBody: string | null
+  command: string | null
+  expectedExit: number | null
+  runFrom: string
+  intervalS: number
+  timeoutS: number
+  enabled: boolean
+  lastStatus: string | null
+  lastCheckedAt: string | null
+  createdAt: string
+}
+
+export interface HealthCheckResult {
+  id: string
+  checkId: string
+  status: string
+  durationMs: number | null
+  error: string | null
+  checkedAt: string
+}
+
+export interface FleetReport {
+  id: string
+  generatedAt: string
+  content: string
+  periodStart: string
+  periodEnd: string
+}
+
 // ── API methods ────────────────────────────────────────────────────────────
 
 export const api = {
@@ -443,6 +479,49 @@ export const api = {
 
   listTriggerRuns: (id: string) =>
     request<TriggerRunEntry[]>(`/api/triggers/${encodeURIComponent(id)}/runs`),
+
+  // Health Checks
+  listHealthChecks: (params?: { deviceId?: string }) => {
+    const q = new URLSearchParams()
+    if (params?.deviceId) q.set('deviceId', params.deviceId)
+    const qs = q.toString()
+    return request<HealthCheck[]>(`/api/health-checks${qs ? `?${qs}` : ''}`)
+  },
+
+  createHealthCheck: (body: {
+    deviceId: string
+    name: string
+    type: string
+    url?: string
+    command?: string
+    runFrom?: string
+    intervalS?: number
+    timeoutS?: number
+  }) => request<HealthCheck>('/api/health-checks', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateHealthCheck: (id: string, body: { enabled?: boolean; intervalS?: number }) =>
+    request<HealthCheck>(`/api/health-checks/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    }),
+
+  deleteHealthCheck: (id: string) =>
+    request<{ success: boolean }>(`/api/health-checks/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }),
+
+  getHealthCheckResults: (id: string, limit = 20) =>
+    request<HealthCheckResult[]>(
+      `/api/health-checks/${encodeURIComponent(id)}/results?limit=${limit}`
+    ),
+
+  // Fleet Reports
+  listReports: () => request<FleetReport[]>('/api/reports'),
+
+  getReport: (id: string) => request<FleetReport>(`/api/reports/${encodeURIComponent(id)}`),
+
+  generateReport: () =>
+    request<FleetReport>('/api/reports/generate', { method: 'POST', body: '{}' }),
 
   validateToken: async (token: string): Promise<boolean> => {
     try {

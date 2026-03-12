@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { api, type Task, type Device } from '../lib/api'
 import { relativeTime } from '../lib/time'
+import { useLiveUpdates, type LiveEvent } from '../lib/use-live-updates'
 import StatusBadge from '../components/StatusBadge'
 
 const STATUSES = ['', 'queued', 'dispatched', 'running', 'completed', 'failed', 'timeout']
@@ -22,9 +23,24 @@ export default function Tasks() {
 
   useEffect(() => {
     load()
-    const interval = setInterval(load, 5_000)
-    return () => clearInterval(interval)
   }, [statusFilter, deviceFilter])
+
+  const handleLive = useCallback((evt: LiveEvent) => {
+    if (evt.event === 'task.created') {
+      const p = evt.payload as { task: Task }
+      setTasks((prev) => [p.task, ...prev].slice(0, 100))
+    } else if (evt.event === 'task.updated') {
+      const p = evt.payload as { taskId: string; status: string; completedAt?: string }
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === p.taskId
+            ? { ...t, status: p.status, completedAt: p.completedAt ?? t.completedAt }
+            : t
+        )
+      )
+    }
+  }, [])
+  useLiveUpdates(handleLive)
 
   async function load() {
     try {

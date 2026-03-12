@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { api } from '../lib/api'
 import type { Alert, AlertRule, Device } from '../lib/api'
+import { useLiveUpdates, type LiveEvent } from '../lib/use-live-updates'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -35,9 +36,20 @@ export default function Alerts() {
 
   useEffect(() => {
     load()
-    const t = setInterval(load, 30_000)
-    return () => clearInterval(t)
   }, [])
+
+  const handleLive = useCallback((evt: LiveEvent) => {
+    if (evt.event === 'alert.fired') {
+      const p = evt.payload as { alert: Alert }
+      setAlerts((prev) => [p.alert, ...prev])
+    } else if (evt.event === 'alert.resolved') {
+      const p = evt.payload as { alertId: string; resolvedAt: string }
+      setAlerts((prev) =>
+        prev.map((a) => (a.id === p.alertId ? { ...a, resolvedAt: p.resolvedAt } : a))
+      )
+    }
+  }, [])
+  useLiveUpdates(handleLive)
 
   async function handleResolve(id: string) {
     await api.resolveAlert(id)

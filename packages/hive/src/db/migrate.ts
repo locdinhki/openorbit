@@ -258,6 +258,52 @@ export async function migrateDb(databaseUrl: string): Promise<void> {
       );
     `
 
+    // V8: Observability — health checks, health check results, fleet reports
+    await sql`
+      CREATE TABLE IF NOT EXISTS health_checks (
+        id              TEXT PRIMARY KEY,
+        device_id       TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
+        name            TEXT NOT NULL,
+        type            TEXT NOT NULL CHECK(type IN ('http', 'command')),
+        url             TEXT,
+        expected_status INTEGER DEFAULT 200,
+        expected_body   TEXT,
+        command         TEXT,
+        expected_exit   INTEGER DEFAULT 0,
+        run_from        TEXT NOT NULL DEFAULT 'device' CHECK(run_from IN ('hive', 'device')),
+        interval_s      INTEGER NOT NULL DEFAULT 60,
+        timeout_s       INTEGER NOT NULL DEFAULT 10,
+        enabled         BOOLEAN NOT NULL DEFAULT true,
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS health_check_results (
+        id          TEXT PRIMARY KEY,
+        check_id    TEXT NOT NULL REFERENCES health_checks(id) ON DELETE CASCADE,
+        status      TEXT NOT NULL CHECK(status IN ('pass', 'fail')),
+        duration_ms INTEGER,
+        error       TEXT,
+        checked_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_hcr_check_time
+        ON health_check_results(check_id, checked_at DESC);
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS fleet_reports (
+        id            TEXT PRIMARY KEY,
+        generated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+        content       TEXT NOT NULL,
+        period_start  TIMESTAMPTZ NOT NULL,
+        period_end    TIMESTAMPTZ NOT NULL
+      );
+    `
+
     console.log('[db] Schema migration complete')
   } finally {
     await sql.end()

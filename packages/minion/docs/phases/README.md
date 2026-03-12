@@ -20,7 +20,7 @@
 | 12 | [Minion Auto-Update](archive/phase-12-minion-auto-update/) | Version tracking, self-update instruction, dashboard Update All | Low | **Complete** |
 | 13 | [Live Terminal](phase-13-live-terminal/) | xterm.js + node-pty PTY relay over WebSocket — interactive shell in browser | Large | Not started |
 | 14 | [Automation](archive/phase-14-automation/) | Task templates, webhook receiver, event-driven triggers | Medium | **Complete** |
-| 15 | [Observability](phase-15-observability/) | WS push to dashboard, health checks, Prometheus, AI fleet report | Medium | Not started |
+| 15 | [Observability](archive/phase-15-observability/) | WS push to dashboard, health checks, Prometheus, AI fleet report | Medium | **Complete** |
 | 16 | [Platform & Access](phase-16-platform/) | Multi-user + roles, audit log, hive-ctl CLI | Medium | Not started |
 
 ## Recommended Build Order

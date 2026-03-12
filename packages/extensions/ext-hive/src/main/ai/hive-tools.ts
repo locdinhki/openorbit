@@ -387,13 +387,56 @@ export const HIVE_TOOLS: AIToolDefinition[] = [
       },
       required: ['name', 'condition', 'action', 'actionParams']
     }
+  },
+  {
+    name: 'list_health_checks',
+    description: 'List configured health checks with their current pass/fail status',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: { type: 'string', description: 'Filter by device ID (optional)' }
+      }
+    }
+  },
+  {
+    name: 'create_health_check',
+    description:
+      'Configure a new health probe (HTTP or command) for a device. Runs periodically and alerts on failure.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: { type: 'string', description: 'Target device ID' },
+        name: { type: 'string', description: 'Check name (e.g. "nginx-health")' },
+        type: { type: 'string', enum: ['http', 'command'], description: 'Check type' },
+        url: { type: 'string', description: 'URL to probe (http checks)' },
+        command: { type: 'string', description: 'Command to run (command checks)' },
+        runFrom: {
+          type: 'string',
+          enum: ['hive', 'device'],
+          description: 'Where to run the check from (default: device)'
+        },
+        intervalS: { type: 'number', description: 'Check interval in seconds (default 60)' }
+      },
+      required: ['deviceId', 'name', 'type']
+    }
+  },
+  {
+    name: 'generate_fleet_report',
+    description:
+      'Trigger an immediate AI-generated fleet health report covering the last 24 hours. Returns the report content.',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'get_latest_report',
+    description: 'Retrieve the most recent fleet health report content',
+    inputSchema: { type: 'object', properties: {} }
   }
 ]
 
 export const HIVE_SYSTEM_PROMPT = `You are a fleet operator assistant managing a distributed compute network called Open Hive. The network consists of minion devices (Raspberry Pis, PCs, Mac Minis) that execute shell commands, read/write files, and make HTTP requests on your behalf.
 
 ## How you work
-- You have tools to list devices, execute commands, read/write files, make HTTP requests on remote devices, manage schedules (cron), run workflows (multi-step chains), broadcast commands to device groups, save/run task templates, and configure event-driven triggers for auto-remediation.
+- You have tools to list devices, execute commands, read/write files, make HTTP requests on remote devices, manage schedules (cron), run workflows (multi-step chains), broadcast commands to device groups, save/run task templates, configure event-driven triggers for auto-remediation, manage health checks (HTTP/command probes), and generate fleet health reports.
 - When the user asks you to do something, figure out which devices to target and what commands to run. Act first, explain after.
 - For multi-device operations, iterate over each device and aggregate the results into a clear summary.
 - Always check device status before sending commands — don't dispatch to offline devices.

@@ -20,9 +20,11 @@ import GroupNew from './pages/GroupNew'
 import Monitoring from './pages/Monitoring'
 import AlertRules from './pages/AlertRules'
 import Alerts from './pages/Alerts'
+import HealthChecks from './pages/HealthChecks'
 import Templates from './pages/Templates'
 import Webhooks from './pages/Webhooks'
 import Triggers from './pages/Triggers'
+import Reports from './pages/Reports'
 import './index.css'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -58,9 +60,11 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/alert-rules" element={<AlertRules />} />
           <Route path="/alerts" element={<Alerts />} />
+          <Route path="/health-checks" element={<HealthChecks />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/webhooks" element={<Webhooks />} />
           <Route path="/triggers" element={<Triggers />} />
+          <Route path="/reports" element={<Reports />} />
         </Route>
       </Routes>
     </BrowserRouter>
