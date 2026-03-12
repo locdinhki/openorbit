@@ -199,6 +199,65 @@ export async function migrateDb(databaseUrl: string): Promise<void> {
       ALTER TABLE devices ADD COLUMN IF NOT EXISTS minion_version TEXT;
     `
 
+    // V7: Automation — task templates, webhooks, event-driven triggers
+    await sql`
+      CREATE TABLE IF NOT EXISTS task_templates (
+        id          TEXT PRIMARY KEY,
+        name        TEXT NOT NULL,
+        description TEXT,
+        device_id   TEXT REFERENCES devices(id) ON DELETE SET NULL,
+        instruction JSONB NOT NULL,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS webhooks (
+        id         TEXT PRIMARY KEY,
+        name       TEXT NOT NULL,
+        token      TEXT UNIQUE NOT NULL,
+        action     TEXT NOT NULL CHECK(action IN ('task', 'workflow', 'template')),
+        action_id  TEXT NOT NULL,
+        device_id  TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS webhook_calls (
+        id         TEXT PRIMARY KEY,
+        webhook_id TEXT REFERENCES webhooks(id) ON DELETE CASCADE,
+        called_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+        payload    JSONB,
+        result_id  TEXT
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS triggers (
+        id               TEXT PRIMARY KEY,
+        name             TEXT NOT NULL,
+        enabled          BOOLEAN NOT NULL DEFAULT true,
+        condition        TEXT NOT NULL,
+        condition_params JSONB,
+        action           TEXT NOT NULL,
+        action_params    JSONB NOT NULL,
+        cooldown_s       INTEGER DEFAULT 300,
+        last_fired_at    TIMESTAMPTZ,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS trigger_runs (
+        id             TEXT PRIMARY KEY,
+        trigger_id     TEXT REFERENCES triggers(id) ON DELETE CASCADE,
+        fired_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        condition_data JSONB,
+        result_id      TEXT
+      );
+    `
+
     console.log('[db] Schema migration complete')
   } finally {
     await sql.end()

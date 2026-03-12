@@ -3,8 +3,11 @@
 // ============================================================================
 
 import type { Store } from './store.js'
+import type { TriggerEngine } from './trigger-engine.js'
 
 export class AlertEngine {
+  triggerEngine?: TriggerEngine
+
   constructor(private store: Store) {}
 
   /** Called on every heartbeat that includes metrics. */
@@ -49,6 +52,15 @@ export class AlertEngine {
         const alert = await this.store.createAlert({ ruleId: rule.id, deviceId, message })
         await this.sendTelegram(`🔴 Open Hive Alert\n${message}`)
         await this.store.markAlertNotified(alert.id)
+        this.triggerEngine
+          ?.evaluate({
+            type: 'alert.fired',
+            ruleId: rule.id,
+            deviceId,
+            deviceName,
+            message
+          })
+          .catch(() => {})
       }
     }
   }
@@ -62,6 +74,14 @@ export class AlertEngine {
       if (active) {
         await this.store.resolveAlert(active.id)
         await this.sendTelegram(`✅ Open Hive: Device "${deviceName}" is back online`)
+        this.triggerEngine
+          ?.evaluate({
+            type: 'alert.resolved',
+            ruleId: rule.id,
+            deviceId,
+            deviceName
+          })
+          .catch(() => {})
       }
     }
   }
@@ -83,11 +103,28 @@ export class AlertEngine {
         const alert = await this.store.createAlert({ ruleId, deviceId, message })
         await this.sendTelegram(`⚠️ Open Hive Alert\n${message}`)
         await this.store.markAlertNotified(alert.id)
+        this.triggerEngine
+          ?.evaluate({
+            type: 'alert.fired',
+            ruleId,
+            deviceId,
+            deviceName,
+            message
+          })
+          .catch(() => {})
       }
     } else {
       // Resolve if threshold no longer exceeded
       if (active) {
         await this.store.resolveAlert(active.id)
+        this.triggerEngine
+          ?.evaluate({
+            type: 'alert.resolved',
+            ruleId,
+            deviceId,
+            deviceName
+          })
+          .catch(() => {})
       }
     }
   }

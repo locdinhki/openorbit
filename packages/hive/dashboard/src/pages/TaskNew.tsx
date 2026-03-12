@@ -8,12 +8,16 @@ type InstructionType = (typeof INSTRUCTION_TYPES)[number]
 export default function TaskNew() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const saveAsTemplate = searchParams.get('saveAsTemplate') === '1'
   const [devices, setDevices] = useState<Device[]>([])
   const [targetDevice, setTargetDevice] = useState(searchParams.get('device') ?? '')
   const [instrType, setInstrType] = useState<InstructionType>('exec')
   const [priority, setPriority] = useState('normal')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [templateName, setTemplateName] = useState('')
+  const [templateDesc, setTemplateDesc] = useState('')
+  const [wantTemplate, setWantTemplate] = useState(saveAsTemplate)
 
   // Exec fields
   const [command, setCommand] = useState('')
@@ -64,6 +68,29 @@ export default function TaskNew() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (wantTemplate) {
+      if (!templateName) {
+        setError('Template name required')
+        return
+      }
+      setSubmitting(true)
+      setError('')
+      try {
+        await api.createTemplate({
+          name: templateName,
+          description: templateDesc || undefined,
+          deviceId: targetDevice || undefined,
+          instruction: buildInstruction()
+        })
+        navigate('/templates')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to save template')
+        setSubmitting(false)
+      }
+      return
+    }
+
     if (!targetDevice) {
       setError('Select a target device')
       return
@@ -232,6 +259,41 @@ export default function TaskNew() {
           </select>
         </Field>
 
+        {/* Save as template toggle */}
+        <div className="flex items-center gap-2 pt-2 border-t border-gray-800">
+          <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={wantTemplate}
+              onChange={(e) => setWantTemplate(e.target.checked)}
+              className="rounded"
+            />
+            Save as template instead of dispatching
+          </label>
+        </div>
+
+        {wantTemplate && (
+          <>
+            <Field label="Template Name">
+              <input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="e.g. Check disk space"
+                className="input"
+                required
+              />
+            </Field>
+            <Field label="Description (optional)">
+              <input
+                value={templateDesc}
+                onChange={(e) => setTemplateDesc(e.target.value)}
+                placeholder="Runs df -h on the target device"
+                className="input"
+              />
+            </Field>
+          </>
+        )}
+
         {error && <p className="text-xs text-red-400">{error}</p>}
 
         <button
@@ -239,7 +301,13 @@ export default function TaskNew() {
           disabled={submitting}
           className="px-4 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-gray-200 disabled:opacity-50 transition-colors"
         >
-          {submitting ? 'Dispatching...' : 'Dispatch'}
+          {submitting
+            ? wantTemplate
+              ? 'Saving...'
+              : 'Dispatching...'
+            : wantTemplate
+              ? 'Save Template'
+              : 'Dispatch'}
         </button>
       </form>
     </div>

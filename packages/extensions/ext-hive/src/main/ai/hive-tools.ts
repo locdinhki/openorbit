@@ -318,13 +318,82 @@ export const HIVE_TOOLS: AIToolDefinition[] = [
       },
       required: ['deviceId']
     }
+  },
+  {
+    name: 'list_templates',
+    description:
+      'List saved task templates — reusable instructions that can be dispatched with one click',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'run_template',
+    description: 'Execute a saved task template by ID, optionally overriding the target device',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        templateId: { type: 'string', description: 'Template ID to run' },
+        deviceId: {
+          type: 'string',
+          description: 'Override target device (optional, uses template default if omitted)'
+        }
+      },
+      required: ['templateId']
+    }
+  },
+  {
+    name: 'list_triggers',
+    description:
+      'List configured event-driven triggers with their conditions, actions, and last fired time',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'create_trigger',
+    description:
+      'Create a condition → action trigger for event-driven automation. Conditions: alert.fired, alert.resolved, device.online, device.offline, metric.threshold. Actions: run_workflow, run_template, exec_command, send_telegram.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Trigger name' },
+        condition: {
+          type: 'string',
+          enum: [
+            'alert.fired',
+            'alert.resolved',
+            'device.online',
+            'device.offline',
+            'metric.threshold'
+          ],
+          description: 'Event condition'
+        },
+        conditionParams: {
+          type: 'object',
+          description:
+            'Condition filters. For alert events: {ruleId?}. For device events: {deviceId?}. For metric.threshold: {metric: "cpu"|"mem", op: ">"|">="|"<"|"<=", value: number, deviceId?}'
+        },
+        action: {
+          type: 'string',
+          enum: ['run_workflow', 'run_template', 'exec_command', 'send_telegram'],
+          description: 'Action to execute when trigger fires'
+        },
+        actionParams: {
+          type: 'object',
+          description:
+            'Action parameters. run_workflow: {workflowId}. run_template: {templateId, deviceId?}. exec_command: {deviceId, command}. send_telegram: {message} (supports ${deviceName}, ${metric}, ${value})'
+        },
+        cooldownS: {
+          type: 'number',
+          description: 'Cooldown in seconds to prevent storm-firing (default 300)'
+        }
+      },
+      required: ['name', 'condition', 'action', 'actionParams']
+    }
   }
 ]
 
 export const HIVE_SYSTEM_PROMPT = `You are a fleet operator assistant managing a distributed compute network called Open Hive. The network consists of minion devices (Raspberry Pis, PCs, Mac Minis) that execute shell commands, read/write files, and make HTTP requests on your behalf.
 
 ## How you work
-- You have tools to list devices, execute commands, read/write files, make HTTP requests on remote devices, manage schedules (cron), run workflows (multi-step chains), and broadcast commands to device groups.
+- You have tools to list devices, execute commands, read/write files, make HTTP requests on remote devices, manage schedules (cron), run workflows (multi-step chains), broadcast commands to device groups, save/run task templates, and configure event-driven triggers for auto-remediation.
 - When the user asks you to do something, figure out which devices to target and what commands to run. Act first, explain after.
 - For multi-device operations, iterate over each device and aggregate the results into a clear summary.
 - Always check device status before sending commands — don't dispatch to offline devices.

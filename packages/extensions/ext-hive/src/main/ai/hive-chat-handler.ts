@@ -273,6 +273,27 @@ export class HiveChatHandler {
         }
       }
 
+      case 'list_templates':
+        return client.listTemplates()
+
+      case 'run_template':
+        return client.runTemplate(input.templateId as string, {
+          deviceId: input.deviceId as string | undefined
+        })
+
+      case 'list_triggers':
+        return client.listTriggers()
+
+      case 'create_trigger':
+        return client.createTrigger({
+          name: input.name as string,
+          condition: input.condition as string,
+          conditionParams: input.conditionParams as Record<string, unknown> | undefined,
+          action: input.action as string,
+          actionParams: input.actionParams as Record<string, unknown>,
+          cooldownS: input.cooldownS as number | undefined
+        })
+
       default:
         throw new Error(`Unknown tool: ${name}`)
     }

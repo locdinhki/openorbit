@@ -11,6 +11,8 @@ import { Store } from './store.js'
 import { createRoutes } from './routes.js'
 import { createWsServer } from './ws-server.js'
 import { createPtyRelay } from './pty-relay.js'
+import { TriggerEngine } from './trigger-engine.js'
+import { WorkflowRunner } from './workflow-runner.js'
 import { getNextRun } from './cron.js'
 
 // ── Load env file if present ────────────────────────────────────────────────
@@ -68,11 +70,38 @@ async function main(): Promise<void> {
   const app = express()
   const httpServer = createServer(app)
 
+  // Trigger engine ref — set after ws-server provides dispatchTaskToDevice
+  const triggerRef: { engine?: TriggerEngine } = {}
+
   // WebSocket server (minion connections)
-  const { dispatchTaskToDevice, sendToDevice, onDeviceMessage } = createWsServer(httpServer, store)
+  const { dispatchTaskToDevice, sendToDevice, onDeviceMessage, alertEngine } = createWsServer(
+    httpServer,
+    store,
+    triggerRef
+  )
 
   // PTY relay (dashboard → minion terminal sessions)
   createPtyRelay(httpServer, sendToDevice, onDeviceMessage, CONTROLLER_API_KEY)
+
+  // Trigger engine — event-driven automation (created after ws-server)
+  const workflowRunner = new WorkflowRunner(store, dispatchTaskToDevice)
+  const sendTelegram = async (text: string): Promise<void> => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN
+    const chatId = process.env.TELEGRAM_CHAT_ID
+    if (!botToken || !chatId) return
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+      })
+    } catch (err) {
+      console.error('[triggers] Telegram send failed:', err instanceof Error ? err.message : err)
+    }
+  }
+  const triggerEngine = new TriggerEngine(store, dispatchTaskToDevice, workflowRunner, sendTelegram)
+  triggerRef.engine = triggerEngine
+  alertEngine.triggerEngine = triggerEngine
 
   // REST routes
   app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY))

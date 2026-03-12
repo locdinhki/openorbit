@@ -28,7 +28,18 @@ export const EXT_HIVE_IPC = {
   CHAT_CLEAR: 'ext-hive:chat-clear',
 
   // Terminal
-  OPEN_TERMINAL: 'ext-hive:open-terminal'
+  OPEN_TERMINAL: 'ext-hive:open-terminal',
+
+  // Templates
+  LIST_TEMPLATES: 'ext-hive:list-templates',
+  CREATE_TEMPLATE: 'ext-hive:create-template',
+  DELETE_TEMPLATE: 'ext-hive:delete-template',
+  RUN_TEMPLATE: 'ext-hive:run-template',
+
+  // Triggers
+  LIST_TRIGGERS: 'ext-hive:list-triggers',
+  CREATE_TRIGGER: 'ext-hive:create-trigger',
+  DELETE_TRIGGER: 'ext-hive:delete-trigger'
 } as const
 
 export type ExtHiveIPCChannel = (typeof EXT_HIVE_IPC)[keyof typeof EXT_HIVE_IPC]

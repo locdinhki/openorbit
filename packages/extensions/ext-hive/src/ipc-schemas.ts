@@ -70,5 +70,40 @@ export const extHiveSchemas = {
 
   'ext-hive:open-terminal': z.object({
     deviceId: z.string().min(1)
+  }),
+
+  // Templates
+  'ext-hive:list-templates': z.object({}),
+
+  'ext-hive:create-template': z.object({
+    name: z.string().min(1),
+    description: z.string().optional(),
+    deviceId: z.string().optional(),
+    instruction: z.record(z.unknown())
+  }),
+
+  'ext-hive:delete-template': z.object({
+    id: z.string().min(1)
+  }),
+
+  'ext-hive:run-template': z.object({
+    id: z.string().min(1),
+    deviceId: z.string().optional()
+  }),
+
+  // Triggers
+  'ext-hive:list-triggers': z.object({}),
+
+  'ext-hive:create-trigger': z.object({
+    name: z.string().min(1),
+    condition: z.string().min(1),
+    conditionParams: z.record(z.unknown()).optional(),
+    action: z.string().min(1),
+    actionParams: z.record(z.unknown()),
+    cooldownS: z.number().int().optional()
+  }),
+
+  'ext-hive:delete-trigger': z.object({
+    id: z.string().min(1)
   })
 } as const

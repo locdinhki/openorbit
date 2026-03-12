@@ -10,7 +10,10 @@ const navItems = [
   { path: '/groups', label: 'Groups' },
   { path: '/monitoring', label: 'Monitoring' },
   { path: '/alert-rules', label: 'Alert Rules' },
-  { path: '/alerts', label: 'Alerts' }
+  { path: '/alerts', label: 'Alerts' },
+  { path: '/templates', label: 'Templates' },
+  { path: '/webhooks', label: 'Webhooks' },
+  { path: '/triggers', label: 'Triggers' }
 ]
 
 export default function Layout() {

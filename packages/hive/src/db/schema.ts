@@ -166,6 +166,56 @@ export const alerts = pgTable('alerts', {
   message: text('message')
 })
 
+// ── Phase 14: Automation ────────────────────────────────────────────────
+
+export const taskTemplates = pgTable('task_templates', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  deviceId: text('device_id').references(() => devices.id, { onDelete: 'set null' }),
+  instruction: jsonb('instruction').$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const webhooks = pgTable('webhooks', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  token: text('token').unique().notNull(),
+  action: text('action').notNull(), // 'task' | 'workflow' | 'template'
+  actionId: text('action_id').notNull(),
+  deviceId: text('device_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const webhookCalls = pgTable('webhook_calls', {
+  id: text('id').primaryKey(),
+  webhookId: text('webhook_id').references(() => webhooks.id, { onDelete: 'cascade' }),
+  calledAt: timestamp('called_at', { withTimezone: true }).notNull().defaultNow(),
+  payload: jsonb('payload').$type<Record<string, unknown>>(),
+  resultId: text('result_id')
+})
+
+export const triggers = pgTable('triggers', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  condition: text('condition').notNull(), // 'alert.fired' | 'alert.resolved' | 'device.online' | 'device.offline' | 'metric.threshold'
+  conditionParams: jsonb('condition_params').$type<Record<string, unknown>>(),
+  action: text('action').notNull(), // 'run_workflow' | 'run_template' | 'exec_command' | 'send_telegram'
+  actionParams: jsonb('action_params').$type<Record<string, unknown>>().notNull(),
+  cooldownS: integer('cooldown_s').default(300),
+  lastFiredAt: timestamp('last_fired_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const triggerRuns = pgTable('trigger_runs', {
+  id: text('id').primaryKey(),
+  triggerId: text('trigger_id').references(() => triggers.id, { onDelete: 'cascade' }),
+  firedAt: timestamp('fired_at', { withTimezone: true }).notNull().defaultNow(),
+  conditionData: jsonb('condition_data').$type<Record<string, unknown>>(),
+  resultId: text('result_id')
+})
+
 export const taskResults = pgTable('task_results', {
   id: text('id').primaryKey(),
   taskId: text('task_id')

@@ -199,6 +199,54 @@ export interface Alert {
   message: string | null
 }
 
+export interface TaskTemplate {
+  id: string
+  name: string
+  description: string | null
+  deviceId: string | null
+  instruction: Record<string, unknown>
+  createdAt: string
+}
+
+export interface WebhookDef {
+  id: string
+  name: string
+  token: string
+  action: string
+  actionId: string
+  deviceId: string | null
+  createdAt: string
+}
+
+export interface WebhookCallEntry {
+  id: string
+  webhookId: string
+  calledAt: string
+  payload: Record<string, unknown> | null
+  resultId: string | null
+}
+
+export interface TriggerDef {
+  id: string
+  name: string
+  enabled: boolean
+  condition: string
+  conditionParams: Record<string, unknown> | null
+  action: string
+  actionParams: Record<string, unknown>
+  cooldownS: number
+  lastFiredAt: string | null
+  createdAt: string
+}
+
+export interface TriggerRunEntry {
+  id: string
+  triggerId: string
+  firedAt: string
+  conditionData: Record<string, unknown> | null
+  resultId: string | null
+}
+
 export interface HealthResponse {
   status: string
   uptime: number
@@ -340,6 +388,61 @@ export const api = {
       method: 'POST',
       body: '{}'
     }),
+
+  // Task Templates
+  listTemplates: () => request<TaskTemplate[]>('/api/templates'),
+
+  createTemplate: (body: {
+    name: string
+    description?: string
+    deviceId?: string
+    instruction: Record<string, unknown>
+  }) => request<TaskTemplate>('/api/templates', { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteTemplate: (id: string) =>
+    request<{ success: boolean }>(`/api/templates/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  runTemplate: (id: string, body?: { deviceId?: string }) =>
+    request<Task>(`/api/templates/${encodeURIComponent(id)}/run`, {
+      method: 'POST',
+      body: JSON.stringify(body ?? {})
+    }),
+
+  // Webhooks
+  listWebhooks: () => request<WebhookDef[]>('/api/webhooks'),
+
+  createWebhook: (body: { name: string; action: string; actionId: string; deviceId?: string }) =>
+    request<WebhookDef>('/api/webhooks', { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteWebhook: (id: string) =>
+    request<{ success: boolean }>(`/api/webhooks/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  listWebhookCalls: (id: string) =>
+    request<WebhookCallEntry[]>(`/api/webhooks/${encodeURIComponent(id)}/calls`),
+
+  // Triggers
+  listTriggers: () => request<TriggerDef[]>('/api/triggers'),
+
+  createTrigger: (body: {
+    name: string
+    condition: string
+    conditionParams?: Record<string, unknown>
+    action: string
+    actionParams: Record<string, unknown>
+    cooldownS?: number
+  }) => request<TriggerDef>('/api/triggers', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateTrigger: (id: string, body: { enabled?: boolean }) =>
+    request<TriggerDef>(`/api/triggers/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    }),
+
+  deleteTrigger: (id: string) =>
+    request<{ success: boolean }>(`/api/triggers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  listTriggerRuns: (id: string) =>
+    request<TriggerRunEntry[]>(`/api/triggers/${encodeURIComponent(id)}/runs`),
 
   validateToken: async (token: string): Promise<boolean> => {
     try {

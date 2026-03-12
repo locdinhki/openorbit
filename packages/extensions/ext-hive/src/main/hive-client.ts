@@ -161,6 +161,49 @@ export class HiveClient {
     return `${wsBase}/api/pty/${encodeURIComponent(deviceId)}?token=${encodeURIComponent(this.apiKey)}`
   }
 
+  // ── Task Templates ──────────────────────────────────────────────────────
+
+  async listTemplates(): Promise<Record<string, unknown>[]> {
+    return this.get<Record<string, unknown>[]>('/api/templates')
+  }
+
+  async createTemplate(params: {
+    name: string
+    description?: string
+    deviceId?: string
+    instruction: Record<string, unknown>
+  }): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>('/api/templates', params)
+  }
+
+  async deleteTemplate(id: string): Promise<void> {
+    await this.del(`/api/templates/${encodeURIComponent(id)}`)
+  }
+
+  async runTemplate(id: string, params?: { deviceId?: string }): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>(
+      `/api/templates/${encodeURIComponent(id)}/run`,
+      params ?? {}
+    )
+  }
+
+  // ── Triggers ──────────────────────────────────────────────────────────
+
+  async listTriggers(): Promise<Record<string, unknown>[]> {
+    return this.get<Record<string, unknown>[]>('/api/triggers')
+  }
+
+  async createTrigger(params: {
+    name: string
+    condition: string
+    conditionParams?: Record<string, unknown>
+    action: string
+    actionParams: Record<string, unknown>
+    cooldownS?: number
+  }): Promise<Record<string, unknown>> {
+    return this.post<Record<string, unknown>>('/api/triggers', params)
+  }
+
   // ── Health ────────────────────────────────────────────────────────────────
 
   async health(): Promise<{ status: string; uptime: number }> {

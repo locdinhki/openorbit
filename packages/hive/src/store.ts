@@ -13,7 +13,12 @@ import {
   deviceGroups,
   deviceMetrics,
   alertRules,
-  alerts
+  alerts,
+  taskTemplates,
+  webhooks,
+  webhookCalls,
+  triggers,
+  triggerRuns
 } from './db/schema.js'
 import type { WorkflowStep } from './db/schema.js'
 import type { ConnectedMinion, TaskStatus, TaskPriority } from './types.js'
@@ -29,6 +34,11 @@ export type DeviceGroup = typeof deviceGroups.$inferSelect
 export type DeviceMetric = typeof deviceMetrics.$inferSelect
 export type AlertRule = typeof alertRules.$inferSelect
 export type Alert = typeof alerts.$inferSelect
+export type TaskTemplate = typeof taskTemplates.$inferSelect
+export type Webhook = typeof webhooks.$inferSelect
+export type WebhookCall = typeof webhookCalls.$inferSelect
+export type Trigger = typeof triggers.$inferSelect
+export type TriggerRun = typeof triggerRuns.$inferSelect
 
 const BCRYPT_ROUNDS = 10
 
@@ -564,5 +574,182 @@ export class Store {
     if (filter?.deviceId) query = query.where(eq(alerts.deviceId, filter.deviceId))
     if (filter?.activeOnly) query = query.where(isNull(alerts.resolvedAt))
     return query.orderBy(desc(alerts.triggeredAt))
+  }
+
+  // ── Task Templates ──────────────────────────────────────────────────────
+
+  async createTemplate(opts: {
+    name: string
+    description?: string
+    deviceId?: string
+    instruction: Record<string, unknown>
+  }): Promise<TaskTemplate> {
+    const [tpl] = await this.db
+      .insert(taskTemplates)
+      .values({
+        id: uuid(),
+        name: opts.name,
+        description: opts.description,
+        deviceId: opts.deviceId ?? null,
+        instruction: opts.instruction
+      })
+      .returning()
+    return tpl
+  }
+
+  async getTemplate(id: string): Promise<TaskTemplate | undefined> {
+    const [tpl] = await this.db.select().from(taskTemplates).where(eq(taskTemplates.id, id))
+    return tpl
+  }
+
+  async listTemplates(): Promise<TaskTemplate[]> {
+    return this.db.select().from(taskTemplates).orderBy(desc(taskTemplates.createdAt))
+  }
+
+  async deleteTemplate(id: string): Promise<void> {
+    await this.db.delete(taskTemplates).where(eq(taskTemplates.id, id))
+  }
+
+  // ── Webhooks ────────────────────────────────────────────────────────────
+
+  async createWebhook(opts: {
+    name: string
+    token: string
+    action: string
+    actionId: string
+    deviceId?: string
+  }): Promise<Webhook> {
+    const [wh] = await this.db
+      .insert(webhooks)
+      .values({
+        id: uuid(),
+        name: opts.name,
+        token: opts.token,
+        action: opts.action,
+        actionId: opts.actionId,
+        deviceId: opts.deviceId ?? null
+      })
+      .returning()
+    return wh
+  }
+
+  async getWebhookByToken(token: string): Promise<Webhook | undefined> {
+    const [wh] = await this.db.select().from(webhooks).where(eq(webhooks.token, token))
+    return wh
+  }
+
+  async listWebhooks(): Promise<Webhook[]> {
+    return this.db.select().from(webhooks).orderBy(desc(webhooks.createdAt))
+  }
+
+  async deleteWebhook(id: string): Promise<void> {
+    await this.db.delete(webhooks).where(eq(webhooks.id, id))
+  }
+
+  async createWebhookCall(opts: {
+    webhookId: string
+    payload?: Record<string, unknown>
+    resultId?: string
+  }): Promise<WebhookCall> {
+    const [call] = await this.db
+      .insert(webhookCalls)
+      .values({
+        id: uuid(),
+        webhookId: opts.webhookId,
+        payload: opts.payload,
+        resultId: opts.resultId
+      })
+      .returning()
+    return call
+  }
+
+  async listWebhookCalls(webhookId: string): Promise<WebhookCall[]> {
+    return this.db
+      .select()
+      .from(webhookCalls)
+      .where(eq(webhookCalls.webhookId, webhookId))
+      .orderBy(desc(webhookCalls.calledAt))
+  }
+
+  // ── Triggers ────────────────────────────────────────────────────────────
+
+  async createTrigger(opts: {
+    name: string
+    condition: string
+    conditionParams?: Record<string, unknown>
+    action: string
+    actionParams: Record<string, unknown>
+    cooldownS?: number
+  }): Promise<Trigger> {
+    const [trigger] = await this.db
+      .insert(triggers)
+      .values({
+        id: uuid(),
+        name: opts.name,
+        condition: opts.condition,
+        conditionParams: opts.conditionParams,
+        action: opts.action,
+        actionParams: opts.actionParams,
+        cooldownS: opts.cooldownS ?? 300
+      })
+      .returning()
+    return trigger
+  }
+
+  async getTrigger(id: string): Promise<Trigger | undefined> {
+    const [trigger] = await this.db.select().from(triggers).where(eq(triggers.id, id))
+    return trigger
+  }
+
+  async listTriggers(): Promise<Trigger[]> {
+    return this.db.select().from(triggers).orderBy(desc(triggers.createdAt))
+  }
+
+  async updateTrigger(
+    id: string,
+    updates: { enabled?: boolean; lastFiredAt?: Date }
+  ): Promise<Trigger | undefined> {
+    const [updated] = await this.db
+      .update(triggers)
+      .set(updates)
+      .where(eq(triggers.id, id))
+      .returning()
+    return updated
+  }
+
+  async deleteTrigger(id: string): Promise<void> {
+    await this.db.delete(triggers).where(eq(triggers.id, id))
+  }
+
+  async getEnabledTriggersByCondition(condition: string): Promise<Trigger[]> {
+    return this.db
+      .select()
+      .from(triggers)
+      .where(and(eq(triggers.enabled, true), eq(triggers.condition, condition)))
+  }
+
+  async createTriggerRun(opts: {
+    triggerId: string
+    conditionData?: Record<string, unknown>
+    resultId?: string
+  }): Promise<TriggerRun> {
+    const [run] = await this.db
+      .insert(triggerRuns)
+      .values({
+        id: uuid(),
+        triggerId: opts.triggerId,
+        conditionData: opts.conditionData,
+        resultId: opts.resultId
+      })
+      .returning()
+    return run
+  }
+
+  async listTriggerRuns(triggerId: string): Promise<TriggerRun[]> {
+    return this.db
+      .select()
+      .from(triggerRuns)
+      .where(eq(triggerRuns.triggerId, triggerId))
+      .orderBy(desc(triggerRuns.firedAt))
   }
 }

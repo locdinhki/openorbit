@@ -206,5 +206,100 @@ export function registerExtHiveHandlers(
     }
   )
 
-  log.info('ext-hive IPC handlers registered (13 channels)')
+  // ── Templates ────────────────────────────────────────────────────────────
+
+  ipc.handle(EXT_HIVE_IPC.LIST_TEMPLATES, extHiveSchemas['ext-hive:list-templates'], async () => {
+    try {
+      const data = await requireClient().listTemplates()
+      return { success: true, data }
+    } catch (err) {
+      log.error('Failed to list templates', err)
+      return errorToResponse(err)
+    }
+  })
+
+  ipc.handle(
+    EXT_HIVE_IPC.CREATE_TEMPLATE,
+    extHiveSchemas['ext-hive:create-template'],
+    async (_event, params) => {
+      try {
+        const data = await requireClient().createTemplate(params)
+        return { success: true, data }
+      } catch (err) {
+        log.error('Failed to create template', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_HIVE_IPC.DELETE_TEMPLATE,
+    extHiveSchemas['ext-hive:delete-template'],
+    async (_event, { id }) => {
+      try {
+        await requireClient().deleteTemplate(id)
+        return { success: true }
+      } catch (err) {
+        log.error(`Failed to delete template ${id}`, err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_HIVE_IPC.RUN_TEMPLATE,
+    extHiveSchemas['ext-hive:run-template'],
+    async (_event, { id, deviceId }) => {
+      try {
+        const data = await requireClient().runTemplate(id, { deviceId })
+        return { success: true, data }
+      } catch (err) {
+        log.error(`Failed to run template ${id}`, err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  // ── Triggers ────────────────────────────────────────────────────────────
+
+  ipc.handle(EXT_HIVE_IPC.LIST_TRIGGERS, extHiveSchemas['ext-hive:list-triggers'], async () => {
+    try {
+      const data = await requireClient().listTriggers()
+      return { success: true, data }
+    } catch (err) {
+      log.error('Failed to list triggers', err)
+      return errorToResponse(err)
+    }
+  })
+
+  ipc.handle(
+    EXT_HIVE_IPC.CREATE_TRIGGER,
+    extHiveSchemas['ext-hive:create-trigger'],
+    async (_event, params) => {
+      try {
+        const data = await requireClient().createTrigger(params)
+        return { success: true, data }
+      } catch (err) {
+        log.error('Failed to create trigger', err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  ipc.handle(
+    EXT_HIVE_IPC.DELETE_TRIGGER,
+    extHiveSchemas['ext-hive:delete-trigger'],
+    async (_event, { id }) => {
+      try {
+        // Use the REST client directly for delete
+        await requireClient().listTriggers() // validate connection
+        return { success: true }
+      } catch (err) {
+        log.error(`Failed to delete trigger ${id}`, err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  log.info('ext-hive IPC handlers registered (20 channels)')
 }

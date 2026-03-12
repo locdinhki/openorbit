@@ -2,6 +2,7 @@ import { WebSocketServer, type WebSocket } from 'ws'
 import type { Server } from 'node:http'
 import type { Store } from './store.js'
 import { AlertEngine } from './alert-engine.js'
+import type { TriggerEngine } from './trigger-engine.js'
 import type { AuthMessage, ResultMessage } from './types.js'
 import { v4 as uuid } from 'uuid'
 
@@ -12,9 +13,11 @@ type DeviceMessageHandler = (deviceId: string, msg: Record<string, unknown>) => 
 
 export function createWsServer(
   httpServer: Server,
-  store: Store
+  store: Store,
+  triggerRef?: { engine?: TriggerEngine }
 ): {
   wss: WebSocketServer
+  alertEngine: AlertEngine
   dispatchTaskToDevice: (
     deviceId: string,
     taskId: string,
@@ -92,6 +95,15 @@ export function createWsServer(
         // Resolve any open offline alerts for this device
         alertEngine.resolveOffline(device.id, device.name).catch(() => {})
 
+        // Fire device.online triggers
+        triggerRef?.engine
+          ?.evaluate({
+            type: 'device.online',
+            deviceId: device.id,
+            deviceName: device.name
+          })
+          .catch(() => {})
+
         ws.send(JSON.stringify({ type: 'auth-ok', deviceId: device.id }))
         console.log(`[ws] Device ${device.id} authenticated from ${ip}`)
 
@@ -129,10 +141,16 @@ export function createWsServer(
               if (saved && device) {
                 return store.getDevice(deviceId!).then((d) => {
                   if (d) {
-                    return alertEngine.checkMetrics(deviceId!, d.name, {
+                    alertEngine.checkMetrics(deviceId!, d.name, {
                       cpuPercent: m.cpuPercent ?? 0,
                       memPercent: m.memPercent ?? 0
                     })
+                    triggerRef?.engine
+                      ?.evaluateMetric(deviceId!, d.name, {
+                        cpuPercent: m.cpuPercent ?? 0,
+                        memPercent: m.memPercent ?? 0
+                      })
+                      .catch(() => {})
                   }
                 })
               }
@@ -167,7 +185,16 @@ export function createWsServer(
         store.removeConnection(deviceId)
         await store.setDeviceOffline(deviceId)
         const device = await store.getDevice(deviceId)
-        if (device) alertEngine.checkOffline(deviceId, device.name).catch(() => {})
+        if (device) {
+          alertEngine.checkOffline(deviceId, device.name).catch(() => {})
+          triggerRef?.engine
+            ?.evaluate({
+              type: 'device.offline',
+              deviceId,
+              deviceName: device.name
+            })
+            .catch(() => {})
+        }
       }
     })
 
@@ -190,6 +217,13 @@ export function createWsServer(
         store.removeConnection(device.id)
         await store.setDeviceOffline(device.id)
         alertEngine.checkOffline(device.id, device.name).catch(() => {})
+        triggerRef?.engine
+          ?.evaluate({
+            type: 'device.offline',
+            deviceId: device.id,
+            deviceName: device.name
+          })
+          .catch(() => {})
       }
     }
   }, HEARTBEAT_INTERVAL)
@@ -198,6 +232,7 @@ export function createWsServer(
 
   return {
     wss,
+    alertEngine,
     dispatchTaskToDevice: (
       deviceId: string,
       taskId: string,

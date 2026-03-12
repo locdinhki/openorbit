@@ -5,6 +5,7 @@ import type { TaskStatus } from './types.js'
 import type { devices } from './db/schema.js'
 import { getNextRun, validateCron } from './cron.js'
 import { WorkflowRunner } from './workflow-runner.js'
+import crypto from 'node:crypto'
 
 export function createRoutes(
   store: Store,
@@ -412,6 +413,191 @@ export function createRoutes(
   router.post('/api/alerts/:id/resolve', requireAuth, async (req, res) => {
     await store.resolveAlert(String(req.params.id))
     res.json({ success: true })
+  })
+
+  // ── Task Templates ──────────────────────────────────────────────────────
+
+  router.get('/api/templates', requireAuth, async (_req, res) => {
+    const list = await store.listTemplates()
+    res.json(list)
+  })
+
+  router.post('/api/templates', requireAuth, async (req, res) => {
+    const { name, description, deviceId, instruction } = req.body
+    if (!name || !instruction || !instruction.type) {
+      return res.status(400).json({ error: 'name and instruction with type required' })
+    }
+    const tpl = await store.createTemplate({ name, description, deviceId, instruction })
+    res.status(201).json(tpl)
+  })
+
+  router.delete('/api/templates/:id', requireAuth, async (req, res) => {
+    await store.deleteTemplate(String(req.params.id))
+    res.json({ success: true })
+  })
+
+  router.post('/api/templates/:id/run', requireAuth, async (req, res) => {
+    const template = await store.getTemplate(String(req.params.id))
+    if (!template) return res.status(404).json({ error: 'Template not found' })
+
+    const targetDevice = (req.body.deviceId as string) || template.deviceId
+    if (!targetDevice) {
+      return res.status(400).json({ error: 'deviceId required (template has no default device)' })
+    }
+
+    const task = await store.createTask({
+      targetDevice,
+      instruction: template.instruction
+    })
+    dispatchTaskToDevice(targetDevice, task.id, template.instruction)
+    res.status(201).json(task)
+  })
+
+  // ── Webhooks ──────────────────────────────────────────────────────────
+
+  // Public endpoint — no auth, token in URL
+  router.post('/webhooks/:token', async (req, res) => {
+    const webhook = await store.getWebhookByToken(String(req.params.token))
+    if (!webhook) return res.status(404).json({ error: 'Webhook not found' })
+
+    const payload = req.body as Record<string, unknown>
+    let resultId: string | undefined
+
+    try {
+      switch (webhook.action) {
+        case 'task': {
+          // actionId is deviceId, payload.instruction or use a default exec
+          const deviceId = webhook.deviceId || (payload.deviceId as string)
+          const instruction = (payload.instruction as Record<string, unknown>) || {
+            type: 'exec',
+            command: (payload.command as string) || 'echo "webhook triggered"'
+          }
+          if (!deviceId) {
+            return res.status(400).json({ error: 'No deviceId configured or provided' })
+          }
+          const task = await store.createTask({ targetDevice: deviceId, instruction })
+          dispatchTaskToDevice(deviceId, task.id, instruction)
+          resultId = task.id
+          break
+        }
+        case 'workflow': {
+          const workflow = await store.getWorkflow(webhook.actionId)
+          if (!workflow) return res.status(404).json({ error: 'Linked workflow not found' })
+          const run = await store.createWorkflowRun(workflow.id)
+          workflowRunner.run(run.id, workflow.steps)
+          resultId = run.id
+          break
+        }
+        case 'template': {
+          const template = await store.getTemplate(webhook.actionId)
+          if (!template) return res.status(404).json({ error: 'Linked template not found' })
+          const deviceId = webhook.deviceId || template.deviceId || (payload.deviceId as string)
+          if (!deviceId) {
+            return res.status(400).json({ error: 'No deviceId available' })
+          }
+          const task = await store.createTask({
+            targetDevice: deviceId,
+            instruction: template.instruction
+          })
+          dispatchTaskToDevice(deviceId, task.id, template.instruction)
+          resultId = task.id
+          break
+        }
+      }
+    } catch (err) {
+      console.error('[webhook] Error:', err instanceof Error ? err.message : err)
+      return res.status(500).json({ error: 'Webhook action failed' })
+    }
+
+    await store.createWebhookCall({ webhookId: webhook.id, payload, resultId })
+    res.json({ ok: true, resultId })
+  })
+
+  router.get('/api/webhooks', requireAuth, async (_req, res) => {
+    const list = await store.listWebhooks()
+    res.json(list)
+  })
+
+  router.post('/api/webhooks', requireAuth, async (req, res) => {
+    const { name, action, actionId, deviceId } = req.body
+    if (!name || !action || !actionId) {
+      return res.status(400).json({ error: 'name, action, and actionId required' })
+    }
+    if (!['task', 'workflow', 'template'].includes(action)) {
+      return res.status(400).json({ error: 'action must be task, workflow, or template' })
+    }
+    const token = crypto.randomBytes(24).toString('hex')
+    const webhook = await store.createWebhook({ name, token, action, actionId, deviceId })
+    res.status(201).json(webhook)
+  })
+
+  router.delete('/api/webhooks/:id', requireAuth, async (req, res) => {
+    await store.deleteWebhook(String(req.params.id))
+    res.json({ success: true })
+  })
+
+  router.get('/api/webhooks/:id/calls', requireAuth, async (req, res) => {
+    const calls = await store.listWebhookCalls(String(req.params.id))
+    res.json(calls)
+  })
+
+  // ── Triggers ──────────────────────────────────────────────────────────
+
+  router.get('/api/triggers', requireAuth, async (_req, res) => {
+    const list = await store.listTriggers()
+    res.json(list)
+  })
+
+  router.post('/api/triggers', requireAuth, async (req, res) => {
+    const { name, condition, conditionParams, action, actionParams, cooldownS } = req.body
+    if (!name || !condition || !action || !actionParams) {
+      return res.status(400).json({ error: 'name, condition, action, and actionParams required' })
+    }
+    const validConditions = [
+      'alert.fired',
+      'alert.resolved',
+      'device.online',
+      'device.offline',
+      'metric.threshold'
+    ]
+    if (!validConditions.includes(condition)) {
+      return res
+        .status(400)
+        .json({ error: `condition must be one of: ${validConditions.join(', ')}` })
+    }
+    const validActions = ['run_workflow', 'run_template', 'exec_command', 'send_telegram']
+    if (!validActions.includes(action)) {
+      return res.status(400).json({ error: `action must be one of: ${validActions.join(', ')}` })
+    }
+    const trigger = await store.createTrigger({
+      name,
+      condition,
+      conditionParams,
+      action,
+      actionParams,
+      cooldownS
+    })
+    res.status(201).json(trigger)
+  })
+
+  router.patch('/api/triggers/:id', requireAuth, async (req, res) => {
+    const id = String(req.params.id)
+    const existing = await store.getTrigger(id)
+    if (!existing) return res.status(404).json({ error: 'Trigger not found' })
+    const updates: { enabled?: boolean } = {}
+    if (req.body.enabled !== undefined) updates.enabled = req.body.enabled
+    const updated = await store.updateTrigger(id, updates)
+    res.json(updated)
+  })
+
+  router.delete('/api/triggers/:id', requireAuth, async (req, res) => {
+    await store.deleteTrigger(String(req.params.id))
+    res.json({ success: true })
+  })
+
+  router.get('/api/triggers/:id/runs', requireAuth, async (req, res) => {
+    const runs = await store.listTriggerRuns(String(req.params.id))
+    res.json(runs)
   })
 
   return router
