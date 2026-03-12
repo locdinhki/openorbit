@@ -7,6 +7,13 @@ import type { devices } from './db/schema.js'
 import { getNextRun, validateCron } from './cron.js'
 import { WorkflowRunner } from './workflow-runner.js'
 import crypto from 'node:crypto'
+import { createHash } from 'node:crypto'
+import { execSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { resolve, join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __routes_dirname = dirname(fileURLToPath(import.meta.url))
 import type { DashboardHub } from './dashboard-hub.js'
 
 // User info attached to authenticated requests
@@ -356,6 +363,101 @@ export function createRoutes(
       )
 
       res.status(201).json({ version, deviceCount: tasks.length, tasks })
+    }
+  )
+
+  // ── Source-level update (Phase 17) ──────────────────────────────────
+
+  // Serve minion source as a tarball
+  router.get('/minion/source-bundle', requireAuth, (_req, res) => {
+    // Resolve minion source directory relative to hive package
+    const minionRoot = process.env.MINION_SOURCE_PATH || resolve(__routes_dirname, '../../minion')
+    const srcDir = join(minionRoot, 'src')
+
+    if (!existsSync(srcDir)) {
+      return res.status(503).json({ error: 'Minion source not found at ' + minionRoot })
+    }
+
+    try {
+      // Create tarball on the fly: src/ + package.json + tsconfig.json
+      const filesToInclude = ['src']
+      if (existsSync(join(minionRoot, 'package.json'))) filesToInclude.push('package.json')
+      if (existsSync(join(minionRoot, 'tsconfig.json'))) filesToInclude.push('tsconfig.json')
+
+      const tarball = execSync(`tar -czf - ${filesToInclude.join(' ')}`, {
+        cwd: minionRoot,
+        maxBuffer: 50 * 1024 * 1024
+      })
+
+      const hash = createHash('sha256').update(tarball).digest('hex')
+
+      res.set({
+        'Content-Type': 'application/gzip',
+        'Content-Disposition': 'attachment; filename="minion-source.tar.gz"',
+        'X-Bundle-Hash': hash
+      })
+      res.send(tarball)
+    } catch (err) {
+      console.error('[source-bundle] Failed to create tarball:', err)
+      res.status(500).json({ error: 'Failed to create source bundle' })
+    }
+  })
+
+  // Dispatch source-update to a single device
+  router.post(
+    '/api/minion/source-update/:deviceId',
+    requireAuth,
+    requireRole('admin', 'operator'),
+    audit('minion.source-update'),
+    async (req, res) => {
+      const deviceId = String(req.params.deviceId)
+      const device = await store.getDevice(deviceId)
+      if (!device) return res.status(404).json({ error: 'Device not found' })
+
+      // Build the bundleUrl pointing to this server's source-bundle endpoint
+      const proto = req.protocol
+      const host = req.get('host')
+      const bundleUrl = `${proto}://${host}/minion/source-bundle`
+
+      const instruction = { type: 'source-update', bundleUrl }
+      const task = await store.createTask({
+        targetDevice: deviceId,
+        instruction,
+        priority: 'high'
+      })
+      dispatchTaskToDevice(deviceId, task.id, instruction)
+      res.status(201).json(task)
+    }
+  )
+
+  // Dispatch source-update to all online minions
+  router.post(
+    '/api/minion/source-update-all',
+    requireAuth,
+    requireRole('admin', 'operator'),
+    audit('minion.source-update-all'),
+    async (req, res) => {
+      const allDevices = await store.listDevices()
+      const online = allDevices.filter((d) => d.status === 'online' && d.type === 'minion')
+
+      const proto = req.protocol
+      const host = req.get('host')
+      const bundleUrl = `${proto}://${host}/minion/source-bundle`
+
+      const instruction = { type: 'source-update', bundleUrl }
+      const tasks = await Promise.all(
+        online.map(async (d) => {
+          const task = await store.createTask({
+            targetDevice: d.id,
+            instruction,
+            priority: 'high'
+          })
+          dispatchTaskToDevice(d.id, task.id, instruction)
+          return task
+        })
+      )
+
+      res.status(201).json({ deviceCount: tasks.length, tasks })
     }
   )
 

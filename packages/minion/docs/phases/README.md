@@ -22,7 +22,7 @@
 | 14 | [Automation](archive/phase-14-automation/) | Task templates, webhook receiver, event-driven triggers | Medium | **Complete** |
 | 15 | [Observability](archive/phase-15-observability/) | WS push to dashboard, health checks, Prometheus, AI fleet report | Medium | **Complete** |
 | 16 | [Platform & Access](archive/phase-16-platform/) | Multi-user + roles, audit log, hive-ctl CLI | Medium | **Complete** |
-| 17 | [Source-Level Self-Update](phase-17-source-update/) | Hive serves minion source bundle, one-click deploy, no SSH | Low | Not started |
+| 17 | [Source-Level Self-Update](archive/phase-17-source-update/) | Hive serves minion source bundle, one-click deploy, no SSH | Low | **Complete** |
 
 ## Recommended Build Order
 

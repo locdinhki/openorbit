@@ -2,7 +2,7 @@
 
 **Theme:** Minion pulls its own source code from the Hive server, replaces local files, and restarts — enabling one-click remote deploys without SSH.
 
-**Effort:** Low | **Depends on:** Phase 12 (auto-update scaffolding) | **Status:** Not started
+**Effort:** Low | **Depends on:** Phase 12 (auto-update scaffolding) | **Status:** Complete
 
 ## Why This Phase
 
@@ -79,14 +79,14 @@ Since the Pi is already out of date, the first source-update deploy will include
 
 ## Tasks
 
-- [ ] `packages/hive/src/routes.ts` — add `GET /minion/source-bundle` (tar.gz of `packages/minion/`)
-- [ ] `packages/hive/src/routes.ts` — add `POST /api/minion/source-update/:deviceId` and `/source-update-all`
-- [ ] `packages/minion/src/types.ts` — add `SourceUpdateInstruction` + `SourceUpdateResult`
-- [ ] `packages/minion/src/handlers/source-update.ts` — download, verify, extract, swap, npm install, restart, rollback
-- [ ] `packages/minion/src/executor.ts` — add `case 'source-update'` (always allowed)
-- [ ] `packages/minion/src/connection.ts` — include dead-socket detection (heartbeat-ack timeout + ping/pong)
-- [ ] Dashboard: "Deploy Source" button on Devices page
-- [ ] Dashboard API client: add `sourceUpdate` and `sourceUpdateAll` methods
+- [x] `packages/hive/src/routes.ts` — add `GET /minion/source-bundle` (tar.gz of `packages/minion/`)
+- [x] `packages/hive/src/routes.ts` — add `POST /api/minion/source-update/:deviceId` and `/source-update-all`
+- [x] `packages/minion/src/types.ts` — add `SourceUpdateInstruction` + `SourceUpdateResult`
+- [x] `packages/minion/src/handlers/source-update.ts` — download, verify, extract, swap, npm install, restart, rollback
+- [x] `packages/minion/src/executor.ts` — add `case 'source-update'` (always allowed)
+- [x] `packages/minion/src/connection.ts` — include dead-socket detection (heartbeat-ack timeout + ping/pong)
+- [x] Dashboard: "Deploy Source" button on Devices page
+- [x] Dashboard API client: add `sourceUpdate` and `sourceUpdateAll` methods
 - [ ] Bootstrap: deploy Phase 17 to Pi via SSH one last time, then all future updates go through Hive
 
 ## Flow
@@ -126,8 +126,8 @@ systemctl restart hive-minion
 
 ## Success Criteria
 
-- [ ] `GET /minion/source-bundle` returns valid tarball of current minion source
+- [x] `GET /minion/source-bundle` returns valid tarball of current minion source
 - [ ] "Deploy Source" from dashboard updates a minion's source code and restarts it
 - [ ] Minion reconnects automatically after source update
-- [ ] Failed update rolls back to previous source
+- [x] Failed update rolls back to previous source
 - [ ] After Phase 17 bootstrap, no more SSH needed for code deploys

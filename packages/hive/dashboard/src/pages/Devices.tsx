@@ -11,6 +11,8 @@ export default function Devices() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<Record<string, boolean>>({})
   const [updatingAll, setUpdatingAll] = useState(false)
+  const [deploying, setDeploying] = useState<Record<string, boolean>>({})
+  const [deployingAll, setDeployingAll] = useState(false)
 
   useEffect(() => {
     load()
@@ -71,6 +73,32 @@ export default function Devices() {
     }
   }
 
+  async function handleDeploySource(deviceId: string) {
+    setDeploying((prev) => ({ ...prev, [deviceId]: true }))
+    try {
+      await api.sourceUpdateMinion(deviceId)
+      await load()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Deploy failed')
+    } finally {
+      setDeploying((prev) => ({ ...prev, [deviceId]: false }))
+    }
+  }
+
+  async function handleDeployAll() {
+    if (!confirm('Deploy source to all online minions?')) return
+    setDeployingAll(true)
+    try {
+      const result = await api.sourceUpdateAll()
+      alert(`Source deploy dispatched to ${result.deviceCount} device(s)`)
+      await load()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Deploy all failed')
+    } finally {
+      setDeployingAll(false)
+    }
+  }
+
   const online = devices.filter((d) => d.status === 'online').length
   const outdated = latest
     ? devices.filter((d) => d.status === 'online' && d.minionVersion !== latest.version)
@@ -94,6 +122,13 @@ export default function Devices() {
           <span className="text-xs text-gray-500">
             {online} online / {devices.length} total
           </span>
+          <button
+            onClick={handleDeployAll}
+            disabled={deployingAll || online === 0}
+            className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md transition-colors"
+          >
+            {deployingAll ? 'Deploying...' : 'Deploy Source'}
+          </button>
           {latest && outdated.length > 0 && (
             <button
               onClick={handleUpdateAll}
@@ -163,7 +198,16 @@ export default function Devices() {
                     <td className="py-2.5 pr-4 text-gray-500 text-xs">
                       {relativeTime(d.lastSeenAt)}
                     </td>
-                    <td className="py-2.5 text-right">
+                    <td className="py-2.5 text-right space-x-2">
+                      {d.status === 'online' && d.type === 'minion' && (
+                        <button
+                          onClick={() => handleDeploySource(d.id)}
+                          disabled={deploying[d.id]}
+                          className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 transition-colors"
+                        >
+                          {deploying[d.id] ? 'Deploying...' : 'Deploy'}
+                        </button>
+                      )}
                       {canUpdate && isOutdated && (
                         <button
                           onClick={() => handleUpdate(d.id)}

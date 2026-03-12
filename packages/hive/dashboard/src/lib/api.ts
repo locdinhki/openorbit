@@ -391,6 +391,18 @@ export const api = {
       body: '{}'
     }),
 
+  sourceUpdateMinion: (deviceId: string) =>
+    request<{ id: string }>(`/api/minion/source-update/${encodeURIComponent(deviceId)}`, {
+      method: 'POST',
+      body: '{}'
+    }),
+
+  sourceUpdateAll: () =>
+    request<{ deviceCount: number; tasks: Task[] }>('/api/minion/source-update-all', {
+      method: 'POST',
+      body: '{}'
+    }),
+
   listTasks: (params?: { status?: string; deviceId?: string; limit?: number }) => {
     const q = new URLSearchParams()
     if (params?.status) q.set('status', params.status)

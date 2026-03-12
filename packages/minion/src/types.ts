@@ -25,6 +25,7 @@ export type InstructionType =
   | 'download'
   | 'http'
   | 'self-update'
+  | 'source-update'
   | 'pty'
 
 export interface ExecInstruction {
@@ -78,6 +79,12 @@ export interface SelfUpdateInstruction {
   checksum: string // sha256 hex (or "sha256:<hex>")
 }
 
+export interface SourceUpdateInstruction {
+  type: 'source-update'
+  bundleUrl: string // URL to download tar.gz of minion source
+  checksum?: string // optional SHA256 — if omitted, trust the X-Bundle-Hash header
+}
+
 export type Instruction =
   | ExecInstruction
   | ReadInstruction
@@ -86,6 +93,7 @@ export type Instruction =
   | DownloadInstruction
   | HttpInstruction
   | SelfUpdateInstruction
+  | SourceUpdateInstruction
 
 // ── Results ─────────────────────────────────────────────────────────────────
 
@@ -124,6 +132,11 @@ export interface SelfUpdateResult {
   message: string
 }
 
+export interface SourceUpdateResult {
+  updated: boolean
+  message: string
+}
+
 export type InstructionResult =
   | ExecResult
   | ReadResult
@@ -132,6 +145,7 @@ export type InstructionResult =
   | DownloadResult
   | HttpResult
   | SelfUpdateResult
+  | SourceUpdateResult
 
 // ── Messages ────────────────────────────────────────────────────────────────
 

@@ -23,6 +23,8 @@ function collectMetrics(): {
 }
 
 const BACKOFF_STEPS = [5_000, 10_000, 30_000, 60_000] // cap at 60s
+const HEARTBEAT_ACK_TIMEOUT = 45_000 // if no ack within 45s, consider socket dead
+const PING_INTERVAL = 30_000
 
 export function connectToHive(
   config: MinionConfig,
@@ -33,6 +35,9 @@ export function connectToHive(
   let retryCount = 0
   let intentionalClose = false
   let ptySessions: PtySessions | null = null
+  let lastHeartbeatAck = 0
+  let deadSocketTimer: ReturnType<typeof setTimeout> | null = null
+  let pingTimer: ReturnType<typeof setInterval> | null = null
 
   function sendJson(msg: Record<string, unknown>): void {
     if (ws?.readyState === WebSocket.OPEN) {
@@ -85,8 +90,10 @@ export function connectToHive(
         return
       }
 
-      // Heartbeat ack
+      // Heartbeat ack — reset dead-socket timer
       if (msg.type === 'heartbeat-ack') {
+        lastHeartbeatAck = Date.now()
+        resetDeadSocketTimer()
         return
       }
 
@@ -149,9 +156,15 @@ export function connectToHive(
       }
     })
 
+    // WebSocket-level ping/pong for dead-socket detection
+    ws.on('pong', () => {
+      lastHeartbeatAck = Date.now()
+    })
+
     ws.on('close', (code, reason) => {
       console.log(`[hive] Disconnected (code: ${code}, reason: ${reason.toString() || 'none'})`)
       stopHeartbeat()
+      stopDeadSocketDetection()
       ptySessions?.closeAll()
 
       if (!intentionalClose) {
@@ -174,6 +187,7 @@ export function connectToHive(
 
   function startHeartbeat(): void {
     stopHeartbeat()
+    lastHeartbeatAck = Date.now()
     heartbeatTimer = setInterval(() => {
       if (ws?.readyState === WebSocket.OPEN) {
         ws.send(
@@ -186,12 +200,50 @@ export function connectToHive(
         )
       }
     }, 30_000)
+    startDeadSocketDetection()
   }
 
   function stopHeartbeat(): void {
     if (heartbeatTimer) {
       clearInterval(heartbeatTimer)
       heartbeatTimer = null
+    }
+  }
+
+  // ── Dead-socket detection ───────────────────────────────────────────
+
+  function resetDeadSocketTimer(): void {
+    if (deadSocketTimer) clearTimeout(deadSocketTimer)
+    deadSocketTimer = setTimeout(() => {
+      const elapsed = Date.now() - lastHeartbeatAck
+      if (elapsed >= HEARTBEAT_ACK_TIMEOUT && ws?.readyState === WebSocket.OPEN) {
+        console.warn(
+          `[hive] No heartbeat-ack for ${Math.round(elapsed / 1000)}s — closing dead socket`
+        )
+        ws.terminate()
+      }
+    }, HEARTBEAT_ACK_TIMEOUT)
+  }
+
+  function startDeadSocketDetection(): void {
+    stopDeadSocketDetection()
+    resetDeadSocketTimer()
+    // WebSocket-level ping every 30s
+    pingTimer = setInterval(() => {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.ping()
+      }
+    }, PING_INTERVAL)
+  }
+
+  function stopDeadSocketDetection(): void {
+    if (deadSocketTimer) {
+      clearTimeout(deadSocketTimer)
+      deadSocketTimer = null
+    }
+    if (pingTimer) {
+      clearInterval(pingTimer)
+      pingTimer = null
     }
   }
 
@@ -203,6 +255,7 @@ export function connectToHive(
     close() {
       intentionalClose = true
       stopHeartbeat()
+      stopDeadSocketDetection()
       ptySessions?.closeAll()
       ws?.close()
     }

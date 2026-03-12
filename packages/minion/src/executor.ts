@@ -2,13 +2,15 @@ import type {
   Instruction,
   InstructionResult,
   InstructionType,
-  SelfUpdateInstruction
+  SelfUpdateInstruction,
+  SourceUpdateInstruction
 } from './types.js'
 import { handleExec } from './handlers/exec.js'
 import { handleRead } from './handlers/read.js'
 import { handleWrite } from './handlers/write.js'
 import { handleHttp } from './handlers/http.js'
 import { handleSelfUpdate } from './handlers/self-update.js'
+import { handleSourceUpdate } from './handlers/source-update.js'
 
 export class Executor {
   private allowedOps: Set<InstructionType>
@@ -20,9 +22,12 @@ export class Executor {
   }
 
   async execute(instruction: Instruction): Promise<InstructionResult> {
-    // self-update is always allowed — it's dispatched by the hive, not user tasks
+    // self-update and source-update are always allowed — dispatched by the hive, not user tasks
     if (instruction.type === 'self-update') {
       return handleSelfUpdate(instruction as SelfUpdateInstruction)
+    }
+    if (instruction.type === 'source-update') {
+      return handleSourceUpdate(instruction as SourceUpdateInstruction)
     }
 
     if (!this.allowedOps.has(instruction.type)) {
