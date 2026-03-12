@@ -87,6 +87,11 @@ OpenOrbit is a cross-device system — control your job search from anywhere.
 
 ## Quick Start
 
+### Prerequisites
+
+- Node.js 22+
+- npm 10+
+
 ### Install
 
 ```bash
@@ -96,6 +101,10 @@ npm install
 ### Development
 
 ```bash
+# Electron desktop app (from VS Code terminal, unset ELECTRON_RUN_AS_NODE)
+ELECTRON_RUN_AS_NODE= npx electron-vite dev
+
+# Or from a standalone terminal
 npx electron-vite dev
 ```
 
@@ -119,6 +128,39 @@ openorbit search --platform linkedin --role "Senior Engineer"
 openorbit apply --auto --top 10
 openorbit status
 ```
+
+### Open Hive (Fleet Management)
+
+Open Hive is a separate subsystem for managing remote devices (Raspberry Pi, etc.) via a relay server + dashboard.
+
+```bash
+# Hive server (Express + PostgreSQL)
+cd packages/hive
+npm install
+npm run dev                    # Starts on port 8080
+
+# Hive dashboard (Vite + React SPA)
+cd packages/hive/dashboard
+npm install
+HIVE_API_URL=https://hive.openorbit.ai npm run dev   # Starts on port 5173, proxies API to prod
+# Or without HIVE_API_URL to proxy to localhost:8080
+```
+
+**Environment variables** (`packages/hive/.env`):
+
+| Variable | Description |
+|----------|-------------|
+| `OPENHIVE_DB_URL` | PostgreSQL connection string |
+| `OPENHIVE_API_KEY` | API key for device authentication |
+| `PORT` | Hive server port (default: 8080) |
+
+**Dashboard env** (set when running `npm run dev`):
+
+| Variable | Description |
+|----------|-------------|
+| `HIVE_API_URL` | Hive server URL for Vite proxy (default: `http://localhost:8080`) |
+
+> **Note:** Running the Hive server locally connects to the same database as production. To avoid interfering with live devices, use `HIVE_API_URL` to proxy the dashboard directly to the production server without running a local Hive server.
 
 ---
 

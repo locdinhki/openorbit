@@ -18,9 +18,8 @@
         { "id": "hive-sidebar", "label": "Hive", "icon": "server", "priority": 35 }
       ],
       "workspace": [
-        { "id": "hive-workspace", "label": "Task Dispatch", "default": false },
-        { "id": "hive-agent", "label": "Hive Agent", "default": false },
-        { "id": "hive-terminal", "label": "Hive Terminal", "default": false }
+        { "id": "hive-workspace", "label": "Hive Dashboard", "default": false },
+        { "id": "hive-agent", "label": "Hive Agent", "default": false }
       ],
       "settings": [
         {

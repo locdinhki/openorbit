@@ -112,11 +112,7 @@ export default function DeviceDetail() {
               <h2 className="text-sm font-medium text-gray-300 mb-3">Hardware</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(hw).map(([key, val]) => (
-                  <InfoItem
-                    key={key}
-                    label={key}
-                    value={typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
-                  />
+                  <InfoItem key={key} label={formatHwLabel(key)} value={formatHwValue(key, val)} />
                 ))}
               </div>
             </div>
@@ -162,6 +158,64 @@ export default function DeviceDetail() {
       )}
     </div>
   )
+}
+
+const HW_LABELS: Record<string, string> = {
+  os: 'OS',
+  cpu: 'CPU',
+  arch: 'Architecture',
+  kernel: 'Kernel',
+  memory: 'Memory',
+  storage: 'Storage',
+  network: 'Network',
+  hostname: 'Hostname',
+  platform: 'Platform',
+  software: 'Software',
+  hardwareId: 'Hardware ID',
+  uptimeSeconds: 'Uptime',
+  ip: 'IP Address',
+  mac: 'MAC Address'
+}
+
+function formatHwLabel(key: string): string {
+  return HW_LABELS[key] ?? key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase())
+}
+
+function formatHwValue(key: string, val: unknown): string {
+  if (val == null) return '—'
+  if (typeof val !== 'object') {
+    if (key === 'uptimeSeconds') {
+      const s = Number(val)
+      const d = Math.floor(s / 86400)
+      const h = Math.floor((s % 86400) / 3600)
+      const m = Math.floor((s % 3600) / 60)
+      return d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m` : `${m}m`
+    }
+    return String(val)
+  }
+  const obj = val as Record<string, unknown>
+  switch (key) {
+    case 'cpu':
+      return `${obj.model ?? 'Unknown'} (${obj.cores ?? '?'} cores)`
+    case 'memory':
+      return `${formatMb(obj.availableMb)} free / ${formatMb(obj.totalMb)} total`
+    case 'storage':
+      return `${obj.freeGb ?? '?'} GB free / ${obj.totalGb ?? '?'} GB total`
+    case 'network':
+      return `${obj.ip ?? '—'}${obj.mac ? ` (${obj.mac})` : ''}`
+    case 'software': {
+      const entries = Object.entries(obj).filter(([, v]) => v && v !== 'not installed')
+      return entries.map(([k, v]) => `${k} ${v}`).join(', ') || '—'
+    }
+    default:
+      return JSON.stringify(val)
+  }
+}
+
+function formatMb(val: unknown): string {
+  const mb = Number(val)
+  if (isNaN(mb)) return '?'
+  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {
