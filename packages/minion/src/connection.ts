@@ -2,6 +2,7 @@ import WebSocket from 'ws'
 import { cpus, loadavg, freemem, totalmem } from 'node:os'
 import type { MinionConfig, Instruction, HardwareInfo } from './types.js'
 import type { Executor } from './executor.js'
+import { PtySessions } from './pty-sessions.js'
 import { MINION_VERSION } from './version.js'
 
 function collectMetrics(): {
@@ -31,10 +32,20 @@ export function connectToHive(
   let ws: WebSocket | null = null
   let retryCount = 0
   let intentionalClose = false
+  let ptySessions: PtySessions | null = null
+
+  function sendJson(msg: Record<string, unknown>): void {
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg))
+    }
+  }
 
   function connect(): void {
     console.log(`[hive] Connecting to ${config.hiveUrl}...`)
     ws = new WebSocket(config.hiveUrl)
+
+    // Create PTY sessions manager bound to this WS connection
+    ptySessions = new PtySessions(config.allowedOps, sendJson)
 
     ws.on('open', () => {
       console.log(`[hive] Connected`)
@@ -79,6 +90,32 @@ export function connectToHive(
         return
       }
 
+      // ── PTY messages ──────────────────────────────────────────────────
+      if (msg.type === 'pty-open') {
+        ptySessions?.open(
+          msg.sessionId as string,
+          msg.cols as number,
+          msg.rows as number,
+          msg.shell as string | undefined
+        )
+        return
+      }
+
+      if (msg.type === 'pty-input') {
+        ptySessions?.input(msg.sessionId as string, msg.data as string)
+        return
+      }
+
+      if (msg.type === 'pty-resize') {
+        ptySessions?.resize(msg.sessionId as string, msg.cols as number, msg.rows as number)
+        return
+      }
+
+      if (msg.type === 'pty-close') {
+        ptySessions?.close(msg.sessionId as string)
+        return
+      }
+
       // Instruction from hive
       if (msg.messageId && msg.taskId && msg.instruction) {
         const instruction = msg.instruction as Instruction
@@ -115,6 +152,7 @@ export function connectToHive(
     ws.on('close', (code, reason) => {
       console.log(`[hive] Disconnected (code: ${code}, reason: ${reason.toString() || 'none'})`)
       stopHeartbeat()
+      ptySessions?.closeAll()
 
       if (!intentionalClose) {
         const delay = BACKOFF_STEPS[Math.min(retryCount, BACKOFF_STEPS.length - 1)]
@@ -165,6 +203,7 @@ export function connectToHive(
     close() {
       intentionalClose = true
       stopHeartbeat()
+      ptySessions?.closeAll()
       ws?.close()
     }
   }

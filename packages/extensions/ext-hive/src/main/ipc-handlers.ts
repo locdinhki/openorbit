@@ -190,5 +190,21 @@ export function registerExtHiveHandlers(
     }
   })
 
-  log.info('ext-hive IPC handlers registered (12 channels)')
+  // ── Terminal ──────────────────────────────────────────────────────────────
+
+  ipc.handle(
+    EXT_HIVE_IPC.OPEN_TERMINAL,
+    extHiveSchemas['ext-hive:open-terminal'],
+    async (_event, { deviceId }) => {
+      try {
+        const wsUrl = requireClient().getTerminalWsUrl(deviceId)
+        return { success: true, data: { wsUrl } }
+      } catch (err) {
+        log.error(`Failed to get terminal URL for ${deviceId}`, err)
+        return errorToResponse(err)
+      }
+    }
+  )
+
+  log.info('ext-hive IPC handlers registered (13 channels)')
 }

@@ -154,6 +154,13 @@ export class HiveClient {
     return this.get<Record<string, unknown>[]>(`/api/alerts${qs ? `?${qs}` : ''}`)
   }
 
+  // ── Terminal ─────────────────────────────────────────────────────────────
+
+  getTerminalWsUrl(deviceId: string): string {
+    const wsBase = this.baseUrl.replace(/^http/, 'ws')
+    return `${wsBase}/api/pty/${encodeURIComponent(deviceId)}?token=${encodeURIComponent(this.apiKey)}`
+  }
+
   // ── Health ────────────────────────────────────────────────────────────────
 
   async health(): Promise<{ status: string; uptime: number }> {

@@ -19,7 +19,8 @@
       ],
       "workspace": [
         { "id": "hive-workspace", "label": "Task Dispatch", "default": false },
-        { "id": "hive-agent", "label": "Hive Agent", "default": false }
+        { "id": "hive-agent", "label": "Hive Agent", "default": false },
+        { "id": "hive-terminal", "label": "Hive Terminal", "default": false }
       ],
       "settings": [
         {
@@ -38,6 +39,9 @@
     }
   },
   "dependencies": {
-    "@openorbit/core": "*"
+    "@openorbit/core": "*",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0"
   }
 }

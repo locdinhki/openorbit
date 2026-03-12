@@ -8,6 +8,8 @@ import { v4 as uuid } from 'uuid'
 const HEARTBEAT_INTERVAL = 30_000
 const HEARTBEAT_TIMEOUT = 90_000
 
+type DeviceMessageHandler = (deviceId: string, msg: Record<string, unknown>) => void
+
 export function createWsServer(
   httpServer: Server,
   store: Store
@@ -18,9 +20,12 @@ export function createWsServer(
     taskId: string,
     instruction: Record<string, unknown>
   ) => boolean
+  sendToDevice: (deviceId: string, msg: Record<string, unknown>) => boolean
+  onDeviceMessage: (handler: DeviceMessageHandler) => void
 } {
   const alertEngine = new AlertEngine(store)
   const wss = new WebSocketServer({ server: httpServer })
+  const deviceMessageHandlers: DeviceMessageHandler[] = []
 
   wss.on('connection', (ws, req) => {
     const ip = req.socket.remoteAddress ?? 'unknown'
@@ -140,6 +145,14 @@ export function createWsServer(
         return
       }
 
+      // ── PTY output / close from minion → forward to relay handlers ────
+      if (msg.type === 'pty-output' || msg.type === 'pty-close') {
+        for (const handler of deviceMessageHandlers) {
+          handler(deviceId!, msg)
+        }
+        return
+      }
+
       // ── Task result ─────────────────────────────────────────────────────
       if (msg.messageId && msg.taskId) {
         const result = msg as unknown as ResultMessage
@@ -194,6 +207,15 @@ export function createWsServer(
       if (!conn) return false
       dispatchTask(conn.ws, taskId, instruction, store)
       return true
+    },
+    sendToDevice: (deviceId: string, msg: Record<string, unknown>) => {
+      const conn = store.getConnection(deviceId)
+      if (!conn) return false
+      conn.ws.send(JSON.stringify(msg))
+      return true
+    },
+    onDeviceMessage: (handler: DeviceMessageHandler) => {
+      deviceMessageHandlers.push(handler)
     }
   }
 }

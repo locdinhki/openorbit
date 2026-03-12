@@ -306,6 +306,18 @@ export const HIVE_TOOLS: AIToolDefinition[] = [
         }
       }
     }
+  },
+  {
+    name: 'open_terminal',
+    description:
+      'Open an interactive terminal session for a device. Returns the dashboard URL where the user can interact with the device shell (bash). The device must be online.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: { type: 'string', description: 'Device ID to open terminal for' }
+      },
+      required: ['deviceId']
+    }
   }
 ]
 

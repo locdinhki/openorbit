@@ -264,6 +264,15 @@ export class HiveChatHandler {
           active: (input.activeOnly as boolean | undefined) ?? false
         })
 
+      case 'open_terminal': {
+        const wsUrl = client.getTerminalWsUrl(input.deviceId as string)
+        return {
+          wsUrl,
+          deviceId: input.deviceId,
+          message: `Terminal session ready for device ${input.deviceId}. Open the Hive Terminal workspace view to connect.`
+        }
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`)
     }

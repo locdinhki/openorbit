@@ -25,6 +25,7 @@ export type InstructionType =
   | 'download'
   | 'http'
   | 'self-update'
+  | 'pty'
 
 export interface ExecInstruction {
   type: 'exec'
@@ -161,4 +162,38 @@ export interface HardwareInfo {
   network: { ip: string; interface: string; mac: string }
   software: Record<string, string>
   uptimeSeconds: number
+}
+
+// ── PTY Messages ───────────────────────────────────────────────────────────
+
+export interface PtyOpenMessage {
+  type: 'pty-open'
+  sessionId: string
+  cols: number
+  rows: number
+  shell?: string
+}
+
+export interface PtyInputMessage {
+  type: 'pty-input'
+  sessionId: string
+  data: string // base64-encoded keystrokes
+}
+
+export interface PtyResizeMessage {
+  type: 'pty-resize'
+  sessionId: string
+  cols: number
+  rows: number
+}
+
+export interface PtyCloseMessage {
+  type: 'pty-close'
+  sessionId: string
+}
+
+export interface PtyOutputMessage {
+  type: 'pty-output'
+  sessionId: string
+  data: string // base64-encoded terminal output
 }

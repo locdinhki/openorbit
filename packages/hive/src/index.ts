@@ -10,6 +10,7 @@ import { migrateDb } from './db/migrate.js'
 import { Store } from './store.js'
 import { createRoutes } from './routes.js'
 import { createWsServer } from './ws-server.js'
+import { createPtyRelay } from './pty-relay.js'
 import { getNextRun } from './cron.js'
 
 // ── Load env file if present ────────────────────────────────────────────────
@@ -67,8 +68,11 @@ async function main(): Promise<void> {
   const app = express()
   const httpServer = createServer(app)
 
-  // WebSocket server
-  const { dispatchTaskToDevice } = createWsServer(httpServer, store)
+  // WebSocket server (minion connections)
+  const { dispatchTaskToDevice, sendToDevice, onDeviceMessage } = createWsServer(httpServer, store)
+
+  // PTY relay (dashboard → minion terminal sessions)
+  createPtyRelay(httpServer, sendToDevice, onDeviceMessage, CONTROLLER_API_KEY)
 
   // REST routes
   app.use(createRoutes(store, dispatchTaskToDevice, CONTROLLER_API_KEY))

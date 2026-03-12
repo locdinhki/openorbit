@@ -63,7 +63,12 @@ export const ipc = {
   chatSend: (message: string): Promise<IPCResult<string>> =>
     api.invoke(EXT_HIVE_IPC.CHAT_SEND, { message }) as Promise<IPCResult<string>>,
 
-  chatClear: (): Promise<IPCResult> => api.invoke(EXT_HIVE_IPC.CHAT_CLEAR, {}) as Promise<IPCResult>
+  chatClear: (): Promise<IPCResult> =>
+    api.invoke(EXT_HIVE_IPC.CHAT_CLEAR, {}) as Promise<IPCResult>,
+
+  // Terminal
+  openTerminal: (deviceId: string): Promise<IPCResult<{ wsUrl: string }>> =>
+    api.invoke(EXT_HIVE_IPC.OPEN_TERMINAL, { deviceId }) as Promise<IPCResult<{ wsUrl: string }>>
 }
 
 export type { IPCResult }

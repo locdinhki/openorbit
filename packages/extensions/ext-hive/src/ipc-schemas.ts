@@ -66,5 +66,9 @@ export const extHiveSchemas = {
     message: z.string().min(1)
   }),
 
-  'ext-hive:chat-clear': z.object({})
+  'ext-hive:chat-clear': z.object({}),
+
+  'ext-hive:open-terminal': z.object({
+    deviceId: z.string().min(1)
+  })
 } as const

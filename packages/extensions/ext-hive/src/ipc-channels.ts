@@ -25,7 +25,10 @@ export const EXT_HIVE_IPC = {
 
   // Chat
   CHAT_SEND: 'ext-hive:chat-send',
-  CHAT_CLEAR: 'ext-hive:chat-clear'
+  CHAT_CLEAR: 'ext-hive:chat-clear',
+
+  // Terminal
+  OPEN_TERMINAL: 'ext-hive:open-terminal'
 } as const
 
 export type ExtHiveIPCChannel = (typeof EXT_HIVE_IPC)[keyof typeof EXT_HIVE_IPC]
