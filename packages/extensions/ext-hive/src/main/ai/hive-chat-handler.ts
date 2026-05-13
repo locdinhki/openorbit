@@ -1,33 +1,24 @@
 // ============================================================================
-// ext-hive — AI Chat Handler (agentic tool-calling loop)
+// ext-hive — AI Chat Handler (context-enriched chat + action dispatch)
 // ============================================================================
 
-import type {
-  AIService,
-  AIToolCall,
-  AIToolResult,
-  AIMessage
-} from '@openorbit/core/ai/provider-types'
+import type { AIService, AIMessage } from '@openorbit/core/ai/provider-types'
 import type { SkillService } from '@openorbit/core/skills/skill-types'
-import {
-  isSkillToolCall,
-  executeSkillTool,
-  getCombinedTools
-} from '@openorbit/core/skills/skill-tool-dispatcher'
-import { HIVE_TOOLS, HIVE_SYSTEM_PROMPT } from './hive-tools'
+import { HIVE_SYSTEM_PROMPT } from './hive-tools'
 import type { HiveClient } from '../hive-client'
+import type { Device } from '../types'
 import { dispatchAndPoll } from '../skills/poll-task'
 
 const MAX_HISTORY = 20
-const MAX_TOOL_ROUNDS = 10
 
 export class HiveChatHandler {
   private history: AIMessage[] = []
+  private cachedDevices: Device[] = []
 
   constructor(
     private ai: AIService,
     private getClient: () => HiveClient | null,
-    private skills?: SkillService
+    private _skills?: SkillService
   ) {}
 
   async sendMessage(message: string): Promise<string> {
@@ -36,304 +27,294 @@ export class HiveChatHandler {
       this.history = this.history.slice(-MAX_HISTORY)
     }
 
-    const provider = this.ai.getProvider()
-    if (provider?.capabilities.toolCalling && provider.completeWithTools) {
-      return this.agenticLoop(message, { completeWithTools: provider.completeWithTools })
-    }
+    // Step 1: Gather fleet context (also caches device list for name resolution)
+    const snapshot = await this.buildSnapshot()
 
-    return this.simpleFallback(message)
-  }
+    // Step 2: Ask AI to either answer or request an action
+    const systemPrompt = [
+      HIVE_SYSTEM_PROMPT,
+      '\n\nCurrent fleet state:\n' + snapshot,
+      "\n\nIMPORTANT: Answer the user's question using the fleet state above.",
+      'If the user wants to run a command on a device, respond with EXACTLY this format on the FIRST line:',
+      'ACTION: exec [device] command here',
+      'ACTION: read [device] /path/to/file',
+      'ACTION: write [device] /path/to/file',
+      'Put the device name or nickname in brackets — it does not need to be exact, the system will fuzzy-match it.',
+      'Examples: [pi4], [raspberry], [macbook], [Pi 4] all work.',
+      'Then explain what you are doing on the next line.',
+      'Only use ACTION when the user explicitly asks to run/execute/install/check something on a device.',
+      'For informational questions, just answer directly — no ACTION needed.'
+    ].join('\n')
 
-  private async agenticLoop(
-    message: string,
-    provider: {
-      completeWithTools: NonNullable<
-        NonNullable<ReturnType<AIService['getProvider']>>['completeWithTools']
-      >
-    }
-  ): Promise<string> {
-    let toolResults: AIToolResult[] = []
-    let rounds = 0
-
-    while (rounds < MAX_TOOL_ROUNDS) {
-      rounds++
-
-      const userMsg =
-        toolResults.length > 0
-          ? `${message}\n\n[Tool Results]\n${toolResults.map((r) => `${r.toolCallId}: ${r.content}`).join('\n')}`
-          : message
-
-      const tools = this.skills ? getCombinedTools(HIVE_TOOLS, this.skills) : HIVE_TOOLS
-
-      const response = await provider.completeWithTools({
-        systemPrompt: HIVE_SYSTEM_PROMPT,
-        userMessage: userMsg,
-        tools,
-        tier: 'standard',
-        task: 'hive-chat'
-      })
-
-      if (response.stopReason === 'end_turn' || response.toolCalls.length === 0) {
-        this.history.push({ role: 'assistant', content: response.content })
-        return response.content
-      }
-
-      toolResults = []
-      for (const call of response.toolCalls) {
-        const result = await this.executeTool(call)
-        toolResults.push(result)
-      }
-    }
-
-    const fallback =
-      'I hit the tool-calling limit for this request. Here is what I gathered so far — try a more specific question to continue.'
-    this.history.push({ role: 'assistant', content: fallback })
-    return fallback
-  }
-
-  private async simpleFallback(_message: string): Promise<string> {
-    const client = this.getClient()
-    let snapshot = 'Hive not configured.'
-    if (client) {
-      try {
-        const devices = await client.listDevices()
-        const tasks = await client.listTasks({ limit: 10 })
-        snapshot = [
-          `Devices (${devices.length}): ${devices.map((d) => `${d.name} [${d.status}]`).join(', ') || 'none'}`,
-          `Recent tasks (${tasks.length}): ${tasks.map((t) => `${t.id.slice(0, 8)} → ${t.targetDevice ?? '?'} [${t.status}]`).join(', ') || 'none'}`
-        ].join('\n')
-      } catch {
-        snapshot = 'Could not reach hive.'
-      }
-    }
-
-    const response = await this.ai.chat({
-      systemPrompt: `${HIVE_SYSTEM_PROMPT}\n\nCurrent fleet state:\n${snapshot}`,
+    const response = await this.chatWithRetry({
+      systemPrompt,
       messages: this.history,
       tier: 'standard',
       task: 'hive-chat'
     })
 
-    this.history.push({ role: 'assistant', content: response.content })
-    return response.content
+    let reply = response.content
+
+    // Step 3: If AI requested an action, resolve device name and execute
+    const actionMatch = reply.match(/^ACTION:\s*(exec|read|write)\s+\[([^\]]+)\]\s+(.+)$/m)
+    if (actionMatch) {
+      const [, action, deviceRef, arg] = actionMatch
+
+      // Fuzzy-resolve device name
+      const resolved = this.resolveDevice(deviceRef)
+      if (resolved.error) {
+        reply = resolved.error
+      } else {
+        try {
+          const rawResult = await this.executeAction(action, resolved.name!, arg)
+          reply = await this.summarizeResult(message, resolved.name!, arg, rawResult)
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err)
+          reply = `Failed to run \`${arg}\` on ${resolved.name}: ${errMsg}`
+        }
+      }
+    }
+
+    this.history.push({ role: 'assistant', content: reply })
+    return reply
   }
 
-  private async executeTool(call: AIToolCall): Promise<AIToolResult> {
+  // ---------------------------------------------------------------------------
+  // AI call with retry for transient errors
+  // ---------------------------------------------------------------------------
+
+  private async chatWithRetry(
+    request: Parameters<AIService['chat']>[0],
+    retries = 1
+  ): ReturnType<AIService['chat']> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await this.ai.chat(request)
+      } catch (err) {
+        const isRecoverable =
+          err != null &&
+          typeof err === 'object' &&
+          'recoverable' in err &&
+          (err as Record<string, unknown>).recoverable === true
+        if (isRecoverable && attempt < retries) {
+          // Wait briefly then retry
+          await new Promise((r) => setTimeout(r, 2000))
+          continue
+        }
+        throw err
+      }
+    }
+    throw new Error('AI request failed after retries')
+  }
+
+  // ---------------------------------------------------------------------------
+  // Device name resolution — fuzzy matches user input to actual device names
+  // ---------------------------------------------------------------------------
+
+  private resolveDevice(ref: string): { name?: string; error?: string } {
+    const devices = this.cachedDevices
+    if (devices.length === 0) {
+      return { error: 'No devices found in the fleet.' }
+    }
+
+    const needle = ref.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+    // 1. Exact match (case-insensitive)
+    const exact = devices.find((d) => d.name.toLowerCase() === ref.toLowerCase())
+    if (exact) return { name: exact.name }
+
+    // 2. Exact ID match
+    const byId = devices.find((d) => d.id.toLowerCase() === ref.toLowerCase())
+    if (byId) return { name: byId.name }
+
+    // 3. Fuzzy: normalized name contains needle or needle contains normalized name
+    const fuzzy = devices.filter((d) => {
+      const norm = d.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+      return norm.includes(needle) || needle.includes(norm)
+    })
+    if (fuzzy.length === 1) return { name: fuzzy[0].name }
+
+    // 4. Partial: any word in the device name starts with needle
+    const partial = devices.filter((d) =>
+      d.name
+        .toLowerCase()
+        .split(/\s+/)
+        .some((w) => w.startsWith(needle) || needle.startsWith(w))
+    )
+    if (partial.length === 1) return { name: partial[0].name }
+
+    // 5. Substring match anywhere
+    const substr = devices.filter((d) => d.name.toLowerCase().includes(ref.toLowerCase()))
+    if (substr.length === 1) return { name: substr[0].name }
+
+    // Ambiguous or no match
+    const names = devices.map((d) => d.name).join(', ')
+    if (fuzzy.length > 1 || partial.length > 1 || substr.length > 1) {
+      const matches = [...new Set([...fuzzy, ...partial, ...substr])].map((d) => d.name)
+      return {
+        error: `"${ref}" matches multiple devices: ${matches.join(', ')}. Please be more specific.`
+      }
+    }
+
+    return { error: `No device matching "${ref}" found. Available devices: ${names}` }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fleet snapshot
+  // ---------------------------------------------------------------------------
+
+  private async buildSnapshot(): Promise<string> {
+    const client = this.getClient()
+    if (!client) return 'Hive not configured — set hive.url and hive.api-key in settings.'
+
+    const sections: string[] = []
+
     try {
-      const result = await this.dispatchTool(call.name, call.input)
-      return { toolCallId: call.id, content: JSON.stringify(result) }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      return { toolCallId: call.id, content: `Error: ${message}`, isError: true }
-    }
-  }
+      const [devices, tasks, health] = await Promise.all([
+        client.listDevices().catch(() => [] as Device[]),
+        client.listTasks({ limit: 10 }).catch(() => []),
+        client.health().catch(() => null)
+      ])
 
-  private async dispatchTool(name: string, input: Record<string, unknown>): Promise<unknown> {
-    // Delegate skill tool calls to the skill service
-    if (isSkillToolCall(name) && this.skills) {
-      const result = await executeSkillTool({ id: '', name, input }, this.skills)
-      if (result.isError) throw new Error(result.content)
-      return result.content
-    }
+      // Cache for device name resolution
+      this.cachedDevices = devices
 
-    const client = this.requireClient()
+      // Server health
+      if (health) {
+        const h = Math.floor(health.uptime / 3600)
+        const m = Math.floor((health.uptime % 3600) / 60)
+        sections.push(`Server: ${health.status}, uptime ${h}h ${m}m`)
+      }
 
-    switch (name) {
-      case 'list_devices':
-        return client.listDevices()
+      // Devices
+      const online = devices.filter((d) => d.status === 'online')
+      const offline = devices.filter((d) => d.status !== 'online')
+      sections.push(
+        `Devices (${devices.length} total, ${online.length} online, ${offline.length} offline):`
+      )
+      for (const d of devices) {
+        const hw = d.hardwareInfo as Record<string, unknown> | undefined
+        const parts = [
+          `  - ${d.name} [${d.status}]`,
+          hw?.os ? `OS: ${hw.os}` : null,
+          hw?.cpu ? `CPU: ${(hw.cpu as Record<string, unknown>).model ?? 'unknown'}` : null,
+          d.ipAddress ? `IP: ${d.ipAddress}` : null,
+          (d as Record<string, unknown>).minionVersion
+            ? `v${(d as Record<string, unknown>).minionVersion}`
+            : null
+        ]
+        sections.push(parts.filter(Boolean).join(' | '))
+      }
 
-      case 'get_device':
-        return client.getDevice(input.deviceId as string)
+      // Recent tasks
+      if (tasks.length > 0) {
+        sections.push(`\nRecent tasks (${tasks.length}):`)
+        for (const t of tasks as Array<Record<string, unknown>>) {
+          const id = String(t.id ?? '').slice(0, 8)
+          sections.push(`  - ${id} → ${t.targetDevice ?? '?'} [${t.status}] ${t.type ?? ''}`)
+        }
+      } else {
+        sections.push('\nNo recent tasks.')
+      }
 
-      case 'exec_command':
-        return this.dispatchAndWait(input.device as string, {
-          type: 'exec',
-          command: input.command as string,
-          ...(input.cwd ? { cwd: input.cwd as string } : {}),
-          timeout: (input.timeout as number) ?? 60000
-        })
+      // Fetch additional context in parallel (non-critical)
+      const [schedules, groups, alerts] = await Promise.all([
+        client.listSchedules().catch(() => []),
+        client.listGroups().catch(() => []),
+        client.listAlerts({ active: true }).catch(() => [])
+      ])
 
-      case 'read_file':
-        return this.dispatchAndWait(input.device as string, {
-          type: 'read',
-          path: input.path as string
-        })
-
-      case 'write_file':
-        return this.dispatchAndWait(input.device as string, {
-          type: 'write',
-          path: input.path as string,
-          content: input.content as string
-        })
-
-      case 'http_request':
-        return this.dispatchAndWait(input.device as string, {
-          type: 'http',
-          method: input.method as string,
-          url: input.url as string,
-          ...(input.headers ? { headers: input.headers as Record<string, string> } : {}),
-          ...(input.body ? { body: input.body as string } : {})
-        })
-
-      case 'list_tasks':
-        return client.listTasks({
-          deviceId: input.deviceId as string | undefined,
-          status: input.status as string | undefined,
-          limit: (input.limit as number) ?? 20
-        })
-
-      case 'get_task':
-        return client.getTask(input.taskId as string)
-
-      case 'list_schedules':
-        return client.listSchedules(input.deviceId as string | undefined)
-
-      case 'create_schedule':
-        return client.createSchedule({
-          deviceId: input.deviceId as string,
-          name: input.name as string,
-          instruction: input.instruction as Record<string, unknown>,
-          cronExpression: input.cronExpression as string
-        })
-
-      case 'delete_schedule':
-        await client.deleteSchedule(input.scheduleId as string)
-        return { success: true }
-
-      case 'list_workflows':
-        return client.listWorkflows()
-
-      case 'create_workflow':
-        return client.createWorkflow({
-          name: input.name as string,
-          description: input.description as string | undefined,
-          steps: input.steps as Record<string, unknown>[]
-        })
-
-      case 'run_workflow':
-        return client.runWorkflow(input.workflowId as string)
-
-      case 'get_workflow_status':
-        return client.getWorkflowRunDetail(input.runId as string)
-
-      case 'list_groups':
-        return client.listGroups()
-
-      case 'create_group':
-        return client.createGroup({
-          name: input.name as string,
-          description: input.description as string | undefined,
-          tagFilter: input.tagFilter as string
-        })
-
-      case 'broadcast_command':
-        return client.broadcastCommand(input.groupId as string, input.command as string)
-
-      case 'check_minion_versions': {
-        const [devices, latest] = await Promise.all([
-          client.listDevices(),
-          client.getMinionLatest().catch(() => null)
-        ])
-        const latestVersion = (latest as Record<string, unknown> | null)?.version ?? 'unknown'
-        return {
-          latestVersion,
-          devices: devices.map((d) => ({
-            id: d.id,
-            name: d.name,
-            status: d.status,
-            version: (d as Record<string, unknown>).minionVersion ?? null,
-            upToDate:
-              latestVersion !== 'unknown' &&
-              (d as Record<string, unknown>).minionVersion === latestVersion
-          }))
+      if (schedules.length > 0) {
+        sections.push(`\nSchedules (${schedules.length}):`)
+        for (const s of schedules as Array<Record<string, unknown>>) {
+          sections.push(`  - ${s.name}: ${s.cronExpression} → ${s.deviceId}`)
         }
       }
 
-      case 'update_minion':
-        if (input.deviceId) {
-          return client.updateMinion(input.deviceId as string)
-        }
-        return client.updateAllMinions()
-
-      case 'get_device_metrics':
-        return client.getMetrics(input.deviceId as string, (input.limit as number) ?? 20)
-
-      case 'list_alerts':
-        return client.listAlerts({
-          deviceId: input.deviceId as string | undefined,
-          active: (input.activeOnly as boolean | undefined) ?? false
-        })
-
-      case 'open_terminal': {
-        const wsUrl = client.getTerminalWsUrl(input.deviceId as string)
-        return {
-          wsUrl,
-          deviceId: input.deviceId,
-          message: `Terminal session ready for device ${input.deviceId}. Open the Hive Terminal workspace view to connect.`
+      if (groups.length > 0) {
+        sections.push(`\nGroups (${groups.length}):`)
+        for (const g of groups as Array<Record<string, unknown>>) {
+          sections.push(`  - ${g.name} (tag: ${g.tagFilter})`)
         }
       }
 
-      case 'list_templates':
-        return client.listTemplates()
-
-      case 'run_template':
-        return client.runTemplate(input.templateId as string, {
-          deviceId: input.deviceId as string | undefined
-        })
-
-      case 'list_triggers':
-        return client.listTriggers()
-
-      case 'create_trigger':
-        return client.createTrigger({
-          name: input.name as string,
-          condition: input.condition as string,
-          conditionParams: input.conditionParams as Record<string, unknown> | undefined,
-          action: input.action as string,
-          actionParams: input.actionParams as Record<string, unknown>,
-          cooldownS: input.cooldownS as number | undefined
-        })
-
-      case 'list_health_checks':
-        return client.listHealthChecks({
-          deviceId: input.deviceId as string | undefined
-        })
-
-      case 'create_health_check':
-        return client.createHealthCheck({
-          deviceId: input.deviceId as string,
-          name: input.name as string,
-          type: input.type as string,
-          url: input.url as string | undefined,
-          command: input.command as string | undefined,
-          runFrom: input.runFrom as string | undefined,
-          intervalS: input.intervalS as number | undefined
-        })
-
-      case 'generate_fleet_report':
-        return client.generateFleetReport()
-
-      case 'get_latest_report':
-        return client.getLatestReport()
-
-      default:
-        throw new Error(`Unknown tool: ${name}`)
+      if (alerts.length > 0) {
+        sections.push(`\nActive alerts (${alerts.length}):`)
+        for (const a of alerts as Array<Record<string, unknown>>) {
+          sections.push(`  - ${a.severity}: ${a.message} (${a.deviceId})`)
+        }
+      }
+    } catch {
+      sections.push('Could not reach Hive server.')
     }
+
+    return sections.join('\n')
   }
 
-  private async dispatchAndWait(
+  // ---------------------------------------------------------------------------
+  // Action execution + summarization
+  // ---------------------------------------------------------------------------
+
+  private async summarizeResult(
+    userMessage: string,
     device: string,
-    instruction: Record<string, unknown>
-  ): Promise<unknown> {
+    command: string,
+    rawOutput: string
+  ): Promise<string> {
+    const summaryResponse = await this.ai.chat({
+      systemPrompt: [
+        'You are a fleet management assistant. The user asked something, and a command was run on a device.',
+        'Summarize the result in a clear, concise, human-readable way.',
+        'Use plain text, not markdown tables. Use bullet points or short paragraphs.',
+        'If it is disk space output, summarize the key filesystems and usage percentages.',
+        'If it is a process list, highlight the important ones.',
+        'Always mention which device the command ran on.',
+        'Keep it brief — 2-5 lines max for simple results.'
+      ].join('\n'),
+      messages: [
+        {
+          role: 'user',
+          content: `User asked: "${userMessage}"\n\nRan \`${command}\` on ${device}. Raw output:\n${rawOutput}`
+        }
+      ],
+      tier: 'fast',
+      task: 'hive-summarize'
+    })
+    return summaryResponse.content
+  }
+
+  private async executeAction(action: string, device: string, arg: string): Promise<string> {
     const client = this.requireClient()
+
+    const instruction: Record<string, unknown> =
+      action === 'exec'
+        ? { type: 'exec', command: arg, timeout: 60000 }
+        : action === 'read'
+          ? { type: 'read', path: arg }
+          : { type: 'write', path: arg, content: '' }
+
     const task = await dispatchAndPoll(client, device, instruction)
 
     if (task.status === 'failed' || task.status === 'timeout') {
-      const err = task.results?.[0]?.error ?? `Task ${task.status}`
-      throw new Error(err)
+      throw new Error(task.results?.[0]?.error ?? `Task ${task.status}`)
     }
 
-    return task.results?.[0]?.result ?? { status: task.status }
+    const result = task.results?.[0]?.result
+    // Extract stdout from exec results ({ stdout, stderr, exitCode })
+    if (result != null && typeof result === 'object') {
+      const r = result as Record<string, unknown>
+      if (typeof r.stdout === 'string') {
+        const parts: string[] = []
+        if (r.stdout.trim()) parts.push(r.stdout.trim())
+        if (typeof r.stderr === 'string' && r.stderr.trim()) {
+          parts.push(`stderr: ${r.stderr.trim()}`)
+        }
+        return parts.join('\n') || `Command completed (exit code ${r.exitCode ?? 0})`
+      }
+      return JSON.stringify(result, null, 2)
+    }
+    if (typeof result === 'string') return result
+    return `Task completed (${task.status})`
   }
 
   private requireClient(): HiveClient {

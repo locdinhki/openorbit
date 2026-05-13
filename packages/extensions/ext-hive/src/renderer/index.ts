@@ -12,7 +12,6 @@ import HiveAgentPanel from './components/HiveAgentPanel'
 const extension: ExtensionRendererAPI = {
   activate(ctx: ExtensionRendererContext): void {
     ctx.views.register('hive-sidebar', HiveDashboard)
-    ctx.views.register('hive-workspace', HiveDashboard)
     ctx.views.register('hive-agent', HiveAgentPanel)
   },
 

@@ -18,7 +18,6 @@
         { "id": "hive-sidebar", "label": "Hive", "icon": "server", "priority": 35 }
       ],
       "workspace": [
-        { "id": "hive-workspace", "label": "Hive Dashboard", "default": false },
         { "id": "hive-agent", "label": "Hive Agent", "default": false }
       ],
       "settings": [
@@ -38,9 +37,6 @@
     }
   },
   "dependencies": {
-    "@openorbit/core": "*",
-    "@xterm/xterm": "^5.5.0",
-    "@xterm/addon-fit": "^0.10.0",
-    "@xterm/addon-web-links": "^0.11.0"
+    "@openorbit/core": "*"
   }
 }

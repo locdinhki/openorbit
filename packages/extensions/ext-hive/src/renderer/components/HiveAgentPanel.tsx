@@ -164,20 +164,44 @@ function EmptyState({ onSuggestion }: { onSuggestion: (text: string) => void }):
 }
 
 function ThinkingIndicator(): React.JSX.Element {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(() => setElapsed((s) => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const label =
+    elapsed < 3
+      ? 'Thinking'
+      : elapsed < 8
+        ? 'Analyzing fleet data'
+        : elapsed < 15
+          ? 'Generating response'
+          : 'Still working'
+
   return (
     <div className="flex justify-start">
-      <div className="px-3 py-2 bg-[var(--cos-bg-secondary)] border border-[var(--cos-border)] rounded-lg">
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 bg-[var(--cos-text-tertiary)] rounded-full animate-pulse" />
-          <div
-            className="w-1.5 h-1.5 bg-[var(--cos-text-tertiary)] rounded-full animate-pulse"
-            style={{ animationDelay: '150ms' }}
-          />
-          <div
-            className="w-1.5 h-1.5 bg-[var(--cos-text-tertiary)] rounded-full animate-pulse"
-            style={{ animationDelay: '300ms' }}
-          />
+      <div className="max-w-[85%] px-3 py-2.5 bg-[var(--cos-bg-secondary)] border border-[var(--cos-border)] rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center justify-center w-4 h-4">
+            <div
+              className="absolute w-4 h-4 rounded-full border-2 border-[var(--cos-accent)] opacity-30"
+              style={{
+                animation: 'hive-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
+              }}
+            />
+            <div className="w-2 h-2 rounded-full bg-[var(--cos-accent)]" />
+          </div>
+          <span className="text-xs text-[var(--cos-text-secondary)]">{label}</span>
+          <span className="text-xs text-[var(--cos-text-tertiary)] tabular-nums">{elapsed}s</span>
         </div>
+        <style>{`
+          @keyframes hive-ping {
+            0% { transform: scale(1); opacity: 0.3; }
+            75%, 100% { transform: scale(2); opacity: 0; }
+          }
+        `}</style>
       </div>
     </div>
   )
